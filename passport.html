@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CLUCHZONE — Passaporte Game</title>
+  <meta name="description" content="Seu passaporte de jogador CLUCHZONE: estatísticas, conquistas, histórico de campeonatos e ranking."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+  <link rel="stylesheet" href="premium.css"/>
+  <link rel="stylesheet" href="chat.css"/>
+  <link rel="stylesheet" href="auth.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+  :root {
+    --pp-gold: #ffd700; --pp-cyan: #00d4ff; --pp-purple: #7b2ff7;
+    --pp-dark: #07090d; --pp-card: rgba(13,17,28,.95);
+    --pp-border: rgba(255,255,255,.07);
+  }
+  body { background: var(--pp-dark); color: #e2e8f0; font-family: 'Rajdhani',sans-serif; }
+
+  /* ── NAV ── */
+  #navbar { position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(7,9,13,.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--pp-border); }
+  .nav-inner { max-width:1280px;margin:0 auto;padding:0 24px;height:60px;display:flex;align-items:center;gap:20px; }
+  .nav-logo { font-family:'Orbitron',sans-serif;font-size:20px;font-weight:900;letter-spacing:3px;background:linear-gradient(135deg,#00d4ff,#7b2ff7,#ff2d7a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-decoration:none; }
+  .nav-links { display:flex;align-items:center;gap:4px;list-style:none;margin-left:8px; }
+  .nav-link { display:block;padding:6px 12px;font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:600;color:#718096;border-radius:8px;transition:all .3s;text-decoration:none; }
+  .nav-link:hover,.nav-link.active { color:#00d4ff;background:rgba(0,212,255,.08); }
+  .nav-actions { display:flex;align-items:center;gap:10px;margin-left:auto; }
+  .btn-nav-login { padding:6px 16px;background:transparent;border:1px solid rgba(255,255,255,.12);color:#e2e8f0;border-radius:8px;font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .3s; }
+  .btn-nav-login:hover { border-color:#00d4ff;color:#00d4ff; }
+  .btn-nav-register { padding:6px 16px;background:linear-gradient(135deg,#00d4ff,#7b2ff7);border:none;color:#fff;border-radius:8px;font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .3s; }
+  .btn-nav-register:hover { transform:translateY(-1px);box-shadow:0 4px 20px rgba(0,212,255,.4); }
+
+  /* ── BANNER ── */
+  .passport-banner {
+    height: 200px; margin-top: 60px;
+    background: linear-gradient(135deg, #0a0f1e 0%, #1a0a2e 30%, #0a1a1e 60%, #0f0a1e 100%);
+    position: relative; overflow: hidden;
+  }
+  .passport-banner::before {
+    content: ''; position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2300d4ff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+  .banner-glow { position:absolute;inset:0;background:radial-gradient(ellipse 70% 100% at 50% 120%, rgba(123,47,247,.25) 0%, transparent 70%); }
+  /* decorative lines on banner */
+  .banner-lines { position:absolute;inset:0;overflow:hidden; }
+  .banner-lines::before, .banner-lines::after {
+    content:''; position:absolute; height:1px;
+    background: linear-gradient(90deg, transparent, rgba(0,212,255,.15), transparent);
+    left:0; right:0;
+  }
+  .banner-lines::before { top:40%; } .banner-lines::after { top:70%; }
+
+  /* ── PROFILE SECTION (sits BELOW banner, no overlap) ── */
+  .passport-profile-section {
+    background: rgba(10,13,22,.98);
+    border-bottom: 1px solid rgba(255,255,255,.06);
+  }
+  .passport-profile {
+    max-width: 1280px; margin: 0 auto; padding: 0 32px;
+    display: flex; align-items: flex-start; gap: 24px;
+    position: relative;
+    transform: translateY(-56px); /* pull avatar half into banner */
+    margin-bottom: -56px;         /* compensate so siblings don't see gap */
+  }
+  /* avatar photo */
+  .avatar-wrap {
+    width: 112px; height: 112px; border-radius: 16px;
+    border: 4px solid #0a0d16;
+    overflow: hidden; flex-shrink: 0;
+    box-shadow: 0 8px 32px rgba(0,0,0,.8), 0 0 0 1px rgba(0,212,255,.2);
+    position: relative; background: #1a2030;
+  }
+  .avatar-wrap img { width:100%; height:100%; object-fit:cover; display:block; }
+  .avatar-level {
+    position: absolute; bottom: -1px; left: 0; right: 0;
+    text-align: center;
+    background: linear-gradient(135deg,#ffd700,#ff8c00);
+    color: #000; font-family:'Orbitron',sans-serif;
+    font-size: 9px; font-weight: 900; padding: 3px 0;
+    letter-spacing: 1px;
+  }
+  /* profile text block */
+  .profile-info {
+    flex: 1;
+    padding-top: 60px; /* text starts after avatar half-overlap zone */
+    padding-bottom: 20px;
+  }
+  .profile-nick {
+    font-family:'Orbitron',sans-serif; font-size: 26px; font-weight: 900;
+    color: #fff; letter-spacing: 1px;
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    text-shadow: 0 0 30px rgba(0,212,255,.3);
+  }
+  .premium-star {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 10px; border-radius: 20px;
+    background: linear-gradient(135deg,rgba(255,215,0,.2),rgba(255,140,0,.1));
+    border: 1px solid rgba(255,215,0,.5);
+    font-size: 11px; color: #ffd700; font-weight: 700;
+    box-shadow: 0 0 12px rgba(255,215,0,.2);
+  }
+  .profile-handle { font-size: 13px; color: #4a5568; margin-top: 4px; }
+  .profile-tags { display:flex;gap:8px;margin-top:10px;flex-wrap:wrap; }
+  .profile-tag {
+    padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700;
+    border: 1px solid; letter-spacing: .5px;
+  }
+  .tag-rank  { color:#00d4ff;border-color:rgba(0,212,255,.35);background:rgba(0,212,255,.08); }
+  .tag-tours { color:#c084fc;border-color:rgba(192,132,252,.35);background:rgba(192,132,252,.08); }
+  .tag-wins  { color:#00e676;border-color:rgba(0,230,118,.35);background:rgba(0,230,118,.08); }
+
+  .xp-bar-wrap { margin-top: 12px; display:flex;align-items:center;gap:10px; }
+  .xp-bar-track { flex:1;max-width:260px;height:5px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden; }
+  .xp-bar-fill { height:100%;background:linear-gradient(90deg,#7b2ff7,#00d4ff);border-radius:3px; }
+  .xp-bar-label { font-size:11px;color:#4a5568; }
+
+  /* ── STATS STRIP (BELOW profile row, fully visible) ── */
+  .passport-stats-strip {
+    max-width: 1280px; margin: 0 auto;
+    padding: 16px 32px 20px calc(32px + 112px + 24px); /* align with text */
+    display: flex; gap: 32px; flex-wrap: wrap;
+  }
+  .pstat { text-align: left; }
+  .pstat-num { font-family:'Orbitron',sans-serif;font-size:22px;font-weight:900;color:#fff; line-height:1; }
+  .pstat-lbl { font-size:10px;color:#4a5568;letter-spacing:1px;text-transform:uppercase;margin-top:3px; }
+  .pstat:nth-child(1) .pstat-num { color:#00d4ff; }
+  .pstat:nth-child(2) .pstat-num { color:#c084fc; }
+  .pstat:nth-child(3) .pstat-num { color:#00e676; }
+  .pstat:nth-child(4) .pstat-num { color:#ffd700; }
+
+  /* ── TABS ── */
+  .passport-tabs {
+    max-width:1280px;margin:32px auto 0;padding:0 32px;
+    display:flex;gap:4px;border-bottom:1px solid var(--pp-border);
+  }
+  .passport-tab {
+    padding:10px 18px;background:none;border:none;cursor:pointer;
+    font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;
+    color:#4a5568;letter-spacing:.5px;border-bottom:2px solid transparent;
+    transition:all .2s;
+  }
+  .passport-tab.active { color:#00d4ff;border-bottom-color:#00d4ff; }
+  .passport-tab:hover:not(.active) { color:#a0aec0; }
+
+  /* ── CONTENT ── */
+  .passport-content {
+    max-width:1280px;margin:0 auto;padding:32px;
+  }
+  .tab-pane { display:none; }
+  .tab-pane.active { display:block; }
+
+  /* ── GRID LAYOUT ── */
+  .pp-grid { display:grid;grid-template-columns:1fr 1fr;gap:20px; }
+  .pp-grid.three { grid-template-columns:1fr 1fr 1fr; }
+  .pp-grid.wide { grid-template-columns:2fr 1fr; }
+
+  /* ── CARD ── */
+  .pp-card {
+    background: var(--pp-card);
+    border: 1px solid var(--pp-border);
+    border-radius: 14px; padding: 22px;
+  }
+  .pp-card-title {
+    font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;
+    color:#4a5568;letter-spacing:2px;margin-bottom:18px;
+    display:flex;align-items:center;gap:8px;
+  }
+  .pp-card-title::before { content:'';display:block;width:3px;height:14px;background:var(--pp-cyan);border-radius:2px; }
+
+  /* ── GAME STAT ROWS ── */
+  .game-stat-row {
+    display:flex;align-items:center;gap:14px;padding:12px 0;
+    border-bottom:1px solid var(--pp-border);
+  }
+  .game-stat-row:last-child { border-bottom:none; }
+  .game-stat-icon { font-size:24px;flex-shrink:0; }
+  .game-stat-info { flex:1; }
+  .game-stat-name { font-size:14px;font-weight:700;color:#fff; }
+  .game-stat-sub  { font-size:11px;color:#718096;margin-top:1px; }
+  .game-stat-vals { display:flex;gap:14px; }
+  .stat-chip { text-align:center; }
+  .stat-chip-num { font-family:'Orbitron',sans-serif;font-size:16px;font-weight:900;color:var(--pp-cyan); }
+  .stat-chip-lbl { font-size:9px;color:#4a5568;letter-spacing:1px;text-transform:uppercase; }
+
+  /* ── MEDALS ── */
+  .medals-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:12px; }
+  .medal-item {
+    background:rgba(255,255,255,.03);border:1px solid var(--pp-border);
+    border-radius:10px;padding:12px;text-align:center;
+    transition:all .2s;
+  }
+  .medal-item:hover { border-color:rgba(255,215,0,.3);background:rgba(255,215,0,.04); }
+  .medal-icon { font-size:28px;margin-bottom:6px; }
+  .medal-name { font-size:10px;font-weight:700;color:#a0aec0;letter-spacing:.5px; }
+  .medal-desc { font-size:9px;color:#4a5568;margin-top:2px; }
+  .medal-locked { opacity:.3;filter:grayscale(1); }
+
+  /* ── HISTORY TABLE ── */
+  .hist-table { width:100%;border-collapse:collapse; }
+  .hist-table th { font-size:10px;color:#4a5568;letter-spacing:1px;text-transform:uppercase;padding:8px 12px;text-align:left;border-bottom:1px solid var(--pp-border); }
+  .hist-table td { padding:10px 12px;font-size:13px;color:#a0aec0;border-bottom:1px solid rgba(255,255,255,.03); }
+  .hist-table tr:hover td { background:rgba(255,255,255,.02);color:#e2e8f0; }
+  .hist-result { display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:.5px; }
+  .hist-result.win  { background:rgba(0,230,118,.15);color:#00e676;border:1px solid rgba(0,230,118,.3); }
+  .hist-result.top  { background:rgba(0,212,255,.12);color:#00d4ff;border:1px solid rgba(0,212,255,.3); }
+  .hist-result.loss { background:rgba(255,23,68,.1); color:#ff4444;border:1px solid rgba(255,23,68,.2); }
+
+  /* ── UX STATS ── */
+  .ux-kpi-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px; }
+  .ux-kpi {
+    background:rgba(255,255,255,.03);border:1px solid var(--pp-border);
+    border-radius:12px;padding:16px;text-align:center;
+  }
+  .ux-kpi-num { font-family:'Orbitron',sans-serif;font-size:22px;font-weight:900;margin-bottom:4px; }
+  .ux-kpi-lbl { font-size:10px;color:#4a5568;letter-spacing:1px;text-transform:uppercase; }
+  .kpi-cyan   { color:var(--pp-cyan); }
+  .kpi-gold   { color:var(--pp-gold); }
+  .kpi-green  { color:#00e676; }
+  .kpi-purple { color:#c084fc; }
+
+  .chart-wrap { position:relative;height:220px; }
+
+  /* ── CONNECTED GAMES ── */
+  .connected-games { display:flex;flex-wrap:wrap;gap:10px; }
+  .conn-game {
+    display:flex;align-items:center;gap:8px;
+    padding:8px 14px;border-radius:8px;
+    background:rgba(255,255,255,.04);border:1px solid var(--pp-border);
+    font-size:13px;font-weight:700;color:#cbd5e0;
+  }
+  .conn-game.linked { border-color:rgba(0,230,118,.3);color:#00e676;background:rgba(0,230,118,.06); }
+  .conn-game.unlinked { color:#4a5568; }
+
+  /* heatmap */
+  .heatmap { display:grid;grid-template-columns:repeat(52,1fr);gap:2px; }
+  .hm-cell {
+    aspect-ratio:1;border-radius:2px;
+    background:rgba(255,255,255,.05);
+    transition:all .15s;
+  }
+  .hm-cell.l1 { background:rgba(0,212,255,.2); }
+  .hm-cell.l2 { background:rgba(0,212,255,.45); }
+  .hm-cell.l3 { background:rgba(0,212,255,.7); }
+  .hm-cell.l4 { background:rgba(0,212,255,.95); }
+  .hm-cell:hover { transform:scale(1.3); }
+
+  @media(max-width:900px) {
+    .pp-grid,.pp-grid.three,.pp-grid.wide { grid-template-columns:1fr; }
+    .ux-kpi-grid { grid-template-columns:repeat(2,1fr); }
+    .medals-grid { grid-template-columns:repeat(3,1fr); }
+    .passport-profile { flex-direction:column;align-items:flex-start; }
+  }
+  </style>
+</head>
+<body>
+<div id="cursor-glow" style="position:fixed;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(0,212,255,.06) 0%,transparent 70%);pointer-events:none;z-index:9999;transform:translate(-50%,-50%);"></div>
+
+<!-- NAV -->
+<nav id="navbar">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">CLUCHZONE</a>
+    <ul class="nav-links">
+      <li><a href="index.html#games" class="nav-link">Jogos</a></li>
+      <li><a href="pubg.html" class="nav-link">PUBG</a></li>
+      <li><a href="csgo.html" class="nav-link">CS2</a></li>
+      <li><a href="brawlstars.html" class="nav-link">Brawl Stars</a></li>
+      <li><a href="passport.html" class="nav-link active">Passaporte</a></li>
+    </ul>
+    <div class="nav-actions">
+      <button class="btn-nav-login">Entrar</button>
+      <button class="btn-nav-register">Criar Conta</button>
+    </div>
+  </div>
+</nav>
+
+<!-- BANNER (background art only, no overlapping content) -->
+<div class="passport-banner">
+  <div class="banner-glow"></div>
+  <div class="banner-lines"></div>
+</div>
+
+<!-- PROFILE SECTION (cleanly below banner) -->
+<div class="passport-profile-section">
+  <div class="passport-profile">
+    <!-- Avatar photo -->
+    <div class="avatar-wrap">
+      <img src="images/passport_avatar.jpg" alt="Avatar de xDROPx" onerror="this.style.display='none';this.parentElement.style.background='linear-gradient(135deg,#7b2ff7,#00d4ff)'"/>
+      <div class="avatar-level">LVL 42</div>
+    </div>
+    <!-- Profile info -->
+    <div class="profile-info">
+      <div class="profile-nick">
+        xDROPx
+        <span class="premium-star">👑 PREMIUM</span>
+      </div>
+      <div class="profile-handle">@xdropx &nbsp;·&nbsp; Membro desde Jan 2024 &nbsp;·&nbsp; Brasil — SP</div>
+      <div class="profile-tags">
+        <span class="profile-tag tag-rank">💎 Diamond II</span>
+        <span class="profile-tag tag-tours">⚔️ 47 Campeonatos</span>
+        <span class="profile-tag tag-wins">🏆 12 Vitórias</span>
+      </div>
+      <div class="xp-bar-wrap">
+        <div class="xp-bar-track"><div class="xp-bar-fill" style="width:72%"></div></div>
+        <span class="xp-bar-label">7.200 / 10.000 XP &rarr; LVL 43</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats strip (fully below, no overlap) -->
+  <div class="passport-stats-strip">
+    <div class="pstat"><div class="pstat-num">Diamond II</div><div class="pstat-lbl">Ranking</div></div>
+    <div class="pstat"><div class="pstat-num">47</div><div class="pstat-lbl">Campeonatos</div></div>
+    <div class="pstat"><div class="pstat-num">12</div><div class="pstat-lbl">Vitórias</div></div>
+    <div class="pstat"><div class="pstat-num">R$2.4k</div><div class="pstat-lbl">Ganhos</div></div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="passport-tabs">
+  <button class="passport-tab active" data-tab="overview">📊 Visão Geral</button>
+  <button class="passport-tab" data-tab="stats">🎯 Estatísticas</button>
+  <button class="passport-tab" data-tab="ux">📈 UX Analytics</button>
+  <button class="passport-tab" data-tab="history">📜 Histórico</button>
+  <button class="passport-tab" data-tab="medals">🏅 Medalhas</button>
+</div>
+
+<!-- CONTENT -->
+<div class="passport-content">
+
+  <!-- ── OVERVIEW ── -->
+  <div class="tab-pane active" id="pane-overview">
+    <div class="pp-grid wide">
+
+      <!-- Left column -->
+      <div style="display:flex;flex-direction:column;gap:20px;">
+        <!-- Games connected -->
+        <div class="pp-card">
+          <div class="pp-card-title">JOGOS CONECTADOS</div>
+          <div class="connected-games">
+            <div class="conn-game linked">🪂 PUBG</div>
+            <div class="conn-game linked">🔫 CS2</div>
+            <div class="conn-game linked">⭐ Brawl Stars</div>
+            <div class="conn-game unlinked">⊕ Valorant</div>
+            <div class="conn-game unlinked">⊕ Apex Legends</div>
+            <div class="conn-game unlinked">⊕ League of Legends</div>
+          </div>
+        </div>
+
+        <!-- Stats by game -->
+        <div class="pp-card">
+          <div class="pp-card-title">ESTATÍSTICAS POR JOGO</div>
+          <div class="game-stat-row">
+            <div class="game-stat-icon">🪂</div>
+            <div class="game-stat-info"><div class="game-stat-name">PUBG</div><div class="game-stat-sub">Battle Royale · 284 partidas</div></div>
+            <div class="game-stat-vals">
+              <div class="stat-chip"><div class="stat-chip-num">3.2</div><div class="stat-chip-lbl">K/D</div></div>
+              <div class="stat-chip"><div class="stat-chip-num">18%</div><div class="stat-chip-lbl">Win</div></div>
+              <div class="stat-chip"><div class="stat-chip-num">147</div><div class="stat-chip-lbl">TOP10</div></div>
+            </div>
+          </div>
+          <div class="game-stat-row">
+            <div class="game-stat-icon">🔫</div>
+            <div class="game-stat-info"><div class="game-stat-name">CS2</div><div class="game-stat-sub">FPS Tático · 512 partidas</div></div>
+            <div class="game-stat-vals">
+              <div class="stat-chip"><div class="stat-chip-num">1.8</div><div class="stat-chip-lbl">K/D</div></div>
+              <div class="stat-chip"><div class="stat-chip-num">54%</div><div class="stat-chip-lbl">Win</div></div>
+              <div class="stat-chip"><div class="stat-chip-num">210</div><div class="stat-chip-lbl">ADR</div></div>
+            </div>
+          </div>
+          <div class="game-stat-row">
+            <div class="game-stat-icon">⭐</div>
+            <div class="game-stat-info"><div class="game-stat-name">Brawl Stars</div><div class="game-stat-sub">MOBA · 1.240 batalhas</div></div>
+            <div class="game-stat-vals">
+              <div class="stat-chip"><div class="stat-chip-num">48k</div><div class="stat-chip-lbl">Troféus</div></div>
+              <div class="stat-chip"><div class="stat-chip-num">61%</div><div class="stat-chip-lbl">Win</div></div>
+              <div class="stat-chip"><div class="stat-chip-num">14</div><div class="stat-chip-lbl">Brawlers</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right column -->
+      <div style="display:flex;flex-direction:column;gap:20px;">
+        <!-- Recent activity -->
+        <div class="pp-card">
+          <div class="pp-card-title">ÚLTIMAS CONQUISTAS</div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div style="display:flex;align-items:center;gap:10px;padding:8px;border-radius:8px;background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.15);">
+              <span style="font-size:24px;">🥇</span>
+              <div><div style="font-size:13px;font-weight:700;color:#ffd700;">1º Lugar — Erangel Cup</div><div style="font-size:11px;color:#718096;">2 dias atrás · R$ 500</div></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;padding:8px;border-radius:8px;background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.15);">
+              <span style="font-size:24px;">🏅</span>
+              <div><div style="font-size:13px;font-weight:700;color:#00d4ff;">Top 10 — CS2 Liga</div><div style="font-size:11px;color:#718096;">5 dias atrás</div></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;padding:8px;border-radius:8px;background:rgba(123,47,247,.06);border:1px solid rgba(123,47,247,.15);">
+              <span style="font-size:24px;">⚡</span>
+              <div><div style="font-size:13px;font-weight:700;color:#c084fc;">Nível 42 Atingido</div><div style="font-size:11px;color:#718096;">1 semana atrás</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ranking card -->
+        <div class="pp-card">
+          <div class="pp-card-title">RANKING GLOBAL</div>
+          <div style="text-align:center;padding:14px 0;">
+            <div style="font-size:40px;margin-bottom:8px;">💎</div>
+            <div style="font-family:'Orbitron',sans-serif;font-size:22px;font-weight:900;color:#fff;">Diamond II</div>
+            <div style="font-size:12px;color:#718096;margin-top:4px;">Top 8% da plataforma</div>
+            <div style="margin-top:14px;">
+              <div style="display:flex;justify-content:space-between;font-size:11px;color:#4a5568;margin-bottom:4px;"><span>Diamond II</span><span>Diamond I</span></div>
+              <div style="height:6px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden;">
+                <div style="height:100%;width:68%;background:linear-gradient(90deg,#00d4ff,#7b2ff7);border-radius:3px;"></div>
+              </div>
+              <div style="font-size:10px;color:#718096;margin-top:4px;text-align:right;">340 / 500 pts</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── STATS ── -->
+  <div class="tab-pane" id="pane-stats">
+    <div class="pp-grid three" style="margin-bottom:20px;">
+      <div class="pp-card">
+        <div class="pp-card-title">PUBG — MÉTRICAS</div>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div style="display:flex;justify-content:space-between;"><span style="color:#718096;">Kills médias/partida</span><span style="font-weight:700;color:#fff;">4.8</span></div>
+          <div style="display:flex;justify-content:space-between;"><span style="color:#718096;">Dano médio/partida</span><span style="font-weight:700;color:#fff;">312</span></div>
+          <div style="display:flex;justify-content:space-between;"><span style="color:#718096;">Sobrevivência média</span><span style="font-weight:700;color:#fff;">14min</span></div>
+          <div style="display:flex;justify-content:space-between;"><span style="color:#718096;">Taxa de Chicken Dinner</span><span style="font-weight:700;color:#00e676;">18%</span></div>
+          <div style="display:flex;justify-content:space-between;"><span style="color:#718096;">Kills em zonas</span><span style="font-weight:700;color:#ffd700;">62%</span></div>
+          <div style="display:flex;justify-content:space-between;"><span style="color:#718096;">Arma favorita</span><span style="font-weight:700;color:#fff;">M416</span></div>
+        </div>
+      </div>
+      <div class="pp-card">
+        <div class="pp-card-title">CS2 — MÉTRICAS</div>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div style="display:flex;justify-content:space-between;"><span style="color:#718096;">Headshot %</span><span style="font-weight:700;color:#fff;">41%</span></div>
+          <div style="display:flex;justify-content:space-between;"><span style="color:#718096;">HLTV Rating 2.0</span><span style="font-weight:700;color:#fff;">1.24</span></div>
+          <div style="display:flex;justify-content:space-between;"><span style="color:#718096;">Clutch 1vX (%)</span><span style="font-weight:700;color:#00e676;">34%</span></div>
+          <div style="display:flex;justify-content:space-between;"><span style="color:#718096;">Bombas plantadas</span><span style="font-weight:700;color:#fff;">180</span></div>
+          <div style="display:flex;justify-content:space-between;"><span style="color:#718096;">Mapa favorito</span><span style="font-weight:700;color:#fff;">Mirage</span></div>
+          <div style="display:flex;justify-content:space-between;"><span style="color:#718096;">Função principal</span><span style="font-weight:700;color:#ffd700;">Lurker</span></div>
+        </div>
+      </div>
+      <div class="pp-card">
+        <div class="pp-card-title">BRAWL STARS — MÉTRICAS</div>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div style="display:flex;justify-content:space-between;"><span style="color:#718096;">Troféus totais</span><span style="font-weight:700;color:#fff;">48.210</span></div>
+          <div style="display:flex;justify-content:space-between;"><span style="color:#718096;">Vitórias 3v3</span><span style="font-weight:700;color:#00e676;">61%</span></div>
+          <div style="display:flex;justify-content:space-between;"><span style="color:#718096;">Brawler favorito</span><span style="font-weight:700;color:#fff;">Leon</span></div>
+          <div style="display:flex;justify-content:space-between;"><span style="color:#718096;">Gemas coletadas</span><span style="font-weight:700;color:#fff;">24.800</span></div>
+          <div style="display:flex;justify-content:space-between;"><span style="color:#718096;">Showdown wins</span><span style="font-weight:700;color:#ffd700;">412</span></div>
+          <div style="display:flex;justify-content:space-between;"><span style="color:#718096;">Power Points totais</span><span style="font-weight:700;color:#fff;">89.430</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="pp-card">
+      <div class="pp-card-title">EVOLUÇÃO DE RANKING — ÚLTIMOS 6 MESES</div>
+      <div class="chart-wrap"><canvas id="rankingChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ── UX ANALYTICS ── -->
+  <div class="tab-pane" id="pane-ux">
+    <div class="ux-kpi-grid">
+      <div class="ux-kpi"><div class="ux-kpi-num kpi-cyan">284h</div><div class="ux-kpi-lbl">Tempo Total</div></div>
+      <div class="ux-kpi"><div class="ux-kpi-num kpi-gold">25.5%</div><div class="ux-kpi-lbl">Win Rate Geral</div></div>
+      <div class="ux-kpi"><div class="ux-kpi-num kpi-green">47</div><div class="ux-kpi-lbl">Campeonatos</div></div>
+      <div class="ux-kpi"><div class="ux-kpi-num kpi-purple">R$2.4k</div><div class="ux-kpi-lbl">Total Ganho</div></div>
+    </div>
+    <div class="pp-grid" style="margin-bottom:20px;">
+      <div class="pp-card">
+        <div class="pp-card-title">WIN RATE SEMANAL</div>
+        <div class="chart-wrap"><canvas id="winrateChart"></canvas></div>
+      </div>
+      <div class="pp-card">
+        <div class="pp-card-title">DISTRIBUIÇÃO DE JOGOS</div>
+        <div class="chart-wrap"><canvas id="gamesChart"></canvas></div>
+      </div>
+    </div>
+    <div class="pp-card">
+      <div class="pp-card-title">MAPA DE ATIVIDADE — ÚLTIMOS 12 MESES</div>
+      <div class="heatmap" id="heatmap" style="margin-bottom:8px;"></div>
+      <div style="display:flex;align-items:center;gap:6px;font-size:10px;color:#4a5568;justify-content:flex-end;">
+        Menos <div class="hm-cell" style="width:10px;height:10px;display:inline-block;"></div>
+        <div class="hm-cell l1" style="width:10px;height:10px;display:inline-block;"></div>
+        <div class="hm-cell l2" style="width:10px;height:10px;display:inline-block;"></div>
+        <div class="hm-cell l3" style="width:10px;height:10px;display:inline-block;"></div>
+        <div class="hm-cell l4" style="width:10px;height:10px;display:inline-block;"></div>
+        Mais
+      </div>
+    </div>
+    <div class="pp-grid" style="margin-top:20px;">
+      <div class="pp-card">
+        <div class="pp-card-title">COMPARATIVO COM A MÉDIA</div>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;"><span style="color:#a0aec0;">Win Rate</span><span style="color:#00e676;">Você: 25.5% vs Média: 14%</span></div><div style="height:6px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden;"><div style="height:100%;width:25.5%;background:#00e676;border-radius:3px;"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;"><span style="color:#a0aec0;">K/D Ratio</span><span style="color:#00d4ff;">Você: 3.2 vs Média: 1.4</span></div><div style="height:6px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden;"><div style="height:100%;width:70%;background:#00d4ff;border-radius:3px;"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;"><span style="color:#a0aec0;">Campeonatos/mês</span><span style="color:#ffd700;">Você: 7.8 vs Média: 2.1</span></div><div style="height:6px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden;"><div style="height:100%;width:85%;background:#ffd700;border-radius:3px;"></div></div></div>
+        </div>
+      </div>
+      <div class="pp-card">
+        <div class="pp-card-title">RECEITA POR CAMPEONATO</div>
+        <div class="chart-wrap"><canvas id="revenueChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── HISTORY ── -->
+  <div class="tab-pane" id="pane-history">
+    <div class="pp-card">
+      <div class="pp-card-title">HISTÓRICO DE CAMPEONATOS (47)</div>
+      <table class="hist-table">
+        <thead><tr><th>Campeonato</th><th>Jogo</th><th>Data</th><th>Posição</th><th>Resultado</th><th>Prêmio</th></tr></thead>
+        <tbody id="history-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── MEDALS ── -->
+  <div class="tab-pane" id="pane-medals">
+    <div class="pp-card">
+      <div class="pp-card-title">MEDALHAS E CONQUISTAS</div>
+      <div class="medals-grid" id="medals-grid"></div>
+    </div>
+  </div>
+
+</div><!-- /passport-content -->
+
+<div id="toast-container" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;align-items:center;gap:8px;"></div>
+
+<script src="premium.js"></script>
+<script src="chat.js"></script>
+<script>
+// ── TABS ──
+document.querySelectorAll('.passport-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.passport-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    const id = 'pane-' + tab.dataset.tab;
+    document.getElementById(id)?.classList.add('active');
+    // init charts if needed
+    if (tab.dataset.tab === 'stats' && !window.rankingChartInited) initStatCharts();
+    if (tab.dataset.tab === 'ux' && !window.uxChartInited) initUXCharts();
+  });
+});
+
+// ── CURSOR ──
+const glow = document.getElementById('cursor-glow');
+document.addEventListener('mousemove', e => { glow.style.left = e.clientX+'px'; glow.style.top = e.clientY+'px'; });
+
+// ── CHART DEFAULTS ──
+const chartDefaults = {
+  color: '#718096',
+  font: { family: 'Rajdhani', size: 12 }
+};
+Chart.defaults.color = '#718096';
+Chart.defaults.font.family = 'Rajdhani';
+
+function initStatCharts() {
+  window.rankingChartInited = true;
+  new Chart(document.getElementById('rankingChart'), {
+    type: 'line',
+    data: {
+      labels: ['Jan','Fev','Mar','Abr','Mai','Jun'],
+      datasets: [{
+        label: 'Pontos de Ranking',
+        data: [180, 220, 195, 280, 310, 340],
+        borderColor: '#00d4ff', backgroundColor: 'rgba(0,212,255,.08)',
+        tension: .4, fill: true, pointBackgroundColor: '#00d4ff', pointRadius: 5
+      }]
+    },
+    options: { responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false} },
+      scales:{ x:{grid:{color:'rgba(255,255,255,.04)'}}, y:{grid:{color:'rgba(255,255,255,.04)'}, min:100, max:500 } } }
+  });
+}
+
+function initUXCharts() {
+  window.uxChartInited = true;
+  // Win rate weekly
+  new Chart(document.getElementById('winrateChart'), {
+    type: 'bar',
+    data: {
+      labels: ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'],
+      datasets: [{ label:'Win %', data:[22,18,31,28,25,38,30],
+        backgroundColor:'rgba(0,212,255,.25)', borderColor:'#00d4ff',
+        borderWidth:1, borderRadius:6 }]
+    },
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{ x:{grid:{color:'rgba(255,255,255,.04)'}}, y:{grid:{color:'rgba(255,255,255,.04)'},min:0,max:50} } }
+  });
+
+  // Games distribution
+  new Chart(document.getElementById('gamesChart'), {
+    type: 'doughnut',
+    data: {
+      labels:['PUBG','CS2','Brawl Stars'],
+      datasets:[{ data:[45,35,20],
+        backgroundColor:['rgba(255,165,0,.7)','rgba(0,160,255,.7)','rgba(255,215,0,.7)'],
+        borderColor:['#ffa500','#00a0ff','#ffd700'], borderWidth:2 }]
+    },
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ position:'bottom', labels:{ color:'#a0aec0', padding:16 } } } }
+  });
+
+  // Revenue
+  new Chart(document.getElementById('revenueChart'), {
+    type: 'line',
+    data: {
+      labels:['Jan','Fev','Mar','Abr','Mai','Jun'],
+      datasets:[{ label:'R$', data:[0,200,150,500,300,1450],
+        borderColor:'#ffd700', backgroundColor:'rgba(255,215,0,.08)',
+        tension:.4, fill:true, pointBackgroundColor:'#ffd700', pointRadius:4 }]
+    },
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{ x:{grid:{color:'rgba(255,255,255,.04)'}}, y:{grid:{color:'rgba(255,255,255,.04)'},min:0} } }
+  });
+
+  // Heatmap
+  const hm = document.getElementById('heatmap');
+  if (hm) {
+    for (let i = 0; i < 364; i++) {
+      const cell = document.createElement('div');
+      const r = Math.random();
+      cell.className = 'hm-cell' + (r > .8 ? ' l4' : r > .6 ? ' l3' : r > .4 ? ' l2' : r > .2 ? ' l1' : '');
+      hm.appendChild(cell);
+    }
+  }
+}
+
+// ── HISTORY TABLE ──
+const histData = [
+  { name:'Erangel Survivor Cup', game:'PUBG', date:'07/07/2026', pos:'1º', result:'win', prize:'R$ 500' },
+  { name:'Copa Deagle', game:'CS2', date:'05/07/2026', pos:'5º', result:'top', prize:'R$ 50' },
+  { name:'Miramar Desert Clash', game:'PUBG', date:'03/07/2026', pos:'12º', result:'loss', prize:'—' },
+  { name:'Gem Grab Pro', game:'Brawl Stars', date:'01/07/2026', pos:'2º', result:'top', prize:'R$ 200' },
+  { name:'Dust II Open', game:'CS2', date:'28/06/2026', pos:'1º', result:'win', prize:'R$ 800' },
+  { name:'CLUCHZONE Masters', game:'PUBG', date:'25/06/2026', pos:'7º', result:'top', prize:'—' },
+  { name:'Liga BR Noturna', game:'CS2', date:'22/06/2026', pos:'1º', result:'win', prize:'R$ 350' },
+];
+const tbody = document.getElementById('history-tbody');
+if (tbody) {
+  histData.forEach(h => {
+    const tr = document.createElement('tr');
+    const lblMap = {win:'Vitória',top:'Top 10',loss:'Eliminado'};
+    tr.innerHTML = `<td>${h.name}</td><td>${h.game}</td><td>${h.date}</td><td>${h.pos}</td>
+      <td><span class="hist-result ${h.result}">${lblMap[h.result]}</span></td><td style="color:#ffd700;font-weight:700;">${h.prize}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+// ── MEDALS ──
+const medals = [
+  { icon:'🥇', name:'Campeão Absoluto', desc:'1º lugar em campeonato', locked:false },
+  { icon:'⚡', name:'Clutch King', desc:'5 clutches 1v3+', locked:false },
+  { icon:'🔥', name:'Em Chamas', desc:'3 vitórias seguidas', locked:false },
+  { icon:'🎯', name:'Sniper Elite', desc:'50% headshots', locked:false },
+  { icon:'✈️', name:'Chicken Dinner', desc:'Vença via avião PUBG', locked:false },
+  { icon:'💣', name:'Bomb Planted', desc:'Plante 100 bombas CS2', locked:false },
+  { icon:'💎', name:'Diamond Player', desc:'Atingir Diamond II', locked:false },
+  { icon:'🌟', name:'Estrela em Ascensão', desc:'Top 3 cinco vezes', locked:false },
+  { icon:'👑', name:'Organizador Pro', desc:'Crie 10 campeonatos (Premium)', locked:false },
+  { icon:'🌍', name:'Campeão Regional', desc:'Vença torneio regional', locked:true },
+  { icon:'🏆', name:'Lenda', desc:'Vença 25 campeonatos', locked:true },
+  { icon:'🚀', name:'Invicto', desc:'Torneio sem derrota', locked:true },
+];
+const mgrid = document.getElementById('medals-grid');
+if (mgrid) {
+  medals.forEach(m => {
+    const el = document.createElement('div');
+    el.className = `medal-item${m.locked ? ' medal-locked' : ''}`;
+    el.innerHTML = `<div class="medal-icon">${m.icon}</div><div class="medal-name">${m.name}</div><div class="medal-desc">${m.desc}</div>`;
+    mgrid.appendChild(el);
+  });
+}
+</script>
+<script src="auth.js"></script>
+</body>
+</html>

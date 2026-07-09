@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="room-name" content="CS2 Tactical Arena"/>
+  <meta name="room-icon" content="🔫"/>
+  <meta name="org-name" content="Staff_CS2"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CLUCHZONE — CS2 Tactical Arena</title>
+  <meta name="description" content="A principal arena de torneios competitivos de CS2 do Brasil. Crie campeonatos, monte equipes e jogue partidas oficiais." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;600;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="csgo.css" />
+  <link rel="stylesheet" href="chat.css"/>
+  <link rel="stylesheet" href="premium.css"/>
+  <link rel="stylesheet" href="auth.css"/>
+</head>
+<body class="csgo-theme">
+
+  <!-- Custom Cursor Glow -->
+  <div id="cursor-glow"></div>
+
+  <!-- Background Canvas for Smoke Particles -->
+  <canvas id="csgo-smoke-canvas"></canvas>
+
+  <!-- NAVBAR -->
+  <nav id="navbar" class="csgo-nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">CLUCHZONE</a>
+      <ul class="nav-links">
+        <li><a href="index.html#games" class="nav-link">Jogos</a></li>
+        <li><a href="pubg.html" class="nav-link">PUBG</a></li>
+        <li><a href="csgo.html" class="nav-link active">CS2</a></li>
+        <li><a href="brawlstars.html" class="nav-link">Brawl Stars</a></li>
+        <li><a href="passport.html" class="nav-link">🛂 Passaporte</a></li>
+      </ul>
+      <div class="nav-actions">
+        <!-- Bell Notifications -->
+        <div class="notif-badge-bell" id="btn-notif-bell">
+          🔔
+          <div class="notif-count-bubble" id="notif-count">2</div>
+        </div>
+        <a href="index.html" class="btn-login-back">VOLTAR AO HUB</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- NOTIFICATIONS BOX -->
+  <div class="nav-user-dropdown" id="notif-drawer" style="right: 80px; width: 260px; max-height: 300px; overflow-y: auto;">
+    <div class="dropdown-item" style="font-weight: 700; border-bottom: 1px solid var(--cs-border); padding-bottom: 8px;">Notificações</div>
+    <div id="notif-list">
+      <!-- Generated via JS -->
+    </div>
+  </div>
+
+  <!-- HERO PREMIUM CS2 BANNER -->
+  <header class="cs2-hero">
+    <div class="banner-glow"></div>
+    <div class="cs2-hero-content">
+      <span class="cs2-hero-tag">CS2 COMPETITIVE HUB</span>
+      <h1>PRONTO PARA O CONFRONTO</h1>
+      <p>Entre em torneios profissionais de Counter-Strike 2. Monte seu time ou inscreva-se em lobbys competitivos individuais controlados pelo nosso sistema automatizado.</p>
+      
+      <div class="cs2-hero-buttons">
+        <button class="cs2-btn cs2-btn-primary" id="btn-explore-tours">Explorar Campeonatos</button>
+        <button class="cs2-btn cs2-btn-secondary" id="btn-create-tour-hero">Criar Campeonato</button>
+      </div>
+    </div>
+
+    <!-- STATS STRIP -->
+    <div class="cs2-stats-strip">
+      <div class="cs2-stat-box">
+        <span class="cs2-stat-num accent" id="stat-active-camps">4</span>
+        <span class="cs2-stat-lbl">Campeonatos Ativos</span>
+      </div>
+      <div class="cs2-stat-box">
+        <span class="cs2-stat-num cyan" id="stat-registered-teams">32</span>
+        <span class="cs2-stat-lbl">Equipes Cadastradas</span>
+      </div>
+      <div class="cs2-stat-box">
+        <span class="cs2-stat-num green-text" id="stat-players-online">1.240</span>
+        <span class="cs2-stat-lbl">Jogadores Online</span>
+      </div>
+      <div class="cs2-stat-box">
+        <span class="cs2-stat-num gold" id="stat-prize-month">R$ 22.500</span>
+        <span class="cs2-stat-lbl">Prêmios do Mês</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="csgo-container">
+
+    <!-- SUB SECTION TABS -->
+    <nav class="cs2-tab-nav">
+      <button class="cs2-tab-btn active" data-pane="camps">🏆 Campeonatos</button>
+      <button class="cs2-tab-btn" data-pane="teams">👥 Equipes & Roster</button>
+      <button class="cs2-tab-btn" data-pane="leaderboards">📊 Rankings</button>
+      <button class="cs2-tab-btn" data-pane="feed">📰 Feed do Torneio</button>
+      <button class="cs2-tab-btn" id="tab-active-lobby" data-pane="lobby-details" style="display: none;">🎮 Partida Ativa</button>
+    </nav>
+
+    <!-- PANE: CAMPEONATOS -->
+    <section class="tab-pane active" id="pane-camps">
+      <!-- Perm Warning box (initially hidden) -->
+      <div class="permission-warning-card" id="perm-warning" style="display: none;">
+        <div class="perm-warn-title">Acesso Restrito</div>
+        <div class="perm-warn-desc">A criação de campeonatos está disponível apenas para Usuários Premium, Organizadores Verificados ou Administradores da plataforma.</div>
+        <div class="perm-warn-actions">
+          <button class="cs2-btn cs2-btn-primary" onclick="window.openPremiumModal()">Assinar Premium</button>
+          <button class="cs2-btn cs2-btn-secondary" id="btn-request-verification">Solicitar Verificação</button>
+        </div>
+      </div>
+
+      <!-- List of Tournaments -->
+      <div class="cs-sec-title">
+        <h2>Campeonatos em Destaque</h2>
+        <p>Inscreva sua equipe ou participe individualmente dos lobbys com chaves automatizadas.</p>
+      </div>
+      <div class="cs2-tour-grid" id="tours-list-container">
+        <!-- Skeleton Loaders -->
+        <div class="cs2-card skeleton" style="height: 380px;"></div>
+        <div class="cs2-card skeleton" style="height: 380px;"></div>
+        <div class="cs2-card skeleton" style="height: 380px;"></div>
+      </div>
+
+      <!-- CREATE TOURNAMENT PANEL (Initially Hidden) -->
+      <div class="create-tour-panel" id="panel-create-tour" style="display: none; margin-top: 40px;">
+        <div class="cs-sec-title">
+          <h2>🏆 Criar Novo Campeonato de CS2</h2>
+          <p>Defina as configurações, regras, data e premiação do campeonato.</p>
+        </div>
+        <form id="cs2-create-form" class="auth-form">
+          <div class="form-grid">
+            <div class="form-group full">
+              <label class="form-label">Nome do Campeonato *</label>
+              <input class="form-input" id="cs2-form-name" type="text" placeholder="Ex: CS2 Open Pro League #1" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">URL do Banner do Torneio</label>
+              <input class="form-input" id="cs2-form-banner" type="url" placeholder="https://exemplo.com/banner.jpg" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Região</label>
+              <select class="form-select" id="cs2-form-region">
+                <option value="Brasil - SP">Brasil - SP</option>
+                <option value="América do Sul">América do Sul</option>
+                <option value="América do Norte">América do Norte</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Data e Hora *</label>
+              <input class="form-input" id="cs2-form-date" type="datetime-local" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Máximo de Equipes</label>
+              <select class="form-select" id="cs2-form-max-teams">
+                <option value="8">8 Equipes</option>
+                <option value="16">16 Equipes</option>
+                <option value="32">32 Equipes</option>
+                <option value="64">64 Equipes</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Formato</label>
+              <select class="form-select" id="cs2-form-format">
+                <option value="MD1">MD1 (Melhor de 1)</option>
+                <option value="MD3">MD3 (Melhor de 3)</option>
+                <option value="MD5">MD5 (Melhor de 5)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tipo de Inscrição</label>
+              <select class="form-select" id="cs2-form-type">
+                <option value="Gratuito">Gratuito</option>
+                <option value="Pago">Pago</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Taxa por Jogador (R$)</label>
+              <input class="form-input" id="cs2-form-fee" type="number" min="0" value="0" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Premiação Total (R$) *</label>
+              <input class="form-input" id="cs2-form-prize" type="number" min="0" value="1000" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Distribuição 1º Lugar (%)</label>
+              <input class="form-input" id="cs2-form-p1" type="number" min="1" max="100" value="60" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Distribuição 2º Lugar (%)</label>
+              <input class="form-input" id="cs2-form-p2" type="number" min="1" max="100" value="30" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Distribuição 3º Lugar (%)</label>
+              <input class="form-input" id="cs2-form-p3" type="number" min="1" max="100" value="10" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Patrocinadores (separados por vírgula)</label>
+              <input class="form-input" id="cs2-form-sponsors" type="text" placeholder="Ex: HyperX, Intel, Twitch" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Discord do Campeonato</label>
+              <input class="form-input" id="cs2-form-discord" type="url" placeholder="https://discord.gg/exemplo" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Link da Transmissão</label>
+              <input class="form-input" id="cs2-form-stream" type="url" placeholder="https://twitch.tv/exemplo" />
+            </div>
+            <div class="form-group full">
+              <label class="form-label">Descrição & Regras do Campeonato</label>
+              <textarea class="form-textarea" id="cs2-form-rules" placeholder="Descreva os requisitos de participação, mapas elegíveis e comportamento..."></textarea>
+            </div>
+          </div>
+          <button type="submit" class="btn-create-tour" style="max-width: 320px; margin: 20px 0;">Publicar Campeonato</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- PANE: EQUIPES & ROSTER -->
+    <section class="tab-pane" id="pane-teams">
+      <div class="cs-sec-title">
+        <h2>Equipes Cadastradas</h2>
+        <p>Abaixo estão as equipes e os líderes cadastrados na CLUCHZONE competindo no CS2.</p>
+      </div>
+      <div id="teams-list-grid" class="cs2-tour-grid">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+    <!-- PANE: LEADERBOARD -->
+    <section class="tab-pane" id="pane-leaderboards">
+      <div class="cs-sec-title">
+        <h2>🏆 Rankings Competitivos de CS2</h2>
+        <p>Jogadores e equipes com melhor desempenho nas temporadas da CLUCHZONE.</p>
+      </div>
+      <div class="pp-grid">
+        <div class="pp-card">
+          <div class="pp-card-title">Ranking de Jogadores</div>
+          <table class="leaderboard-table">
+            <thead>
+              <tr><th>Rank</th><th>Jogador</th><th>Função</th><th>Vitórias</th><th>K/D</th><th>Pontos</th></tr>
+            </thead>
+            <tbody id="leaderboard-players-tbody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+        <div class="pp-card">
+          <div class="pp-card-title">Ranking de Equipes</div>
+          <table class="leaderboard-table">
+            <thead>
+              <tr><th>Rank</th><th>Equipe</th><th>Capitão</th><th>Vitórias</th><th>Histórico</th><th>Pontos</th></tr>
+            </thead>
+            <tbody id="leaderboard-teams-tbody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- PANE: STEAM-LIKE FEED -->
+    <section class="tab-pane" id="pane-feed">
+      <div class="cs-sec-title">
+        <h2>📰 Feed de Atividades CS2</h2>
+        <p>Fique por dentro das novidades, novas equipes e conquistas da comunidade.</p>
+      </div>
+      <div class="steam-feed" id="steam-feed-container">
+        <!-- Rendered via JS -->
+      </div>
+    </section>
+
+    <!-- PANE: ACTIVE TOURNAMENT DETAILS & BRACKET & SERVER & ORG PANEL -->
+    <section class="tab-pane" id="pane-lobby-details">
+      <!-- Active tournament header -->
+      <div class="server-room-card" style="border-color: var(--cs-accent); background: linear-gradient(135deg, rgba(255, 85, 0, 0.03) 0%, rgba(7, 9, 14, 0.98) 100%);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 14px;">
+          <div>
+            <h2 id="active-camp-title" style="font-family: 'Orbitron', sans-serif; font-size: 24px; font-weight: 900; color: #fff;">Copa Deagle Master</h2>
+            <p style="color: #718096; margin-top: 4px;">Organizado por: <strong id="active-camp-org" style="color: var(--cs-gold);">Staff_CS2</strong></p>
+          </div>
+          <div class="perm-warn-actions" style="margin-top: 0;">
+            <button class="cs2-btn cs2-btn-primary" id="btn-participate-active">Participar</button>
+            <button class="cs2-btn cs2-btn-secondary" id="btn-leave-active" style="display: none;">Cancelar Inscrição</button>
+            <button class="cs2-btn cs2-btn-secondary" id="btn-back-camps-list">Voltar aos Campeonatos</button>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 20px; border-top: 1px solid var(--cs-border); padding-top: 18px;">
+          <div class="cs2-meta-item"><span class="cs2-meta-label">Premiação</span><span class="cs2-meta-val gold" id="active-camp-prize">R$ 5.000</span></div>
+          <div class="cs2-meta-item"><span class="cs2-meta-label">Vagas</span><span class="cs2-meta-val" id="active-camp-slots">8/16 equipes</span></div>
+          <div class="cs2-meta-item"><span class="cs2-meta-label">Formato</span><span class="cs2-meta-val" id="active-camp-format">MD3</span></div>
+          <div class="cs2-meta-item"><span class="cs2-meta-label">Patrocinadores</span><span class="cs2-meta-val" id="active-camp-sponsors">HyperX, Intel</span></div>
+        </div>
+      </div>
+
+      <!-- SERVER CONNECTION INFO (Visible to registered players) -->
+      <div class="server-room-card" id="server-room-box" style="display: none;">
+        <div class="server-header">
+          <h3>🎮 Servidor da Partida Disponível</h3>
+          <span class="csgo-status-badge"><span class="pulse-light yellow"></span> PRONTO PARA CONEXÃO</span>
+        </div>
+        <p style="font-size: 13px; color: #a0aec0; margin-bottom: 12px;">Seu confronto está pronto. Copie o comando abaixo, abra o console do CS2 (tecla ~ ou ') e pressione Enter para entrar no servidor oficial da CLUCHZONE.</p>
+        <div class="server-code-box">
+          <span id="server-cmd-text">connect 45.122.9.10:27015; password cluchzone123</span>
+          <button class="btn-copy-code" id="btn-copy-server-cmd">Copiar Comando</button>
+        </div>
+      </div>
+
+      <!-- ORGANIZER MANAGEMENT PANEL -->
+      <div class="organizer-panel-card" id="organizer-control-panel" style="display: none;">
+        <h3 style="font-family: 'Orbitron', sans-serif; font-size: 14px; font-weight: 900; color: var(--cs-tr-orange); letter-spacing: 1px;">⚙️ PAINEL DO ORGANIZADOR</h3>
+        <p style="font-size: 12px; color: #718096; margin-top: 4px;">Gerencie as inscrições, servidores, bracket e resultados do campeonato.</p>
+        
+        <div class="org-panel-grid">
+          <button class="btn-org-action" id="btn-org-approve-teams">Aprovar Equipes (${activeApprovalsCount || 0})</button>
+          <button class="btn-org-action" id="btn-org-view-receipts">Visualizar Comprovantes</button>
+          <button class="btn-org-action" id="btn-org-edit-camp">Editar Torneio</button>
+          <button class="btn-org-action accent" id="btn-org-generate-bracket">Gerar Bracket (Chaves)</button>
+          <button class="btn-org-action" id="btn-org-configure-server">Configurar Servidor</button>
+          <button class="btn-org-action" id="btn-org-post-results">Inserir Placar</button>
+          <button class="btn-org-action" id="btn-org-close-camp" style="border-color: #ff3333; color: #ff3333;">Encerrar Torneio</button>
+        </div>
+
+        <!-- Dynamic form area inside organizer panel -->
+        <div id="org-dynamic-form" style="display: none; margin-top: 20px; padding-top: 20px; border-top: 1px dashed var(--cs-border);">
+          <!-- Form generated via JS depending on action -->
+        </div>
+      </div>
+
+      <!-- eSports Bracket Section -->
+      <div class="cs-sec-title">
+        <h2>Chaves e Chaveamento</h2>
+        <p>Acompanhe os confrontos em tempo real da oitavas até a grande final.</p>
+      </div>
+      <div class="bracket-wrapper" id="bracket-root">
+        <!-- Bracket nodes generated dynamically via JS -->
+      </div>
+
+      <!-- PREMIAÇÃO DESTAQUE -->
+      <div class="pp-card" style="margin-top: 30px;">
+        <div class="pp-card-title">Distribuição da Premiação</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; text-align: center; margin-top: 14px;">
+          <div style="background: rgba(255,215,0,0.06); padding: 16px; border-radius: 8px; border: 1px solid rgba(255,215,0,0.25);">
+            <div style="font-size: 32px;">🥇</div>
+            <div style="font-family: 'Orbitron', sans-serif; font-size: 18px; font-weight: 900; color: #fff; margin-top: 6px;" id="val-prize-1">R$ 3.000</div>
+            <div style="font-size: 11px; color: #718096; margin-top: 2px;">1º Lugar</div>
+          </div>
+          <div style="background: rgba(192,192,192,0.06); padding: 16px; border-radius: 8px; border: 1px solid rgba(192,192,192,0.25);">
+            <div style="font-size: 32px;">🥈</div>
+            <div style="font-family: 'Orbitron', sans-serif; font-size: 18px; font-weight: 900; color: #fff; margin-top: 6px;" id="val-prize-2">R$ 1.500</div>
+            <div style="font-size: 11px; color: #718096; margin-top: 2px;">2º Lugar</div>
+          </div>
+          <div style="background: rgba(205,127,50,0.06); padding: 16px; border-radius: 8px; border: 1px solid rgba(205,127,50,0.25);">
+            <div style="font-size: 32px;">🥉</div>
+            <div style="font-family: 'Orbitron', sans-serif; font-size: 18px; font-weight: 900; color: #fff; margin-top: 6px;" id="val-prize-3">R$ 500</div>
+            <div style="font-size: 11px; color: #718096; margin-top: 2px;">3º Lugar</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="hub-footer">
+    <div class="hub-footer-logo">CLUCHZONE</div>
+    <p>© 2026 CLUCHZONE Esports · Este website é uma plataforma independente de campeonatos ⚡</p>
+  </footer>
+
+  <!-- Profile Tooltip -->
+  <div class="player-profile-tooltip" id="player-tooltip">
+    <div class="tooltip-header">
+      <span class="tooltip-avatar">🔫</span>
+      <div>
+        <div class="tooltip-nick" id="tooltip-nick">PlayerName</div>
+        <div class="tooltip-rank" id="tooltip-rank">Global Elite</div>
+      </div>
+    </div>
+    <div class="tooltip-stats">
+      <div class="t-stat"><span>K/D:</span> <strong id="tooltip-kd">1.34</strong></div>
+      <div class="t-stat"><span>Vitórias:</span> <strong id="tooltip-wins">58%</strong></div>
+      <div class="t-stat"><span>Reputação:</span> <strong id="tooltip-rep" class="green-text">95%</strong></div>
+    </div>
+  </div>
+
+  <!-- MATCH DETAILS MODAL -->
+  <div class="modal-overlay" id="modal-match-details">
+    <div class="modal-box wide">
+      <button class="modal-close" onclick="document.getElementById('modal-match-details').classList.remove('open')">✕</button>
+      <div class="create-tour-header">
+        <div class="create-tour-icon">🎮</div>
+        <div>
+          <div class="create-tour-title" id="md-title">Confronto #1</div>
+          <div class="create-tour-sub" id="md-status">Status: Aguardando</div>
+        </div>
+      </div>
+
+      <div class="match-panel-grid">
+        <!-- Team A -->
+        <div class="match-roster-side">
+          <div class="roster-team-title">
+            <img class="match-team-logo" id="md-team-a-logo" src="" alt=""/>
+            <h4 id="md-team-a-name">Team A</h4>
+          </div>
+          <div id="md-team-a-players">
+            <!-- Generated dynamically -->
+          </div>
+        </div>
+
+        <!-- Team B -->
+        <div class="match-roster-side">
+          <div class="roster-team-title">
+            <img class="match-team-logo" id="md-team-b-logo" src="" alt=""/>
+            <h4 id="md-team-b-name">Team B</h4>
+          </div>
+          <div id="md-team-b-players">
+            <!-- Generated dynamically -->
+          </div>
+        </div>
+
+        <!-- Match details and maps -->
+        <div class="match-maps-history">
+          <div style="font-family: 'Orbitron', sans-serif; font-size: 11px; font-weight: 700; color: var(--cs-gold); margin-bottom: 8px;">DETALHES DA PARTIDA</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 13px;">
+            <div><span>Transmissão Oficial:</span> <a href="#" id="md-stream-link" style="color: var(--cs-accent-cyan);" target="_blank">Acessar Live</a></div>
+            <div><span>MVP do Confronto:</span> <strong id="md-mvp" style="color: #00ff88;">Aguardando resultado</strong></div>
+            <div><span>Histórico / Mapas:</span> <span id="md-maps">Mirage, Inferno, Dust II</span></div>
+            <div><span>Placar de Mapas:</span> <strong id="md-map-scores">0 - 0</strong></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST CONTAINER -->
+  <div id="toast-container" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;align-items:center;gap:8px;"></div>
+
+  <!-- Scripts -->
+  <script src="main.js"></script>
+  <script src="csgo.js"></script>
+  <script src="chat.js"></script>
+  <script src="premium.js"></script>
+  <script src="auth.js"></script>
+</body>
+</html>

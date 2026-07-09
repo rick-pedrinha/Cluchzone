@@ -1,0 +1,1191 @@
+/* ═══════════════════════════════════════════════════════════════
+   CLUCHZONE — CS2 COMPETITIVE ARENA JS
+   Full automated tournament engine, eSports brackets,
+   organizer dashboard, match rooms, Steam feed, and notifications.
+   ═══════════════════════════════════════════════════════════════ */
+
+'use strict';
+
+document.addEventListener('DOMContentLoaded', () => {
+
+  /* ─── DATA PERSISTENCE & INITIALIZATION ─── */
+  const STORAGE_KEY_CAMPS = 'cluchzone_cs2_camps';
+  const STORAGE_KEY_TEAMS = 'cluchzone_cs2_teams';
+  const STORAGE_KEY_PLAYERS = 'cluchzone_cs2_players';
+  const STORAGE_KEY_FEED = 'cluchzone_cs2_feed';
+  const STORAGE_KEY_NOTIFS = 'cluchzone_cs2_notifs';
+
+  // 1. Recover current user session
+  let currentUser = JSON.parse(localStorage.getItem('cluchzone_auth') || 'null');
+  let isPremiumUser = localStorage.getItem('cluchzone_premium') === 'true';
+
+  // Fallback guest session if not logged in
+  if (!currentUser) {
+    currentUser = { nick: "Jogador_Convidado", provider: "email", games: ["CS2"] };
+  }
+
+  // Check if user has permissions to create tournaments
+  function checkOrganizerPermission() {
+    return isPremiumUser || currentUser.provider === 'steam' || currentUser.role === 'admin' || currentUser.isVerifiedOrg;
+  }
+
+  // 2. Mock Data for Players
+  const defaultPlayers = [
+    { avatar: "🔫", nick: "Fallen_Fan", role: "AWPer", rank: "Global Elite", wins: 342, losses: 180, mvps: 24, kd: "1.42", points: 2850 },
+    { avatar: "⚡", nick: "Cold_Clone", role: "Entry", rank: "Supreme Master", wins: 280, losses: 210, mvps: 18, kd: "1.21", points: 2430 },
+    { avatar: "🎯", nick: "Zywoo_Step", role: "AWPer", rank: "Global Elite", wins: 412, losses: 160, mvps: 38, kd: "1.53", points: 3100 },
+    { avatar: "👑", nick: "S1mple_Soul", role: "IGL", rank: "Global Elite", wins: 390, losses: 175, mvps: 31, kd: "1.48", points: 2980 },
+    { avatar: "💥", nick: "Niko_Rifle", role: "Entry", rank: "Supreme Master", wins: 240, losses: 190, mvps: 22, kd: "1.32", points: 2150 },
+    { avatar: "🛡️", nick: "Apex_Lead", role: "Support", rank: "Legendary Eagle", wins: 185, losses: 160, mvps: 12, kd: "0.94", points: 1720 },
+    { avatar: "👤", nick: "Lurk_Star", role: "Lurker", rank: "Legendary Eagle", wins: 198, losses: 170, mvps: 14, kd: "1.08", points: 1810 },
+    { avatar: "🎮", nick: "SnipeKing_BR", role: "AWPer", rank: "Global Elite", wins: 310, losses: 140, mvps: 27, kd: "1.38", points: 2790 }
+  ];
+
+  let players = JSON.parse(localStorage.getItem(STORAGE_KEY_PLAYERS)) || defaultPlayers;
+
+  // 3. Mock Data for Teams
+  const defaultTeams = [
+    { logo: "🛡️", banner: "https://images.alphacoders.com/605/605592.jpg", name: "Imperial Esports", captain: "Fallen_Fan", vice: "Cold_Clone", members: ["Fallen_Fan", "Cold_Clone", "Lurk_Star", "Boltz_Fake", "Vini_Fake"], reserves: ["fnx_Fake"], stats: "5-1", history: ["win", "win", "loss", "win", "win"], ranking: 1, points: 4200 },
+    { logo: "⚡", banner: "https://images.alphacoders.com/908/908129.jpg", name: "FURIA Gaming", captain: "Zywoo_Step", vice: "S1mple_Soul", members: ["Zywoo_Step", "S1mple_Soul", "Niko_Rifle", "Kscerato_Fake", "Yuurih_Fake"], reserves: ["guerri_Fake"], stats: "4-2", history: ["win", "loss", "win", "win", "loss"], ranking: 2, points: 3850 },
+    { logo: "🐺", banner: "https://images.alphacoders.com/605/605592.jpg", name: "MIBR Classic", captain: "Apex_Lead", vice: "Karrigan_Brain", members: ["Apex_Lead", "Karrigan_Brain", "Rain_Spray", "Tacitus_Fake", "Hen1_Fake"], reserves: ["bit_Fake"], stats: "3-3", history: ["loss", "win", "loss", "win", "win"], ranking: 3, points: 3100 },
+    { logo: "💀", banner: "https://images.alphacoders.com/908/908129.jpg", name: "Pain Gaming", captain: "SnipeKing_BR", vice: "Biguzera_Fake", members: ["SnipeKing_BR", "Biguzera_Fake", "Kauez_Fake", "Lux_Fake", "Rodrigo_Fake"], reserves: ["Pkz_Fake"], stats: "2-4", history: ["loss", "loss", "win", "loss", "win"], ranking: 4, points: 2450 },
+    { logo: "🛡️", banner: "https://images.alphacoders.com/605/605592.jpg", name: "Legacy Team", captain: "Coldzera_Fan", vice: "Dumau_Fake", members: ["Coldzera_Fan", "Dumau_Fake", "Latto_Fake", "B4t_Fake", "Nekiz_Fake"], reserves: [], stats: "1-5", history: ["loss", "loss", "loss", "loss", "win"], ranking: 5, points: 1900 },
+    { logo: "🎮", banner: "https://images.alphacoders.com/908/908129.jpg", name: "RED Canids", captain: "Naza_Fake", vice: "Gla1ve_Clone", members: ["Naza_Fake", "Gla1ve_Clone", "Hardza_Fake", "Deagle_God", "Fire_Aim"], reserves: [], stats: "0-6", history: ["loss", "loss", "loss", "loss", "loss"], ranking: 6, points: 1200 },
+    { logo: "💣", banner: "https://images.alphacoders.com/605/605592.jpg", name: "ODDIK", captain: "Woody_Fake", vice: "Tuurtle_Fake", members: ["Woody_Fake", "Tuurtle_Fake", "Skull_Aim", "Sniper_Pro", "Entry_King"], reserves: [], stats: "3-1", history: ["win", "win", "win", "loss"], ranking: 7, points: 2900 },
+    { logo: "🏆", banner: "https://images.alphacoders.com/908/908129.jpg", name: "Fluxo", captain: "Zevy_Fake", vice: "Vsm_Fake", members: ["Zevy_Fake", "Vsm_Fake", "ArT_Fake", "Kye_Fake", "Chucky_Fake"], reserves: [], stats: "2-2", history: ["win", "loss", "win", "loss"], ranking: 8, points: 2600 }
+  ];
+
+  let teams = JSON.parse(localStorage.getItem(STORAGE_KEY_TEAMS)) || defaultTeams;
+
+  // 4. Mock Data for Tournaments
+  const defaultTournaments = [
+    {
+      id: 1,
+      name: "Copa Deagle Master",
+      banner: "https://images.alphacoders.com/133/1331776.jpeg",
+      status: "Registros Abertos", // "Em Andamento", "Finalizado", "Registros Abertos"
+      prize: "R$ 5.000",
+      p1: 60, p2: 30, p3: 10,
+      maxTeams: 8,
+      registeredTeams: ["Imperial Esports", "FURIA Gaming", "MIBR Classic", "Pain Gaming", "Legacy Team", "RED Canids"],
+      pendingApprovals: ["ODDIK", "Fluxo"],
+      format: "MD3",
+      elimination: "Eliminatória simples",
+      date: "2026-07-15T19:00",
+      region: "Brasil - SP",
+      organizer: "Staff_CS2",
+      sponsors: ["HyperX", "Intel", "Twitch"],
+      discord: "https://discord.gg/cluchzone",
+      stream: "https://twitch.tv/cluchzone",
+      rules: "Regras padrão CLUCHZONE de CS2. Anti-cheat CluchGuard é obrigatório. W.O. após 15 minutos do horário estipulado.",
+      server: { ip: "45.122.9.10", port: "27015", password: "cluchzone123", active: true },
+      bracket: {
+        round1: [
+          { id: 1, teamA: "Imperial Esports", teamB: "RED Canids", scoreA: 0, scoreB: 0, winner: null, status: "Aguardando", time: "19:00", mapScores: "0-0", mvp: "", maps: ["Mirage", "Inferno", "Anubis"] },
+          { id: 2, teamA: "FURIA Gaming", teamB: "Legacy Team", scoreA: 0, scoreB: 0, winner: null, status: "Aguardando", time: "19:30", mapScores: "0-0", mvp: "", maps: ["Ancient", "Nuke", "Vertigo"] },
+          { id: 3, teamA: "MIBR Classic", teamB: "Pain Gaming", scoreA: 0, scoreB: 0, winner: null, status: "Aguardando", time: "20:00", mapScores: "0-0", mvp: "", maps: ["Mirage", "Overpass", "Dust II"] },
+          { id: 4, teamA: "ODDIK", teamB: "Fluxo", scoreA: 0, scoreB: 0, winner: null, status: "Aguardando", time: "20:30", mapScores: "0-0", mvp: "", maps: ["Inferno", "Ancient", "Anubis"] }
+        ],
+        round2: [
+          { id: 5, teamA: "Aguardando", teamB: "Aguardando", scoreA: 0, scoreB: 0, winner: null, status: "Pendente", time: "21:00", mapScores: "0-0", mvp: "", maps: [] },
+          { id: 6, teamA: "Aguardando", teamB: "Aguardando", scoreA: 0, scoreB: 0, winner: null, status: "Pendente", time: "21:30", mapScores: "0-0", mvp: "", maps: [] }
+        ],
+        round3: [
+          { id: 7, teamA: "Aguardando", teamB: "Aguardando", scoreA: 0, scoreB: 0, winner: null, status: "Pendente", time: "22:00", mapScores: "0-0", mvp: "", maps: [] }
+        ],
+        thirdPlace: { id: 8, teamA: "Aguardando", teamB: "Aguardando", scoreA: 0, scoreB: 0, winner: null, status: "Pendente", time: "21:45", mapScores: "0-0", mvp: "", maps: [] }
+      },
+      history: []
+    },
+    {
+      id: 2,
+      name: "Dust II Shootout Tournament",
+      banner: "https://images.alphacoders.com/132/1328639.png",
+      status: "Finalizado",
+      prize: "R$ 2.500",
+      p1: 70, p2: 30, p3: 0,
+      maxTeams: 4,
+      registeredTeams: ["Imperial Esports", "FURIA Gaming", "Pain Gaming", "Legacy Team"],
+      pendingApprovals: [],
+      format: "MD1",
+      elimination: "Eliminatória simples",
+      date: "2026-07-02T18:00",
+      region: "América do Sul",
+      organizer: "Staff_CS2",
+      sponsors: ["Acer Predator", "Monster Energy"],
+      discord: "https://discord.gg/cluchzone",
+      stream: "https://twitch.tv/cluchzone2",
+      rules: "MD1 em todo o torneio com mapa Dust II. W.O. automático de 15 minutos.",
+      server: { ip: "45.122.9.12", port: "27015", password: "shootoutpass", active: false },
+      bracket: {
+        round1: [
+          { id: 1, teamA: "Imperial Esports", teamB: "Legacy Team", scoreA: 16, scoreB: 12, winner: "Imperial Esports", status: "Finalizado", time: "18:00", mapScores: "16-12", mvp: "Fallen_Fan", maps: ["Dust II"] },
+          { id: 2, teamA: "FURIA Gaming", teamB: "Pain Gaming", scoreA: 14, scoreB: 16, winner: "Pain Gaming", status: "Finalizado", time: "18:45", mapScores: "14-16", mvp: "SnipeKing_BR", maps: ["Dust II"] }
+        ],
+        round2: [
+          { id: 3, teamA: "Imperial Esports", teamB: "Pain Gaming", scoreA: 16, scoreB: 8, winner: "Imperial Esports", status: "Finalizado", time: "19:30", mapScores: "16-8", mvp: "Cold_Clone", maps: ["Dust II"] }
+        ]
+      },
+      history: [
+        { place: 1, team: "Imperial Esports", prize: "R$ 1.750" },
+        { place: 2, team: "Pain Gaming", prize: "R$ 750" },
+        { place: 3, team: "FURIA Gaming", prize: "R$ 0" }
+      ]
+    }
+  ];
+
+  let tournaments = JSON.parse(localStorage.getItem(STORAGE_KEY_CAMPS)) || defaultTournaments;
+
+  // 5. Mock Data for Feed
+  const defaultFeed = [
+    { id: 1, user: "Imperial Esports", action: "Equipe Campeã", target: "Copa Deagle Master", time: "2 dias atrás", likes: 24, likedByMe: false, comments: [{ user: "Zywoo_Step", text: "GG WP! Mereceram demais." }] },
+    { id: 2, user: "SnipeKing_BR", action: "Novo MVP do Torneio", target: "Dust II Shootout", time: "5 dias atrás", likes: 42, likedByMe: true, comments: [] },
+    { id: 3, user: "Legacy Team", action: "Nova Equipe Cadastrada", target: "CLUCHZONE Arena", time: "1 semana atrás", likes: 12, likedByMe: false, comments: [] }
+  ];
+
+  let feedItems = JSON.parse(localStorage.getItem(STORAGE_KEY_FEED)) || defaultFeed;
+
+  // 6. Mock Data for Notifications
+  const defaultNotifs = [
+    { id: 1, text: "Inscrição confirmada na Copa Deagle Master!", time: "10m atrás", read: false },
+    { id: 2, text: "O Servidor do confronto Imperial vs RED Canids está disponível.", time: "1h atrás", read: true }
+  ];
+
+  let notifications = JSON.parse(localStorage.getItem(STORAGE_KEY_NOTIFS)) || defaultNotifs;
+
+  let selectedCampId = null;
+
+  /* ─── DOM ELEMENTS & EVENT BINDINGS ─── */
+  const cursorGlow = document.getElementById('cursor-glow');
+  const toursListContainer = document.getElementById('tours-list-container');
+  const panelCreateTour = document.getElementById('panel-create-tour');
+  const cs2CreateForm = document.getElementById('cs2-create-form');
+  const btnExploreTours = document.getElementById('btn-explore-tours');
+  const btnCreateTourHero = document.getElementById('btn-create-tour-hero');
+  const activeTourLobby = document.getElementById('pane-lobby-details');
+  const permWarning = document.getElementById('perm-warning');
+  const btnRequestVerification = document.getElementById('btn-request-verification');
+  const btnNotifBell = document.getElementById('btn-notif-bell');
+  const notifDrawer = document.getElementById('notif-drawer');
+  const notifList = document.getElementById('notif-list');
+  const notifCount = document.getElementById('notif-count');
+  
+  // Stats Hero Counters
+  const statActiveCamps = document.getElementById('stat-active-camps');
+  const statRegisteredTeams = document.getElementById('stat-registered-teams');
+  const statPlayersOnline = document.getElementById('stat-players-online');
+  const statPrizeMonth = document.getElementById('stat-prize-month');
+
+  // Custom Cursor Glow follow mouse
+  document.addEventListener('mousemove', (e) => {
+    if (cursorGlow) {
+      cursorGlow.style.left = `${e.clientX}px`;
+      cursorGlow.style.top = `${e.clientY}px`;
+    }
+  });
+
+  /* ─── NOTIFICATION DRAWER ─── */
+  if (btnNotifBell && notifDrawer) {
+    btnNotifBell.addEventListener('click', (e) => {
+      e.stopPropagation();
+      notifDrawer.classList.toggle('open');
+    });
+
+    document.addEventListener('click', () => {
+      notifDrawer.classList.remove('open');
+    });
+  }
+
+  function renderNotifications() {
+    if (!notifList) return;
+    notifList.innerHTML = '';
+    
+    let unreadCount = 0;
+    notifications.forEach(n => {
+      if (!n.read) unreadCount++;
+      const el = document.createElement('div');
+      el.className = 'dropdown-item';
+      el.style.fontSize = '12px';
+      el.style.borderBottom = '1px solid rgba(255,255,255,0.02)';
+      el.innerHTML = `
+        <div style="font-weight: ${n.read ? 'normal' : '700'}; color: ${n.read ? '#a0aec0' : '#fff'};">${n.text}</div>
+        <div style="font-size: 9px; color: #4a5568; margin-top: 2px;">${n.time}</div>
+      `;
+      // Click marks as read
+      el.addEventListener('click', () => {
+        n.read = true;
+        saveData(STORAGE_KEY_NOTIFS, notifications);
+        renderNotifications();
+      });
+      notifList.appendChild(el);
+    });
+
+    if (notifCount) {
+      notifCount.textContent = unreadCount;
+      notifCount.style.display = unreadCount > 0 ? 'flex' : 'none';
+    }
+  }
+
+  function addNotification(text) {
+    notifications.unshift({
+      id: Date.now(),
+      text: text,
+      time: "Agora mesmo",
+      read: false
+    });
+    saveData(STORAGE_KEY_NOTIFS, notifications);
+    renderNotifications();
+    showToast(`🔔 ${text}`, '#00d4ff');
+  }
+
+  /* ─── TOASTS ─── */
+  function showToast(msg, color = '#00d4ff') {
+    const tc = document.getElementById('toast-container');
+    if (!tc) return;
+    const t = document.createElement('div');
+    t.style.cssText = `
+      padding: 12px 20px; border-radius: 8px; font-weight: 700; font-size: 13px;
+      margin-bottom: 8px; background: rgba(10,13,22,0.98); border: 1px solid ${color};
+      color: ${color}; box-shadow: 0 4px 20px rgba(0,0,0,0.6); font-family: 'Rajdhani', sans-serif;
+      transition: all 0.3s ease; transform: translateY(20px); opacity: 0;
+    `;
+    t.textContent = msg;
+    tc.appendChild(t);
+    
+    // Animate In
+    setTimeout(() => {
+      t.style.transform = 'translateY(0)';
+      t.style.opacity = '1';
+    }, 50);
+
+    // Animate Out
+    setTimeout(() => {
+      t.style.transform = 'translateY(-20px)';
+      t.style.opacity = '0';
+      setTimeout(() => t.remove(), 300);
+    }, 4000);
+  }
+
+  /* ─── DATA SYNC UTILS ─── */
+  function saveData(key, val) {
+    localStorage.setItem(key, JSON.stringify(val));
+  }
+
+  // Update Hero dynamic numbers
+  function updateHeroCounters() {
+    if (statActiveCamps) statActiveCamps.textContent = tournaments.filter(t => t.status !== 'Finalizado').length;
+    if (statRegisteredTeams) statRegisteredTeams.textContent = teams.length;
+    if (statPlayersOnline) {
+      const activeCount = 1200 + Math.floor(Math.random() * 80);
+      statPlayersOnline.textContent = activeCount.toLocaleString('pt-BR');
+    }
+  }
+
+  /* ─── PANE SWITCHING ─── */
+  const tabButtons = document.querySelectorAll('.cs2-tab-btn');
+  const tabPanes = document.querySelectorAll('.tab-pane');
+
+  tabButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabButtons.forEach(b => b.classList.remove('active'));
+      tabPanes.forEach(p => p.classList.remove('active'));
+      
+      btn.classList.add('active');
+      const targetPane = document.getElementById(`pane-${btn.dataset.pane}`);
+      if (targetPane) targetPane.classList.add('active');
+
+      if (btn.dataset.pane === 'leaderboards') renderRankings();
+      if (btn.dataset.pane === 'feed') renderFeed();
+      if (btn.dataset.pane === 'teams') renderTeams();
+    });
+  });
+
+  /* ─── CAMPEONATOS COMPONENT ─── */
+  function renderTournaments() {
+    if (!toursListContainer) return;
+    toursListContainer.innerHTML = '';
+
+    tournaments.forEach(camp => {
+      const card = document.createElement('div');
+      card.className = 'cs2-card';
+
+      const isLive = camp.status === "Em Andamento";
+      const isReg = camp.status === "Registros Abertos";
+      
+      let badgeClass = 'badge-reg';
+      if (isLive) badgeClass = 'badge-live';
+      if (camp.status === 'Finalizado') badgeClass = 'badge-done';
+
+      // Simulate a custom cover fallback if not provided
+      const bannerImg = camp.banner || 'https://images.alphacoders.com/133/1331776.jpeg';
+
+      card.innerHTML = `
+        <div class="cs2-card-banner" style="background-image: url('${bannerImg}')">
+          <span class="cs2-card-badge ${badgeClass}">${camp.status}</span>
+        </div>
+        <div class="cs2-card-body">
+          <h3>${camp.name}</h3>
+          <div class="cs2-card-meta-list">
+            <div class="cs2-meta-item">
+              <span class="cs2-meta-label">Premiação</span>
+              <span class="cs2-meta-val gold">${camp.prize}</span>
+            </div>
+            <div class="cs2-meta-item">
+              <span class="cs2-meta-label">Inscrições</span>
+              <span class="cs2-meta-val">${camp.registeredTeams.length}/${camp.maxTeams} Equipes</span>
+            </div>
+            <div class="cs2-meta-item">
+              <span class="cs2-meta-label">Formato</span>
+              <span class="cs2-meta-val">${camp.format} - ${camp.elimination}</span>
+            </div>
+            <div class="cs2-meta-item">
+              <span class="cs2-meta-label">Região</span>
+              <span class="cs2-meta-val">${camp.region}</span>
+            </div>
+          </div>
+          <button class="btn-card-action ${isReg ? 'btn-participar' : 'btn-ver-chaves'}" data-camp-id="${camp.id}">
+            ${isReg ? 'Participar do Torneio' : 'Visualizar Chaves'}
+          </button>
+        </div>
+      `;
+
+      card.querySelector('.btn-card-action').addEventListener('click', () => {
+        openActiveTournamentLobby(camp.id);
+      });
+
+      toursListContainer.appendChild(card);
+    });
+  }
+
+  // Hero click bindings
+  if (btnExploreTours) {
+    btnExploreTours.addEventListener('click', () => {
+      document.querySelector('[data-pane="camps"]').click();
+      toursListContainer.scrollIntoView({ behavior: 'smooth' });
+    });
+  }
+
+  if (btnCreateTourHero) {
+    btnCreateTourHero.addEventListener('click', () => {
+      document.querySelector('[data-pane="camps"]').click();
+      if (!checkOrganizerPermission()) {
+        permWarning.style.display = 'block';
+        panelCreateTour.style.display = 'none';
+        permWarning.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        permWarning.style.display = 'none';
+        panelCreateTour.style.display = 'block';
+        panelCreateTour.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+  }
+
+  if (btnRequestVerification) {
+    btnRequestVerification.addEventListener('click', () => {
+      showToast('📩 Solicitação de organizador enviado para análise da administração!', '#ffd700');
+      btnRequestVerification.textContent = 'Aguardando Verificação...';
+      btnRequestVerification.classList.add('disabled');
+      btnRequestVerification.disabled = true;
+    });
+  }
+
+  /* ─── CREATE TOURNAMENT LOGIC ─── */
+  if (cs2CreateForm) {
+    cs2CreateForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      const newCamp = {
+        id: tournaments.length + 1,
+        name: document.getElementById('cs2-form-name').value,
+        banner: document.getElementById('cs2-form-banner').value || 'https://images.alphacoders.com/133/1331776.jpeg',
+        status: "Registros Abertos",
+        prize: `R$ ${parseFloat(document.getElementById('cs2-form-prize').value).toLocaleString('pt-BR')}`,
+        p1: parseInt(document.getElementById('cs2-form-p1').value) || 60,
+        p2: parseInt(document.getElementById('cs2-form-p2').value) || 30,
+        p3: parseInt(document.getElementById('cs2-form-p3').value) || 10,
+        maxTeams: parseInt(document.getElementById('cs2-form-max-teams').value),
+        registeredTeams: [],
+        pendingApprovals: [],
+        format: document.getElementById('cs2-form-format').value,
+        elimination: "Eliminatória simples",
+        date: document.getElementById('cs2-form-date').value,
+        region: document.getElementById('cs2-form-region').value,
+        organizer: currentUser.nick,
+        sponsors: document.getElementById('cs2-form-sponsors').value.split(',').map(s => s.trim()).filter(s => s !== ""),
+        discord: document.getElementById('cs2-form-discord').value || "https://discord.gg/cluchzone",
+        stream: document.getElementById('cs2-form-stream').value || "https://twitch.tv/cluchzone",
+        rules: document.getElementById('cs2-form-rules').value || "Regras padrão aplicáveis.",
+        server: { ip: "45.122.9.22", port: "27015", password: "password", active: false },
+        bracket: { round1: [], round2: [], round3: [] }
+      };
+
+      tournaments.push(newCamp);
+      saveData(STORAGE_KEY_CAMPS, tournaments);
+      
+      // Feed update
+      feedItems.unshift({
+        id: Date.now(),
+        user: currentUser.nick,
+        action: "Novo campeonato criado",
+        target: newCamp.name,
+        time: "Agora mesmo",
+        likes: 0,
+        likedByMe: false,
+        comments: []
+      });
+      saveData(STORAGE_KEY_FEED, feedItems);
+
+      showToast("🏆 Torneio criado e publicado com sucesso!", "#00e676");
+      cs2CreateForm.reset();
+      panelCreateTour.style.display = 'none';
+      renderTournaments();
+      updateHeroCounters();
+    });
+  }
+
+  /* ─── ACTIVE TOURNAMENT PAGE & REGISTER FLOW ─── */
+  function openActiveTournamentLobby(campId) {
+    selectedCampId = campId;
+    const camp = tournaments.find(t => t.id === campId);
+    if (!camp) return;
+
+    // Show dynamic header info
+    document.getElementById('active-camp-title').textContent = camp.name;
+    document.getElementById('active-camp-org').textContent = camp.organizer;
+    document.getElementById('active-camp-prize').textContent = camp.prize;
+    document.getElementById('active-camp-slots').textContent = `${camp.registeredTeams.length}/${camp.maxTeams} equipes`;
+    document.getElementById('active-camp-format').textContent = camp.format;
+    document.getElementById('active-camp-sponsors').textContent = camp.sponsors.length > 0 ? camp.sponsors.join(', ') : 'Nenhum';
+
+    // Show prize distribution details
+    const totalVal = parseFloat(camp.prize.replace('R$', '').replace('.', '').trim()) || 1000;
+    document.getElementById('val-prize-1').textContent = `R$ ${((totalVal * camp.p1) / 100).toLocaleString('pt-BR')}`;
+    document.getElementById('val-prize-2').textContent = `R$ ${((totalVal * camp.p2) / 100).toLocaleString('pt-BR')}`;
+    document.getElementById('val-prize-3').textContent = `R$ ${((totalVal * camp.p3) / 100).toLocaleString('pt-BR')}`;
+
+    // Toggle Tab view to show details
+    const activeLobbyTab = document.getElementById('tab-active-lobby');
+    activeLobbyTab.style.display = 'inline-block';
+    activeLobbyTab.click();
+
+    // Check if player has registration
+    const userTeam = teams.find(t => t.captain === currentUser.nick || t.members.includes(currentUser.nick));
+    const btnParticipate = document.getElementById('btn-participate-active');
+    const btnLeave = document.getElementById('btn-leave-active');
+
+    if (userTeam) {
+      const isRegistered = camp.registeredTeams.includes(userTeam.name);
+      const isPending = camp.pendingApprovals.includes(userTeam.name);
+
+      if (isRegistered || isPending) {
+        btnParticipate.style.display = 'none';
+        btnLeave.style.display = 'inline-block';
+        btnLeave.textContent = isPending ? 'Inscrição Pendente (Cancelar)' : 'Cancelar Inscrição';
+      } else {
+        btnParticipate.style.display = 'inline-block';
+        btnLeave.style.display = 'none';
+      }
+    } else {
+      btnParticipate.style.display = 'inline-block';
+      btnLeave.style.display = 'none';
+    }
+
+    // Server Info box logic
+    const serverBox = document.getElementById('server-room-box');
+    if (camp.server && camp.server.active && userTeam && camp.registeredTeams.includes(userTeam.name)) {
+      serverBox.style.display = 'block';
+      document.getElementById('server-cmd-text').textContent = `connect ${camp.server.ip}:${camp.server.port}; password ${camp.server.password}`;
+    } else {
+      serverBox.style.display = 'none';
+    }
+
+    // Toggle Organizer panel
+    const orgPanel = document.getElementById('organizer-control-panel');
+    if (camp.organizer === currentUser.nick || currentUser.role === 'admin') {
+      orgPanel.style.display = 'block';
+      renderOrgPanelActions(camp);
+    } else {
+      orgPanel.style.display = 'none';
+    }
+
+    // Render Chaves (Bracket)
+    renderTournamentBracket(camp);
+  }
+
+  // Handle register / cancel flows
+  const btnParticipateActive = document.getElementById('btn-participate-active');
+  const btnLeaveActive = document.getElementById('btn-leave-active');
+  const btnBackCampsList = document.getElementById('btn-back-camps-list');
+
+  if (btnBackCampsList) {
+    btnBackCampsList.addEventListener('click', () => {
+      document.getElementById('tab-active-lobby').style.display = 'none';
+      document.querySelector('[data-pane="camps"]').click();
+    });
+  }
+
+  if (btnParticipateActive) {
+    btnParticipateActive.addEventListener('click', () => {
+      const camp = tournaments.find(t => t.id === selectedCampId);
+      if (!camp) return;
+
+      // Find user team
+      let userTeam = teams.find(t => t.captain === currentUser.nick || t.members.includes(currentUser.nick));
+      if (!userTeam) {
+        // Create a default fast simulated team for the guest player
+        userTeam = {
+          logo: "⚡",
+          banner: "https://images.alphacoders.com/908/908129.jpg",
+          name: `CLUCHZONE Team ${currentUser.nick}`,
+          captain: currentUser.nick,
+          vice: "Suporte_Bot",
+          members: [currentUser.nick, "Suporte_Bot", "Entry_Bot", "Lurk_Bot", "Awp_Bot"],
+          reserves: [],
+          stats: "0-0",
+          history: [],
+          ranking: teams.length + 1,
+          points: 1000
+        };
+        teams.push(userTeam);
+        saveData(STORAGE_KEY_TEAMS, teams);
+        showToast("⚡ Equipe automática criada para inscrição!", "#ffd700");
+      }
+
+      if (camp.registeredTeams.includes(userTeam.name) || camp.pendingApprovals.includes(userTeam.name)) {
+        showToast("⚠️ Sua equipe já está inscrita ou pendente!", "#ffd700");
+        return;
+      }
+
+      // Simulation of checkout screen / Pix validation
+      showToast("💳 Processando pagamento da taxa...", "#00d4ff");
+      setTimeout(() => {
+        camp.pendingApprovals.push(userTeam.name);
+        saveData(STORAGE_KEY_CAMPS, tournaments);
+        addNotification(`Pagamento aprovado. Inscrição de ${userTeam.name} enviada ao organizador!`);
+        openActiveTournamentLobby(camp.id);
+      }, 1500);
+    });
+  }
+
+  if (btnLeaveActive) {
+    btnLeaveActive.addEventListener('click', () => {
+      const camp = tournaments.find(t => t.id === selectedCampId);
+      if (!camp) return;
+
+      const userTeam = teams.find(t => t.captain === currentUser.nick || t.members.includes(currentUser.nick));
+      if (!userTeam) return;
+
+      camp.registeredTeams = camp.registeredTeams.filter(t => t !== userTeam.name);
+      camp.pendingApprovals = camp.pendingApprovals.filter(t => t !== userTeam.name);
+      saveData(STORAGE_KEY_CAMPS, tournaments);
+      
+      showToast("❌ Inscrição cancelada com sucesso.", "#ff3333");
+      openActiveTournamentLobby(camp.id);
+    });
+  }
+
+  // Copy server command to clipboard
+  const btnCopyServerCmd = document.getElementById('btn-copy-server-cmd');
+  if (btnCopyServerCmd) {
+    btnCopyServerCmd.addEventListener('click', () => {
+      const text = document.getElementById('server-cmd-text').textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        showToast("📋 Comando copiado para a área de transferência!", "#00ff88");
+      });
+    });
+  }
+
+  /* ─── ORGANIZER PANEL ACTIONS ─── */
+  const orgDynamicForm = document.getElementById('org-dynamic-form');
+
+  function renderOrgPanelActions(camp) {
+    const btnApprove = document.getElementById('btn-org-approve-teams');
+    btnApprove.textContent = `Aprovar Equipes (${camp.pendingApprovals.length})`;
+
+    // Action clicks
+    btnApprove.onclick = () => {
+      orgDynamicForm.style.display = 'block';
+      orgDynamicForm.innerHTML = `
+        <h4 style="font-family: 'Orbitron', sans-serif; font-size: 13px; color: #fff;">Aprovação de Equipes</h4>
+        ${camp.pendingApprovals.length === 0 ? '<p style="font-size: 12px; color: #4a5568; margin-top: 8px;">Nenhuma equipe pendente de aprovação.</p>' : ''}
+        <div style="display:flex; flex-direction:column; gap:8px; margin-top:10px;">
+          ${camp.pendingApprovals.map(teamName => `
+            <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.02); padding:8px 12px; border-radius:6px;">
+              <span>${teamName}</span>
+              <div style="display:flex; gap:8px;">
+                <button class="cs2-btn cs2-btn-primary" style="padding:6px 12px;" onclick="approveTeamAction('${teamName}')">Aprovar</button>
+                <button class="cs2-btn cs2-btn-secondary" style="padding:6px 12px;" onclick="rejectTeamAction('${teamName}')">Rejeitar</button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    };
+
+    document.getElementById('btn-org-view-receipts').onclick = () => {
+      orgDynamicForm.style.display = 'block';
+      orgDynamicForm.innerHTML = `
+        <h4 style="font-family: 'Orbitron', sans-serif; font-size: 13px; color: #fff;">Comprovantes de Inscrição Pix</h4>
+        <div style="display:flex; flex-direction:column; gap:8px; margin-top:10px;">
+          <div style="background:rgba(255,255,255,0.02); padding:12px; border-radius:6px; font-size:12px;">
+            <div><strong>Equipe:</strong> Imperial Esports</div>
+            <div><strong>Valor:</strong> R$ 50,00</div>
+            <div><strong>ID Transação:</strong> PIX98427498274X912</div>
+            <div style="color:#00ff88; margin-top:4px;">✓ Validado pelo CLUCHGUARD</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.02); padding:12px; border-radius:6px; font-size:12px;">
+            <div><strong>Equipe:</strong> FURIA Gaming</div>
+            <div><strong>Valor:</strong> R$ 50,00</div>
+            <div><strong>ID Transação:</strong> PIX12398471298X384</div>
+            <div style="color:#00ff88; margin-top:4px;">✓ Validado pelo CLUCHGUARD</div>
+          </div>
+        </div>
+      `;
+    };
+
+    document.getElementById('btn-org-edit-camp').onclick = () => {
+      orgDynamicForm.style.display = 'block';
+      orgDynamicForm.innerHTML = `
+        <h4 style="font-family: 'Orbitron', sans-serif; font-size: 13px; color: #fff;">Editar Campeonato</h4>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
+          <div>
+            <label style="font-size:10px; color:#4a5568;">ALTERAR DATA/HORA</label>
+            <input class="form-input" id="edit-date" type="datetime-local" value="${camp.date}"/>
+          </div>
+          <div>
+            <label style="font-size:10px; color:#4a5568;">PREMIAÇÃO TOTAL (R$)</label>
+            <input class="form-input" id="edit-prize" type="text" value="${camp.prize}"/>
+          </div>
+        </div>
+        <button class="cs2-btn cs2-btn-primary" style="margin-top:12px; padding:8px 16px;" onclick="saveEditCamp()">Salvar Alterações</button>
+      `;
+    };
+
+    document.getElementById('btn-org-configure-server').onclick = () => {
+      orgDynamicForm.style.display = 'block';
+      orgDynamicForm.innerHTML = `
+        <h4 style="font-family: 'Orbitron', sans-serif; font-size: 13px; color: #fff;">Configurar Servidor da Partida</h4>
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-top:10px;">
+          <div>
+            <label style="font-size:10px; color:#4a5568;">IP</label>
+            <input class="form-input" id="srv-ip" type="text" value="${camp.server.ip}"/>
+          </div>
+          <div>
+            <label style="font-size:10px; color:#4a5568;">PORTA</label>
+            <input class="form-input" id="srv-port" type="text" value="${camp.server.port}"/>
+          </div>
+          <div>
+            <label style="font-size:10px; color:#4a5568;">SENHA</label>
+            <input class="form-input" id="srv-pass" type="text" value="${camp.server.password}"/>
+          </div>
+        </div>
+        <button class="cs2-btn cs2-btn-primary" style="margin-top:12px; padding:8px 16px;" onclick="saveServerConfig()">Ativar Servidor & Notificar Equipes</button>
+      `;
+    };
+
+    document.getElementById('btn-org-post-results').onclick = () => {
+      orgDynamicForm.style.display = 'block';
+      const pendingMatches = [...camp.bracket.round1, ...camp.bracket.round2, ...camp.bracket.round3].filter(m => m.status === 'Aguardando' && m.teamA !== 'Aguardando' && m.teamB !== 'Aguardando');
+      
+      orgDynamicForm.innerHTML = `
+        <h4 style="font-family: 'Orbitron', sans-serif; font-size: 13px; color: #fff;">Lançar Resultados de Partidas</h4>
+        ${pendingMatches.length === 0 ? '<p style="font-size:12px; color:#4a5568; margin-top:8px;">Nenhuma partida ativa pronta para placar.</p>' : ''}
+        <div style="display:flex; flex-direction:column; gap:12px; margin-top:10px;">
+          ${pendingMatches.map(m => `
+            <div style="background:rgba(255,255,255,0.02); padding:12px; border-radius:6px; display:flex; flex-direction:column; gap:8px;">
+              <div style="display:flex; justify-content:space-between; font-weight:700;">
+                <span>${m.teamA} vs ${m.teamB}</span>
+                <span style="color:var(--cs-gold);">${m.maps.join(', ')}</span>
+              </div>
+              <div style="display:flex; gap:8px; align-items:center;">
+                <input class="form-input" type="number" id="score-a-${m.id}" style="width:70px;" placeholder="Score A"/>
+                <span>x</span>
+                <input class="form-input" type="number" id="score-b-${m.id}" style="width:70px;" placeholder="Score B"/>
+                <select class="form-select" id="mvp-${m.id}" style="flex:1;">
+                  <option value="">Escolha o MVP...</option>
+                  ${players.map(p => `<option value="${p.nick}">${p.nick}</option>`).join('')}
+                </select>
+                <button class="cs2-btn cs2-btn-primary" style="padding:8px 14px;" onclick="submitMatchResult(${m.id})">Confirmar</button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    };
+
+    document.getElementById('btn-org-close-camp').onclick = () => {
+      if (confirm("Deseja realmente finalizar o campeonato? O campeão será definido.")) {
+        camp.status = 'Finalizado';
+        saveData(STORAGE_KEY_CAMPS, tournaments);
+        showToast("🏆 Campeonato finalizado! Estatísticas atualizadas.", "#00ff88");
+        openActiveTournamentLobby(camp.id);
+      }
+    };
+
+    document.getElementById('btn-org-generate-bracket').onclick = () => {
+      if (camp.registeredTeams.length < 4) {
+        showToast("⚠️ Mínimo de 4 equipes inscritas necessário para gerar chaves!", "#ffd700");
+        return;
+      }
+      generateActiveBracket(camp);
+    };
+  }
+
+  // Global Actions helper functions (exposed to window)
+  window.approveTeamAction = (teamName) => {
+    const camp = tournaments.find(t => t.id === selectedCampId);
+    if (!camp) return;
+    camp.pendingApprovals = camp.pendingApprovals.filter(t => t !== teamName);
+    camp.registeredTeams.push(teamName);
+    saveData(STORAGE_KEY_CAMPS, tournaments);
+    showToast(`✓ Equipe ${teamName} aprovada no torneio!`, "#00ff88");
+    addNotification(`Equipe ${teamName} teve sua inscrição confirmada!`);
+    openActiveTournamentLobby(camp.id);
+  };
+
+  window.rejectTeamAction = (teamName) => {
+    const camp = tournaments.find(t => t.id === selectedCampId);
+    if (!camp) return;
+    camp.pendingApprovals = camp.pendingApprovals.filter(t => t !== teamName);
+    saveData(STORAGE_KEY_CAMPS, tournaments);
+    showToast(`❌ Equipe ${teamName} rejeitada no torneio.`, "#ff3333");
+    openActiveTournamentLobby(camp.id);
+  };
+
+  window.saveEditCamp = () => {
+    const camp = tournaments.find(t => t.id === selectedCampId);
+    if (!camp) return;
+    camp.date = document.getElementById('edit-date').value;
+    camp.prize = document.getElementById('edit-prize').value;
+    saveData(STORAGE_KEY_CAMPS, tournaments);
+    showToast("✓ Torneio atualizado!", "#00ff88");
+    openActiveTournamentLobby(camp.id);
+  };
+
+  window.saveServerConfig = () => {
+    const camp = tournaments.find(t => t.id === selectedCampId);
+    if (!camp) return;
+    camp.server.ip = document.getElementById('srv-ip').value;
+    camp.server.port = document.getElementById('srv-port').value;
+    camp.server.password = document.getElementById('srv-pass').value;
+    camp.server.active = true;
+    saveData(STORAGE_KEY_CAMPS, tournaments);
+    showToast("✓ Servidor ativado e capitães notificados via WebSocket (Simulação)!", "#00ff88");
+    
+    // Auto notify captains
+    camp.registeredTeams.forEach(teamName => {
+      const team = teams.find(t => t.name === teamName);
+      if (team) {
+        addNotification(`[Capitão ${team.captain}] Servidor pronto: connect ${camp.server.ip}:${camp.server.port}; password ${camp.server.password}`);
+      }
+    });
+
+    openActiveTournamentLobby(camp.id);
+  };
+
+  window.submitMatchResult = (matchId) => {
+    const camp = tournaments.find(t => t.id === selectedCampId);
+    if (!camp) return;
+
+    const match = [...camp.bracket.round1, ...camp.bracket.round2, ...camp.bracket.round3].find(m => m.id === matchId);
+    if (!match) return;
+
+    const sA = parseInt(document.getElementById(`score-a-${matchId}`).value);
+    const sB = parseInt(document.getElementById(`score-b-${matchId}`).value);
+    const mvpUser = document.getElementById(`mvp-${matchId}`).value;
+
+    if (isNaN(sA) || isNaN(sB)) {
+      showToast("⚠️ Preencha os scores corretamente!", "#ffd700");
+      return;
+    }
+
+    match.scoreA = sA;
+    match.scoreB = sB;
+    match.winner = sA > sB ? match.teamA : match.teamB;
+    match.status = 'Finalizado';
+    match.mapScores = `${sA}-${sB}`;
+    match.mvp = mvpUser;
+
+    // Award point stats to winner player
+    const mvpPlayerObj = players.find(p => p.nick === mvpUser);
+    if (mvpPlayerObj) {
+      mvpPlayerObj.mvps += 1;
+      mvpPlayerObj.points += 250;
+      saveData(STORAGE_KEY_PLAYERS, players);
+    }
+
+    // Auto advance winner in bracket logic
+    advanceWinnerInBracket(camp, match);
+
+    saveData(STORAGE_KEY_CAMPS, tournaments);
+    showToast(`✓ Partida #${matchId} encerrada. Vencedor: ${match.winner}`, "#00ff88");
+    
+    // Add feed target
+    feedItems.unshift({
+      id: Date.now(),
+      user: match.winner,
+      action: "Ganhou confronto",
+      target: `${match.teamA} vs ${match.teamB} (${match.mapScores})`,
+      time: "Agora mesmo",
+      likes: 0,
+      likedByMe: false,
+      comments: []
+    });
+    saveData(STORAGE_KEY_FEED, feedItems);
+
+    openActiveTournamentLobby(camp.id);
+  };
+
+  // eSports Bracket logic progression
+  function advanceWinnerInBracket(camp, match) {
+    const b = camp.bracket;
+    if (match.id === 1 || match.id === 2) {
+      const nextMatch = b.round2[0];
+      if (match.id === 1) nextMatch.teamA = match.winner;
+      else nextMatch.teamB = match.winner;
+      nextMatch.status = (nextMatch.teamA !== 'Aguardando' && nextMatch.teamB !== 'Aguardando') ? 'Aguardando' : 'Pendente';
+    }
+    if (match.id === 3 || match.id === 4) {
+      const nextMatch = b.round2[1];
+      if (match.id === 3) nextMatch.teamA = match.winner;
+      else nextMatch.teamB = match.winner;
+      nextMatch.status = (nextMatch.teamA !== 'Aguardando' && nextMatch.teamB !== 'Aguardando') ? 'Aguardando' : 'Pendente';
+    }
+    if (match.id === 5 || match.id === 6) {
+      const nextMatch = b.round3[0];
+      if (match.id === 5) nextMatch.teamA = match.winner;
+      else nextMatch.teamB = match.winner;
+      nextMatch.status = (nextMatch.teamA !== 'Aguardando' && nextMatch.teamB !== 'Aguardando') ? 'Aguardando' : 'Pendente';
+    }
+  }
+
+  function generateActiveBracket(camp) {
+    const list = [...camp.registeredTeams];
+    // Fill with simulated bots if not enough real
+    while (list.length < 8) {
+      list.push(`CluchGuard Bot Team ${list.length + 1}`);
+    }
+    
+    camp.bracket.round1 = [
+      { id: 1, teamA: list[0], teamB: list[7], scoreA: 0, scoreB: 0, winner: null, status: "Aguardando", time: "19:00", mapScores: "0-0", mvp: "", maps: ["Mirage", "Inferno"] },
+      { id: 2, teamA: list[1], teamB: list[6], scoreA: 0, scoreB: 0, winner: null, status: "Aguardando", time: "19:30", mapScores: "0-0", mvp: "", maps: ["Anubis", "Ancient"] },
+      { id: 3, teamA: list[2], teamB: list[5], scoreA: 0, scoreB: 0, winner: null, status: "Aguardando", time: "20:00", mapScores: "0-0", mvp: "", maps: ["Dust II", "Nuke"] },
+      { id: 4, teamA: list[3], teamB: list[4], scoreA: 0, scoreB: 0, winner: null, status: "Aguardando", time: "20:30", mapScores: "0-0", mvp: "", maps: ["Vertigo", "Mirage"] }
+    ];
+    camp.bracket.round2 = [
+      { id: 5, teamA: "Aguardando", teamB: "Aguardando", scoreA: 0, scoreB: 0, winner: null, status: "Pendente", time: "21:00", mapScores: "0-0", mvp: "", maps: [] },
+      { id: 6, teamA: "Aguardando", teamB: "Aguardando", scoreA: 0, scoreB: 0, winner: null, status: "Pendente", time: "21:30", mapScores: "0-0", mvp: "", maps: [] }
+    ];
+    camp.bracket.round3 = [
+      { id: 7, teamA: "Aguardando", teamB: "Aguardando", scoreA: 0, scoreB: 0, winner: null, status: "Pendente", time: "22:00", mapScores: "0-0", mvp: "", maps: [] }
+    ];
+
+    camp.status = "Em Andamento";
+    saveData(STORAGE_KEY_CAMPS, tournaments);
+    showToast("✓ Bracket chaveado gerado com sucesso!", "#00ff88");
+    openActiveTournamentLobby(camp.id);
+  }
+
+  /* ─── BRACKET RENDER ENGINE ─── */
+  const bracketRoot = document.getElementById('bracket-root');
+
+  function renderTournamentBracket(camp) {
+    if (!bracketRoot) return;
+    bracketRoot.innerHTML = '';
+
+    const b = camp.bracket;
+    if (!b || !b.round1 || b.round1.length === 0) {
+      bracketRoot.innerHTML = `
+        <div style="text-align:center; width:100%; color:#4a5568; padding:40px 0;">
+          <div>❌ Chaves não geradas.</div>
+          <div style="font-size:12px; margin-top:6px;">Aguardando o fechamento das inscrições e a geração do bracket pelo organizador.</div>
+        </div>
+      `;
+      return;
+    }
+
+    // Render Round 1 (Quartas)
+    const r1Col = createBracketRoundColumn("Quartas de Final", b.round1);
+    bracketRoot.appendChild(r1Col);
+
+    // Render Round 2 (Semis)
+    const r2Col = createBracketRoundColumn("Semifinais", b.round2);
+    bracketRoot.appendChild(r2Col);
+
+    // Render Round 3 (Grande Final)
+    const r3Col = createBracketRoundColumn("Grande Final", b.round3);
+    bracketRoot.appendChild(r3Col);
+  }
+
+  function createBracketRoundColumn(title, matches) {
+    const col = document.createElement('div');
+    col.className = 'bracket-round';
+    
+    const titleEl = document.createElement('div');
+    titleEl.className = 'bracket-round-title';
+    titleEl.textContent = title;
+    col.appendChild(titleEl);
+
+    matches.forEach(m => {
+      const node = document.createElement('div');
+      m.teamA = m.teamA || "Aguardando";
+      m.teamB = m.teamB || "Aguardando";
+      
+      node.className = 'bracket-match-node';
+      node.innerHTML = `
+        <div class="match-node-header">
+          <span>Partida #${m.id}</span>
+          <span style="color: ${m.status === 'Finalizado' ? '#ff3333' : '#00ff88'};">${m.status}</span>
+        </div>
+        <div class="match-node-team ${m.winner === m.teamA ? 'winner' : ''}">
+          <div class="match-team-left">
+            <span class="match-team-logo">🔫</span>
+            <span>${m.teamA}</span>
+          </div>
+          <span class="match-team-score">${m.scoreA}</span>
+        </div>
+        <div class="match-node-team ${m.winner === m.teamB ? 'winner' : ''}">
+          <div class="match-team-left">
+            <span class="match-team-logo">🔫</span>
+            <span>${m.teamB}</span>
+          </div>
+          <span class="match-team-score">${m.scoreB}</span>
+        </div>
+      `;
+
+      node.addEventListener('click', () => {
+        openMatchDetailsModal(m);
+      });
+
+      col.appendChild(node);
+    });
+
+    return col;
+  }
+
+  /* ─── MATCH DETAILS MODAL ─── */
+  function openMatchDetailsModal(match) {
+    const modal = document.getElementById('modal-match-details');
+    if (!modal) return;
+
+    document.getElementById('md-title').textContent = `${match.teamA} vs ${match.teamB}`;
+    document.getElementById('md-status').textContent = `Status: ${match.status} (${match.time})`;
+    document.getElementById('md-mvp').textContent = match.mvp || "Aguardando resultado";
+    document.getElementById('md-map-scores').textContent = match.mapScores || "0 - 0";
+    document.getElementById('md-maps').textContent = match.maps.length > 0 ? match.maps.join(', ') : 'Não definidos';
+
+    // Populate simulated lists of players
+    renderTeamModalRoster('md-team-a-name', 'md-team-a-players', match.teamA);
+    renderTeamModalRoster('md-team-b-name', 'md-team-b-players', match.teamB);
+
+    modal.classList.add('open');
+  }
+
+  function renderTeamModalRoster(titleId, containerId, teamName) {
+    document.getElementById(titleId).textContent = teamName;
+    const container = document.getElementById(containerId);
+    container.innerHTML = '';
+
+    const team = teams.find(t => t.name === teamName);
+    if (!team) {
+      // Fallback roster for bot teams
+      for (let i = 1; i <= 5; i++) {
+        const item = document.createElement('div');
+        item.className = 'match-roster-player';
+        item.innerHTML = `
+          <span class="match-player-nick">BotPlayer #${i} ${i === 1 ? '<span class="cpt">CPT</span>' : ''}</span>
+          <span style="font-size:11px; color:#4a5568;">Rifle</span>
+        `;
+        container.appendChild(item);
+      }
+      return;
+    }
+
+    team.members.forEach(m => {
+      const isCpt = team.captain === m;
+      const isSub = team.vice === m;
+      const item = document.createElement('div');
+      item.className = 'match-roster-player';
+      item.innerHTML = `
+        <span class="match-player-nick">${m} ${isCpt ? '<span class="cpt">CPT</span>' : isSub ? '<span class="cpt" style="color:#00d4ff; border-color:#00d4ff;">SUB</span>' : ''}</span>
+        <span style="font-size:11px; color:#4a5568;">Pro</span>
+      `;
+      container.appendChild(item);
+    });
+  }
+
+  /* ─── EQUIPES COMPONENT ─── */
+  const teamsListGrid = document.getElementById('teams-list-grid');
+
+  function renderTeams() {
+    if (!teamsListGrid) return;
+    teamsListGrid.innerHTML = '';
+
+    teams.forEach(t => {
+      const card = document.createElement('div');
+      card.className = 'cs2-card';
+      card.innerHTML = `
+        <div class="cs2-card-banner" style="background-image: url('${t.banner}')"></div>
+        <div class="cs2-card-body" style="text-align: center;">
+          <div style="font-size:36px; margin-top:-40px; background:#07090e; width:64px; height:64px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-left:auto; margin-right:auto; border:2px solid var(--cs-border);">${t.logo}</div>
+          <h3 style="margin-top:10px;">${t.name}</h3>
+          <div class="cs2-card-meta-list" style="margin-top:12px;">
+            <div class="cs2-meta-item">
+              <span class="cs2-meta-label">Capitão</span>
+              <span class="cs2-meta-val">${t.captain}</span>
+            </div>
+            <div class="cs2-meta-item">
+              <span class="cs2-meta-label">Integrantes</span>
+              <span class="cs2-meta-val">${t.members.length} Jogadores</span>
+            </div>
+            <div class="cs2-meta-item">
+              <span class="cs2-meta-label">Ranking</span>
+              <span class="cs2-meta-val">#${t.ranking}</span>
+            </div>
+            <div class="cs2-meta-item">
+              <span class="cs2-meta-label">Pontos</span>
+              <span class="cs2-meta-val" style="color:var(--cs-accent-cyan);">${t.points} pts</span>
+            </div>
+          </div>
+          <div style="border-top:1px solid var(--cs-border); padding-top:12px; font-size:12px; color:#718096; text-align:left;">
+            <strong>Roster Principal:</strong> ${t.members.join(', ')}
+          </div>
+        </div>
+      `;
+      teamsListGrid.appendChild(card);
+    });
+  }
+
+  /* ─── RANKINGS COMPONENT ─── */
+  const leaderboardPlayersTbody = document.getElementById('leaderboard-players-tbody');
+  const leaderboardTeamsTbody = document.getElementById('leaderboard-teams-tbody');
+
+  function renderRankings() {
+    if (leaderboardPlayersTbody) {
+      leaderboardPlayersTbody.innerHTML = '';
+      players.sort((a,b) => b.points - a.points).forEach((p, idx) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>#${idx+1}</strong></td>
+          <td><span style="margin-right:8px;">${p.avatar}</span><strong>${p.nick}</strong></td>
+          <td><span class="slot-badge">${p.role}</span></td>
+          <td>${p.wins} W</td>
+          <td style="color:#00ff88; font-weight:700;">${p.kd}</td>
+          <td style="color:var(--cs-accent); font-weight:900;">${p.points}</td>
+        `;
+        leaderboardPlayersTbody.appendChild(tr);
+      });
+    }
+
+    if (leaderboardTeamsTbody) {
+      leaderboardTeamsTbody.innerHTML = '';
+      teams.sort((a,b) => b.points - a.points).forEach((t, idx) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>#${idx+1}</strong></td>
+          <td><span style="margin-right:8px;">${t.logo}</span><strong>${t.name}</strong></td>
+          <td>${t.captain}</td>
+          <td>${t.stats}</td>
+          <td>${t.history.map(h => `<span class="hist-result ${h}" style="padding:1px 4px; font-size:9px; margin-right:2px;">${h === 'win' ? 'W' : 'L'}</span>`).join('')}</td>
+          <td style="color:var(--cs-accent-cyan); font-weight:900;">${t.points}</td>
+        `;
+        leaderboardTeamsTbody.appendChild(tr);
+      });
+    }
+  }
+
+  /* ─── STEAM FEED COMPONENT ─── */
+  const steamFeedContainer = document.getElementById('steam-feed-container');
+
+  function renderFeed() {
+    if (!steamFeedContainer) return;
+    steamFeedContainer.innerHTML = '';
+
+    feedItems.forEach(item => {
+      const el = document.createElement('div');
+      el.className = 'feed-item';
+      el.innerHTML = `
+        <div class="feed-item-header">
+          <div class="feed-item-avatar" style="display:flex; align-items:center; justify-content:center; font-size:16px;">📰</div>
+          <div class="feed-item-meta">
+            <span class="feed-item-user">${item.user}</span>
+            <span class="feed-item-time">${item.time}</span>
+          </div>
+        </div>
+        <div class="feed-item-content">
+          Postou um marco competitivo em <strong>${item.target}</strong>: <span style="color:var(--cs-accent-cyan); font-weight:700;">${item.action}</span>
+        </div>
+        <div class="feed-item-actions">
+          <button class="btn-feed-action ${item.likedByMe ? 'active' : ''}" onclick="likeFeedItem(${item.id})">👍 Curtir (${item.likes})</button>
+          <button class="btn-feed-action" onclick="toggleFeedComments(${item.id})">💬 Comentar (${item.comments.length})</button>
+          <button class="btn-feed-action" onclick="shareFeedItem('${item.target}')">📣 Compartilhar</button>
+        </div>
+        <div id="comments-box-${item.id}" style="display:none; margin-top:12px; padding-top:12px; border-top:1px dashed rgba(255,255,255,0.03);">
+          <div style="display:flex; gap:8px; margin-bottom:8px;">
+            <input class="form-input" style="height:32px; font-size:12px;" placeholder="Escreva um comentário..." id="new-comment-${item.id}"/>
+            <button class="cs2-btn cs2-btn-primary" style="padding:4px 12px; font-size:11px;" onclick="addFeedComment(${item.id})">Enviar</button>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            ${item.comments.map(c => `
+              <div style="font-size:12px; background:rgba(0,0,0,0.1); padding:6px 10px; border-radius:4px;">
+                <strong>${c.user}:</strong> <span style="color:#a0aec0;">${c.text}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+      steamFeedContainer.appendChild(el);
+    });
+  }
+
+  window.likeFeedItem = (id) => {
+    const item = feedItems.find(f => f.id === id);
+    if (!item) return;
+    if (item.likedByMe) {
+      item.likes--;
+      item.likedByMe = false;
+    } else {
+      item.likes++;
+      item.likedByMe = true;
+    }
+    saveData(STORAGE_KEY_FEED, feedItems);
+    renderFeed();
+  };
+
+  window.toggleFeedComments = (id) => {
+    const el = document.getElementById(`comments-box-${id}`);
+    if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+  };
+
+  window.addFeedComment = (id) => {
+    const input = document.getElementById(`new-comment-${id}`);
+    if (!input || !input.value.trim()) return;
+    const item = feedItems.find(f => f.id === id);
+    if (!item) return;
+
+    item.comments.push({
+      user: currentUser.nick,
+      text: input.value.trim()
+    });
+    saveData(STORAGE_KEY_FEED, feedItems);
+    renderFeed();
+    input.value = '';
+  };
+
+  window.shareFeedItem = (title) => {
+    showToast(`📢 Compartilhado em suas redes sociais: ${title}!`, '#00d4ff');
+  };
+
+  /* ─── INITIALIZATION CALL ─── */
+  function init() {
+    updateHeroCounters();
+    renderNotifications();
+
+    // Simular carregamento inicial com delay
+    setTimeout(() => {
+      renderTournaments();
+    }, 1200);
+  }
+
+  init();
+});
