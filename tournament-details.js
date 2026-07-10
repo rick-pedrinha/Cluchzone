@@ -379,6 +379,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             👑 <span style="color:${accentColor};font-weight:700;">${team?.captain || '—'}</span>
             · ${members.length}j · ${team?.region || 'SA'}
             ${pixBadge}
+            <a href="my-teams.html?teamName=${encodeURIComponent(name)}&campId=${camp.id}" style="
+              display:inline-flex; align-items:center; gap:3px;
+              font-family:'Orbitron',sans-serif; font-size:8px; font-weight:900;
+              color:#00d4ff; border:1px solid rgba(0,212,255,0.25); background:rgba(0,212,255,0.05);
+              padding:2px 6px; border-radius:4px; text-decoration:none; transition: all 0.2s;
+            " onmouseover="this.style.background='rgba(0,212,255,0.15)'" onmouseout="this.style.background='rgba(0,212,255,0.05)'">
+              💲 FINANCEIRO
+            </a>
           </div>
         </div>
         <div style="font-family:'Orbitron',sans-serif;font-size:8px;font-weight:900;padding:3px 7px;border-radius:4px;background:${statusColor};color:${borderColor};white-space:nowrap;">

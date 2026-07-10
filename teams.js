@@ -204,21 +204,72 @@ function initTeams() {
   /* ─── MY TEAMS & FACEIT DISPLAY (my-teams.html) ─── */
   const activeTeamSelector = document.getElementById('active-team-selector');
   let selectedTeamName = "";
+  
+  const params = new URLSearchParams(window.location.search);
+  const paramCampId = params.get('campId');
+  const paramTeamName = params.get('teamName');
+  let activeCamp = null;
+  let allTournaments = [];
+
+  async function loadActiveCamp() {
+    if (window.CluchAPI && paramCampId) {
+      allTournaments = await CluchAPI.getStore('cluchzone_cs2_camps', []);
+      activeCamp = allTournaments.find(c => String(c.id) === String(paramCampId));
+    }
+  }
+
+  window.payPlayerPix = (teamName, nickname) => {
+    if (!activeCamp) return;
+    showToast(`💸 Abrindo Pix para pagar taxa de ${nickname}...`, '#ffd700');
+    
+    setTimeout(() => {
+      activeCamp.playerPayments = activeCamp.playerPayments || {};
+      activeCamp.playerPayments[teamName] = activeCamp.playerPayments[teamName] || {};
+      activeCamp.playerPayments[teamName][nickname] = true;
+      
+      const targetTeam = teams.find(t => t.name === teamName);
+      if (targetTeam) {
+        const allPaid = targetTeam.members.every(m => {
+          return activeCamp.playerPayments[teamName][m] === true;
+        });
+        if (allPaid) {
+          activeCamp.pixStatus = activeCamp.pixStatus || {};
+          activeCamp.pixStatus[teamName] = 'pago';
+          showToast(`🟢 Todo o roster da equipe ${teamName} pagou! Inscrição confirmada.`, '#00ff88');
+        }
+      }
+
+      if (window.CluchAPI) {
+        CluchAPI.setStore('cluchzone_cs2_camps', allTournaments);
+      }
+      localStorage.setItem('cluchzone_cs2_camps', JSON.stringify(allTournaments));
+
+      renderTeamDetails(targetTeam);
+      showToast(`✓ Pix de ${nickname} confirmado com sucesso!`, '#00ff88');
+    }, 1200);
+  };
 
   function loadTeamsDashboard() {
     if (!activeTeamSelector) return;
     activeTeamSelector.innerHTML = '';
 
-    // Filter teams the user is part of (captain, vice, member, or reserve)
-    const myUserTeams = teams.filter(t => 
+    // Filter user associated teams
+    let myUserTeams = teams.filter(t => 
       t.captain === currentUser.nick || 
       t.vice === currentUser.nick || 
       t.members.includes(currentUser.nick) ||
       (t.reserves && t.reserves.includes(currentUser.nick))
     );
 
+    // If requested a team name from query string, include it even if user is admin/not in roster
+    if (paramTeamName) {
+      const extTeam = teams.find(t => t.name === paramTeamName);
+      if (extTeam && !myUserTeams.some(t => t.name === extTeam.name)) {
+        myUserTeams.unshift(extTeam);
+      }
+    }
+
     if (myUserTeams.length === 0) {
-      // Show default overview if user has no teams
       activeTeamSelector.innerHTML = `<option value="">Nenhuma equipe associada</option>`;
       activeTeamSelector.disabled = true;
       document.getElementById('active-team-name').textContent = "Nenhuma Equipe";
@@ -237,9 +288,13 @@ function initTeams() {
       activeTeamSelector.appendChild(opt);
     });
 
-    // Default select first team
-    selectedTeamName = myUserTeams[0].name;
-    renderTeamDetails(myUserTeams[0]);
+    // Select requested or default
+    const preSelect = paramTeamName && myUserTeams.some(t => t.name === paramTeamName) ? paramTeamName : myUserTeams[0].name;
+    activeTeamSelector.value = preSelect;
+    selectedTeamName = preSelect;
+    
+    const initialTeam = myUserTeams.find(t => t.name === preSelect);
+    if (initialTeam) renderTeamDetails(initialTeam);
 
     activeTeamSelector.addEventListener('change', () => {
       selectedTeamName = activeTeamSelector.value;
@@ -249,36 +304,27 @@ function initTeams() {
   }
 
   function renderTeamDetails(team) {
-    // Banner & Logo
     document.getElementById('active-team-banner').style.backgroundImage = `url('${team.banner}')`;
     document.getElementById('active-team-logo').innerHTML = team.logo || "🛡️";
     document.getElementById('active-team-name').textContent = team.name;
     document.getElementById('active-team-tag').textContent = team.tag || "IMP";
     document.getElementById('active-team-meta').innerHTML = `Região: ${team.region || 'SA'} &nbsp;·&nbsp; Capitão: <strong style="color:var(--tm-gold);">${team.captain}</strong> &nbsp;·&nbsp; Pontuação: ${team.points || 1000} pts`;
 
-    // Social Links
     const soc = team.socials || { discord: "#", steam: "#", insta: "#", site: "#" };
     document.getElementById('soc-discord').href = soc.discord;
     document.getElementById('soc-steam').href = soc.steam;
     document.getElementById('soc-insta').href = soc.insta;
     document.getElementById('soc-site').href = soc.site;
 
-    // Stats
     document.getElementById('stat-winrate').textContent = team.winrate || "50%";
     document.getElementById('stat-matches').textContent = team.matches || 0;
     document.getElementById('stat-rank').textContent = `#${team.ranking || 1}`;
     document.getElementById('stat-points').textContent = team.points || 1000;
 
-    // Roster rendering with permissions
     renderActiveRoster(team);
-
-    // Tournament history
     renderTournamentHistory(team);
-
-    // Trophies / Medals
     renderTeamMedals(team);
 
-    // Check Hierarchical Permissions (Captain and Vice can manage)
     const settingsCard = document.getElementById('team-settings-card');
     const disbandBtn = document.getElementById('btn-disband-team');
     const sentInvitesCard = document.getElementById('sent-invites-card');
@@ -288,11 +334,11 @@ function initTeams() {
 
     if (settingsCard) {
       settingsCard.style.display = (isCaptain || isVice) ? 'block' : 'none';
-      if (disbandBtn) disbandBtn.style.display = isCaptain ? 'block' : 'none'; // Only captain can disband
+      if (disbandBtn) disbandBtn.style.display = isCaptain ? 'block' : 'none';
     }
 
     if (sentInvitesCard) {
-      sentInvitesCard.style.display = (isCaptain || isVice) ? 'block' : 'none';
+      settingsCard.style.display = (isCaptain || isVice) ? 'block' : 'none';
       renderSentInvites(team);
     }
   }
@@ -302,21 +348,38 @@ function initTeams() {
     if (!list) return;
     list.innerHTML = '';
 
+    if (activeCamp) {
+      const banner = document.createElement('div');
+      banner.style.cssText = `
+        background: rgba(0, 212, 255, 0.05);
+        border: 1px solid rgba(0, 212, 255, 0.25);
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin-bottom: 16px;
+        font-family: 'Rajdhani', sans-serif;
+      `;
+      banner.innerHTML = `
+        <div style="font-family:'Orbitron',sans-serif; font-size:11px; font-weight:900; color:#00d4ff; letter-spacing:1px; margin-bottom:4px;">
+          📍 FINANCEIRO DA EQUIPE — TORNEIO: ${activeCamp.name.toUpperCase()}
+        </div>
+        <div style="font-size:12px; color:#a0aec0;">
+          Taxa por jogador: <strong style="color:#fff;">R$ 10,00</strong>. Integrantes verdes confirmaram o Pix individualmente. 
+          O capitão pode pagar a taxa de qualquer membro pendente clicando no botão ao lado.
+        </div>
+      `;
+      list.appendChild(banner);
+    }
+
     const isCaptainOrVice = team.captain === currentUser.nick || team.vice === currentUser.nick;
 
-    // 1. Render Captain
     list.appendChild(createMemberRow(team.captain, 'Capitão', 'badge-cpt', false, team.name));
-
-    // 2. Render Vice-Captain
     list.appendChild(createMemberRow(team.vice, 'Vice-Capitão', 'badge-vice', isCaptainOrVice && team.captain !== team.vice, team.name));
 
-    // 3. Render members
     team.members.forEach(member => {
       if (member === team.captain || member === team.vice) return;
       list.appendChild(createMemberRow(member, 'Titular', 'badge-player', isCaptainOrVice, team.name));
     });
 
-    // 4. Render reserves
     if (team.reserves) {
       team.reserves.forEach(reserve => {
         list.appendChild(createMemberRow(reserve, 'Reserva', 'badge-reserve', isCaptainOrVice, team.name));
@@ -338,11 +401,40 @@ function initTeams() {
       `;
     }
 
+    let nameStyle = 'color: #fff; font-weight: 700;';
+    let pixBadge = '';
+    
+    if (activeCamp) {
+      activeCamp.playerPayments = activeCamp.playerPayments || {};
+      activeCamp.playerPayments[teamName] = activeCamp.playerPayments[teamName] || {};
+      
+      const isPaid = activeCamp.playerPayments[teamName][nickname] || (nickname === teamName.split(' ')[0] && activeCamp.pixStatus?.[teamName] === 'pago');
+      
+      if (isPaid) {
+        nameStyle = 'color: #00ff88; font-weight: 700; text-shadow: 0 0 10px rgba(0,255,136,0.15);';
+        pixBadge = `<span style="font-family:'Orbitron',sans-serif;font-size:8px;font-weight:900;background:rgba(0,255,136,0.12);color:#00ff88;border:1px solid rgba(0,255,136,0.25);padding:2px 6px;border-radius:4px;margin-left:8px;text-transform:uppercase;">🟢 Pix Pago</span>`;
+      } else {
+        nameStyle = 'color: #ff3333; font-weight: 700; text-shadow: 0 0 10px rgba(255,51,51,0.15);';
+        pixBadge = `<span style="font-family:'Orbitron',sans-serif;font-size:8px;font-weight:900;background:rgba(255,51,51,0.12);color:#ff3333;border:1px solid rgba(255,51,51,0.25);padding:2px 6px;border-radius:4px;margin-left:8px;text-transform:uppercase;">🔴 Pix Pendente</span>`;
+        
+        const isUserCaptain = teams.find(t => t.name === teamName)?.captain === currentUser.nick;
+        if (isUserCaptain) {
+          actionButtons = `
+            <div class="roster-member-actions">
+              <button class="btn-roster-action" onclick="window.payPlayerPix('${teamName}', '${nickname}')" style="background:rgba(255,215,0,0.1);color:#ffd700;border:1px solid rgba(255,215,0,0.35);border-radius:4px;padding:4px 8px;font-family:'Orbitron',sans-serif;font-size:9px;font-weight:900;cursor:pointer;">💸 Pagar Pix</button>
+            </div>
+          `;
+        } else {
+          actionButtons = '';
+        }
+      }
+    }
+
     el.innerHTML = `
       <div class="roster-member-left">
         <div class="roster-member-avatar">👤</div>
         <div>
-          <span class="roster-member-nick">${nickname}</span>
+          <span class="roster-member-nick" style="${nameStyle}">${nickname}</span>
           <span class="roster-member-badge ${badgeClass}">${roleLabel}</span>
         </div>
       </div>
@@ -694,10 +786,22 @@ function initTeams() {
   }
 
   /* ─── INITIALIZATION ─── */
-  loadTeamsDashboard();
-  renderPendingIncomingInvites();
-  renderNotificationsNav();
+  async function syncInitialData() {
+    if (window.CluchAPI) {
+      teams = await CluchAPI.getStore(STORAGE_KEY_TEAMS, teams);
+      notifications = await CluchAPI.getStore(STORAGE_KEY_NOTIFS, notifications);
+    }
+  }
 
+  async function startup() {
+    await syncInitialData();
+    await loadActiveCamp();
+    loadTeamsDashboard();
+    renderPendingIncomingInvites();
+    renderNotificationsNav();
+  }
+
+  startup();
 }
 
 if (document.readyState === 'loading') {
