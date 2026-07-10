@@ -13,6 +13,9 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 
+const { requireAuth } = require('./middleware/auth.js');
+const { requireRole } = require('./middleware/rbac.js');
+
 const PORT = Number(process.env.PORT || 3001);
 const ROOT = path.join(__dirname, '..');
 const DATA_DIR = path.join(ROOT, 'data');
@@ -254,6 +257,32 @@ app.post('/api/auth/oauth', (req, res) => {
 app.post('/api/auth/logout', (_req, res) => {
   res.json({ ok: true });
 });
+
+// ── Protected store routes (require auth) ─────────────────────
+app.post('/api/store/cluchzone_cs2_camps', requireAuth, requireRole('organizer'), (req, res) => {
+  const db = readDb();
+  const body = req.body;
+  db.store['cluchzone_cs2_camps'] = Object.prototype.hasOwnProperty.call(body, 'value') ? body.value : body;
+  writeDb(db);
+  res.json({ ok: true, key: 'cluchzone_cs2_camps', value: db.store['cluchzone_cs2_camps'] });
+});
+
+app.post('/api/store/cluchzone_auth', requireAuth, (req, res) => {
+  const db = readDb();
+  const body = req.body;
+  db.store['cluchzone_auth'] = Object.prototype.hasOwnProperty.call(body, 'value') ? body.value : body;
+  writeDb(db);
+  res.json({ ok: true, key: 'cluchzone_auth' });
+});
+
+// ── Verify token endpoint ─────────────────────────────────────
+app.get('/api/auth/me', requireAuth, (req, res) => {
+  res.json({ ok: true, user: req.user });
+});
+
+// ── Tournament routes ─────────────────────────────────────────
+const tournamentRoutes = require('./routes/tournaments.js');
+app.use('/api/tournaments', tournamentRoutes);
 
 // ── 404 handler ────────────────────────────────────────────────
 app.use('/api/*', (_req, res) => {

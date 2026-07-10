@@ -18,6 +18,12 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html'),
+        csgo: resolve(__dirname, 'csgo.html'),
+        'tournament-details': resolve(__dirname, 'tournament-details.html'),
+        'my-teams': resolve(__dirname, 'my-teams.html'),
+        'team-create': resolve(__dirname, 'team-create.html'),
+        passport: resolve(__dirname, 'passport.html'),
+        'organizer-panel': resolve(__dirname, 'organizer-panel.html'),
       },
       output: {
         manualChunks(id) {
