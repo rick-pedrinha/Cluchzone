@@ -1,8 +1,10 @@
-// ═══════════════════════════════════════════════════════════
+/// <reference types="vite/client" />
+
+// ═══════════════════════════════════════════════════════════════
 // CLUCHZONE — Firebase Client (Singleton)
 // Single access point to Firestore — replaces all saveData()
 // duplicates across csgo.js, teams.js, organizer-panel.js
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
 
 import { initializeApp, getApps, type FirebaseApp } from 'firebase/app';
 import {
@@ -19,12 +21,12 @@ import {
 import type { StorageKey } from '../store/keys.js';
 
 const FIREBASE_CONFIG = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY as string,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN as string,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID as string,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET as string,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID as string,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID as string,
 };
 
 class FirebaseClient {
@@ -48,7 +50,7 @@ class FirebaseClient {
     return FirebaseClient._instance;
   }
 
-  // ── Read ──────────────────────────────────────────────
+  // ── Read ──────────────────────────────────────────────────
   async get<T>(key: StorageKey, fallback: T): Promise<T> {
     try {
       const ref = doc(this._db, 'cluchzone_store', key);
@@ -64,7 +66,7 @@ class FirebaseClient {
     }
   }
 
-  // ── Write ─────────────────────────────────────────────
+  // ── Write ─────────────────────────────────────────────────
   async set<T>(key: StorageKey, value: T): Promise<void> {
     this._writeLocal(key, value);
     try {
@@ -79,9 +81,8 @@ class FirebaseClient {
     }
   }
 
-  // ── Real-time listener ────────────────────────────────
+  // ── Real-time listener ────────────────────────────────────
   listen<T>(key: StorageKey, callback: (value: T) => void): Unsubscribe {
-    // Remove previous listener for this key
     this._listeners.get(key)?.();
 
     const ref = doc(this._db, 'cluchzone_store', key);
@@ -101,7 +102,7 @@ class FirebaseClient {
     return unsubscribe;
   }
 
-  // ── Local cache helpers ───────────────────────────────
+  // ── Local cache helpers ───────────────────────────────────
   private _readLocal<T>(key: string): T | null {
     const raw = localStorage.getItem(key);
     if (!raw) return null;
@@ -118,7 +119,7 @@ class FirebaseClient {
     }
   }
 
-  // ── Destroy all listeners (call on page unload) ───────
+  // ── Destroy all listeners (call on page unload) ───────────
   destroyAll(): void {
     this._listeners.forEach(unsub => unsub());
     this._listeners.clear();

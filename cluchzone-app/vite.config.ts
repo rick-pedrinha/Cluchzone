@@ -20,9 +20,11 @@ export default defineConfig({
         main: resolve(__dirname, 'index.html'),
       },
       output: {
-        manualChunks: {
-          firebase: ['firebase/app', 'firebase/firestore', 'firebase/auth'],
-          zod: ['zod'],
+        manualChunks(id) {
+          if (id.includes('node_modules/firebase')) return 'firebase';
+          if (id.includes('node_modules/zod')) return 'zod';
+          if (id.includes('/features/tournaments/')) return 'tournaments';
+          if (id.includes('/features/teams/')) return 'teams';
         },
       },
     },
