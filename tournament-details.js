@@ -770,7 +770,49 @@ document.addEventListener('DOMContentLoaded', async () => {
       `;
     }
 
-    paymentContainer.innerHTML = content;
+  }
+
+  // ── Edit Tournament Modal logic ──
+  window.openEditCampModal = () => {
+    const modal = document.getElementById('modal-edit-camp');
+    if (!modal) return;
+
+    document.getElementById('edit-c-name').value = camp.name || '';
+    document.getElementById('edit-c-rules').value = camp.rules || '';
+    document.getElementById('edit-c-prize').value = camp.prize || '';
+    document.getElementById('edit-c-slots').value = camp.maxTeams || 8;
+    document.getElementById('edit-c-region').value = camp.region || 'América do Sul';
+    document.getElementById('edit-c-status').value = camp.status || 'Registros Abertos';
+
+    modal.classList.add('open');
+  };
+
+  const editCampForm = document.getElementById('edit-camp-form');
+  if (editCampForm) {
+    editCampForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const newName = document.getElementById('edit-c-name').value;
+      const newRules = document.getElementById('edit-c-rules').value;
+      const newPrize = document.getElementById('edit-c-prize').value;
+      const newMaxTeams = Number(document.getElementById('edit-c-slots').value);
+      const newRegion = document.getElementById('edit-c-region').value;
+      const newStatus = document.getElementById('edit-c-status').value;
+
+      camp.name = newName;
+      camp.rules = newRules;
+      camp.prize = newPrize;
+      camp.maxTeams = newMaxTeams;
+      camp.region = newRegion;
+      camp.status = newStatus;
+
+      saveAndRefreshAll();
+      renderHeader();
+
+      document.getElementById('modal-edit-camp').classList.remove('open');
+      showToast('✓ Campeonato editado com sucesso!', '#00ff88');
+      addNotification(`O campeonato ${newName} foi reconfigurado pelo organizador.`);
+    });
   }
 
   const btnJoinTeam = document.getElementById('td-join-team-btn');

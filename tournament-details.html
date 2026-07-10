@@ -97,8 +97,17 @@
                 <div style="font-size:10px; color:#718096;">Aprovação de equipes</div>
               </div>
             </div>
-            <div style="display:flex; gap:6px; align-items:center;">
-              <div id="admin-pending-badge" style="
+            <div style="display:flex; gap:8px; align-items:center;">
+              <button onclick="window.openEditCampModal()" style="
+                font-family:'Orbitron',sans-serif; font-size:8px; font-weight:900;
+                color:#00d4ff; border:1px solid rgba(0,212,255,0.25); background:rgba(0,212,255,0.05);
+                padding:4px 8px; border-radius:6px; cursor:pointer; display:flex; align-items:center; gap:3px;
+                transition: all 0.2s; outline:none;
+              " onmouseover="this.style.background='rgba(0,212,255,0.15)'" onmouseout="this.style.background='rgba(0,212,255,0.05)'">
+                ⚙️ EDITAR
+              </button>
+              <div style="display:flex; gap:6px; align-items:center;">
+                <div id="admin-pending-badge" style="
                 font-family:'Orbitron',sans-serif; font-size:10px; font-weight:900;
                 background:rgba(255,215,0,0.1); color:#ffd700; border:1px solid rgba(255,215,0,0.3);
                 padding:2px 8px; border-radius:20px;
@@ -164,6 +173,59 @@
       </div>
     </section>
   </main>
+
+  <!-- ─── EDIT TOURNAMENT MODAL ─── -->
+  <div class="modal-overlay" id="modal-edit-camp">
+    <div class="modal-box" style="max-width:500px; background:#070a13; border:1px solid rgba(0,212,255,0.25); box-shadow:0 0 30px rgba(0,212,255,0.15);">
+      <button class="modal-close" onclick="document.getElementById('modal-edit-camp').classList.remove('open')">✕</button>
+      <div class="create-tour-header" style="margin-bottom:20px; display:flex; gap:12px; align-items:center;">
+        <div class="create-tour-icon" style="font-size:24px; width:46px; height:46px; border-radius:10px; background:rgba(0,212,255,0.1); border:1px solid rgba(0,212,255,0.35); display:flex; align-items:center; justify-content:center;">⚙️</div>
+        <div>
+          <div class="create-tour-title" style="font-family:'Orbitron',sans-serif; font-size:16px; color:#fff; font-weight:900;">Editar Campeonato</div>
+          <div class="create-tour-sub" style="font-size:12px; color:#718096; margin-top:2px;">Atualize as informações do campeonato em tempo real</div>
+        </div>
+      </div>
+      
+      <form id="edit-camp-form" class="auth-form" style="display:flex; flex-direction:column; gap:14px;">
+        <div class="form-field">
+          <label style="font-size:11px; font-family:'Orbitron',sans-serif; color:#718096; text-transform:uppercase; margin-bottom:6px; display:block;">Nome do Campeonato</label>
+          <input class="form-input" id="edit-c-name" type="text" required style="width:100%; box-sizing:border-box; background:#04060b; color:#fff; border:1px solid rgba(255,255,255,0.1); border-radius:6px; padding:10px; font-family:inherit; outline:none;" />
+        </div>
+        <div class="form-field">
+          <label style="font-size:11px; font-family:'Orbitron',sans-serif; color:#718096; text-transform:uppercase; margin-bottom:6px; display:block;">Regras / Descrição</label>
+          <textarea class="form-input" id="edit-c-rules" rows="3" required style="width:100%; box-sizing:border-box; background:#04060b; color:#fff; border:1px solid rgba(255,255,255,0.1); border-radius:6px; padding:10px; font-family:inherit; outline:none; resize:none;"></textarea>
+        </div>
+        
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+          <div class="form-field">
+            <label style="font-size:11px; font-family:'Orbitron',sans-serif; color:#718096; text-transform:uppercase; margin-bottom:6px; display:block;">Premiação</label>
+            <input class="form-input" id="edit-c-prize" type="text" required style="width:100%; box-sizing:border-box; background:#04060b; color:#fff; border:1px solid rgba(255,255,255,0.1); border-radius:6px; padding:10px; font-family:inherit; outline:none;" />
+          </div>
+          <div class="form-field">
+            <label style="font-size:11px; font-family:'Orbitron',sans-serif; color:#718096; text-transform:uppercase; margin-bottom:6px; display:block;">Vagas Máximas</label>
+            <input class="form-input" id="edit-c-slots" type="number" required style="width:100%; box-sizing:border-box; background:#04060b; color:#fff; border:1px solid rgba(255,255,255,0.1); border-radius:6px; padding:10px; font-family:inherit; outline:none;" />
+          </div>
+        </div>
+        
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+          <div class="form-field">
+            <label style="font-size:11px; font-family:'Orbitron',sans-serif; color:#718096; text-transform:uppercase; margin-bottom:6px; display:block;">Região</label>
+            <input class="form-input" id="edit-c-region" type="text" required style="width:100%; box-sizing:border-box; background:#04060b; color:#fff; border:1px solid rgba(255,255,255,0.1); border-radius:6px; padding:10px; font-family:inherit; outline:none;" />
+          </div>
+          <div class="form-field">
+            <label style="font-size:11px; font-family:'Orbitron',sans-serif; color:#718096; text-transform:uppercase; margin-bottom:6px; display:block;">Status</label>
+            <select class="form-select" id="edit-c-status" style="width:100%; box-sizing:border-box; background:#04060b; color:#fff; border:1px solid rgba(255,255,255,0.1); border-radius:6px; padding:10px; font-family:inherit; outline:none; cursor:pointer;">
+              <option value="Registros Abertos">Registros Abertos</option>
+              <option value="Em Andamento">Em Andamento</option>
+              <option value="Finalizado">Finalizado</option>
+            </select>
+          </div>
+        </div>
+
+        <button type="submit" class="cs2-btn cs2-btn-primary" style="margin-top:10px; width:100%; border-radius:6px; font-family:'Orbitron',sans-serif; font-size:12px; font-weight:900; letter-spacing:1px;">💾 Salvar Alterações</button>
+      </form>
+    </div>
+  </div>
 
   <div id="toast-container"></div>
 
