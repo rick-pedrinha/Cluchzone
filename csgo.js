@@ -88,95 +88,11 @@ document.addEventListener('DOMContentLoaded', () => {
   let players = JSON.parse(localStorage.getItem(STORAGE_KEY_PLAYERS)) || defaultPlayers;
 
   // 3. Mock Data for Teams
-  const defaultTeams = [
-    { logo: "🛡️", banner: "https://images.alphacoders.com/605/605592.jpg", name: "Imperial Esports", captain: "Fallen_Fan", vice: "Cold_Clone", members: ["Fallen_Fan", "Cold_Clone", "Lurk_Star", "Boltz_Fake", "Vini_Fake"], reserves: ["fnx_Fake"], stats: "5-1", history: ["win", "win", "loss", "win", "win"], ranking: 1, points: 4200 },
-    { logo: "⚡", banner: "https://images.alphacoders.com/908/908129.jpg", name: "FURIA Gaming", captain: "Zywoo_Step", vice: "S1mple_Soul", members: ["Zywoo_Step", "S1mple_Soul", "Niko_Rifle", "Kscerato_Fake", "Yuurih_Fake"], reserves: ["guerri_Fake"], stats: "4-2", history: ["win", "loss", "win", "win", "loss"], ranking: 2, points: 3850 },
-    { logo: "🐺", banner: "https://images.alphacoders.com/605/605592.jpg", name: "MIBR Classic", captain: "Apex_Lead", vice: "Karrigan_Brain", members: ["Apex_Lead", "Karrigan_Brain", "Rain_Spray", "Tacitus_Fake", "Hen1_Fake"], reserves: ["bit_Fake"], stats: "3-3", history: ["loss", "win", "loss", "win", "win"], ranking: 3, points: 3100 },
-    { logo: "💀", banner: "https://images.alphacoders.com/908/908129.jpg", name: "Pain Gaming", captain: "SnipeKing_BR", vice: "Biguzera_Fake", members: ["SnipeKing_BR", "Biguzera_Fake", "Kauez_Fake", "Lux_Fake", "Rodrigo_Fake"], reserves: ["Pkz_Fake"], stats: "2-4", history: ["loss", "loss", "win", "loss", "win"], ranking: 4, points: 2450 },
-    { logo: "🛡️", banner: "https://images.alphacoders.com/605/605592.jpg", name: "Legacy Team", captain: "Coldzera_Fan", vice: "Dumau_Fake", members: ["Coldzera_Fan", "Dumau_Fake", "Latto_Fake", "B4t_Fake", "Nekiz_Fake"], reserves: [], stats: "1-5", history: ["loss", "loss", "loss", "loss", "win"], ranking: 5, points: 1900 },
-    { logo: "🎮", banner: "https://images.alphacoders.com/908/908129.jpg", name: "RED Canids", captain: "Naza_Fake", vice: "Gla1ve_Clone", members: ["Naza_Fake", "Gla1ve_Clone", "Hardza_Fake", "Deagle_God", "Fire_Aim"], reserves: [], stats: "0-6", history: ["loss", "loss", "loss", "loss", "loss"], ranking: 6, points: 1200 },
-    { logo: "💣", banner: "https://images.alphacoders.com/605/605592.jpg", name: "ODDIK", captain: "Woody_Fake", vice: "Tuurtle_Fake", members: ["Woody_Fake", "Tuurtle_Fake", "Skull_Aim", "Sniper_Pro", "Entry_King"], reserves: [], stats: "3-1", history: ["win", "win", "win", "loss"], ranking: 7, points: 2900 },
-    { logo: "🏆", banner: "https://images.alphacoders.com/908/908129.jpg", name: "Fluxo", captain: "Zevy_Fake", vice: "Vsm_Fake", members: ["Zevy_Fake", "Vsm_Fake", "ArT_Fake", "Kye_Fake", "Chucky_Fake"], reserves: [], stats: "2-2", history: ["win", "loss", "win", "loss"], ranking: 8, points: 2600 }
-  ];
-
+  const defaultTeams = [];
   let teams = JSON.parse(localStorage.getItem(STORAGE_KEY_TEAMS)) || defaultTeams;
 
   // 4. Mock Data for Tournaments
-  const defaultTournaments = [
-    {
-      id: 1,
-      name: "Copa Deagle Master",
-      banner: "images/cs2_copa_deagle_master.jpg",
-      status: "Registros Abertos",
-      prize: "R$ 5.000",
-      p1: 60, p2: 30, p3: 10,
-      maxTeams: 8,
-      registeredTeams: ["Imperial Esports", "FURIA Gaming", "MIBR Classic", "Pain Gaming", "Legacy Team", "RED Canids"],
-      pendingApprovals: ["ODDIK", "Fluxo"],
-      format: "MD3",
-      elimination: "Eliminatória simples",
-      date: "2026-07-15T19:00",
-      region: "Brasil - SP",
-      organizer: "Staff_CS2",
-      sponsors: ["HyperX", "Intel", "Twitch"],
-      discord: "https://discord.gg/cluchzone",
-      stream: "https://twitch.tv/cluchzone",
-      rules: "Regras padrão CLUCHZONE de CS2. Anti-cheat CluchGuard é obrigatório. W.O. após 15 minutos do horário estipulado.",
-      server: { ip: "45.122.9.10", port: "27015", password: "cluchzone123", active: true },
-      bracket: {
-        round1: [
-          { id: 1, teamA: "Imperial Esports", teamB: "RED Canids", scoreA: 0, scoreB: 0, winner: null, status: "Aguardando", time: "19:00", mapScores: "0-0", mvp: "", maps: ["Mirage", "Inferno", "Anubis"] },
-          { id: 2, teamA: "FURIA Gaming", teamB: "Legacy Team", scoreA: 0, scoreB: 0, winner: null, status: "Aguardando", time: "19:30", mapScores: "0-0", mvp: "", maps: ["Ancient", "Nuke", "Vertigo"] },
-          { id: 3, teamA: "MIBR Classic", teamB: "Pain Gaming", scoreA: 0, scoreB: 0, winner: null, status: "Aguardando", time: "20:00", mapScores: "0-0", mvp: "", maps: ["Mirage", "Overpass", "Dust II"] },
-          { id: 4, teamA: "ODDIK", teamB: "Fluxo", scoreA: 0, scoreB: 0, winner: null, status: "Aguardando", time: "20:30", mapScores: "0-0", mvp: "", maps: ["Inferno", "Ancient", "Anubis"] }
-        ],
-        round2: [
-          { id: 5, teamA: "Aguardando", teamB: "Aguardando", scoreA: 0, scoreB: 0, winner: null, status: "Pendente", time: "21:00", mapScores: "0-0", mvp: "", maps: [] },
-          { id: 6, teamA: "Aguardando", teamB: "Aguardando", scoreA: 0, scoreB: 0, winner: null, status: "Pendente", time: "21:30", mapScores: "0-0", mvp: "", maps: [] }
-        ],
-        round3: [
-          { id: 7, teamA: "Aguardando", teamB: "Aguardando", scoreA: 0, scoreB: 0, winner: null, status: "Pendente", time: "22:00", mapScores: "0-0", mvp: "", maps: [] }
-        ]
-      },
-      history: []
-    },
-    {
-      id: 2,
-      name: "Dust II Shootout Tournament",
-      banner: "images/cs2_dust2_shootout.jpg",
-      status: "Finalizado",
-      prize: "R$ 2.500",
-      p1: 70, p2: 30, p3: 0,
-      maxTeams: 4,
-      registeredTeams: ["Imperial Esports", "FURIA Gaming", "Pain Gaming", "Legacy Team"],
-      pendingApprovals: [],
-      format: "MD1",
-      elimination: "Eliminatória simples",
-      date: "2026-07-02T18:00",
-      region: "América do Sul",
-      organizer: "Staff_CS2",
-      sponsors: ["Acer Predator", "Monster Energy"],
-      discord: "https://discord.gg/cluchzone",
-      stream: "https://twitch.tv/cluchzone2",
-      rules: "MD1 em todo o torneio com mapa Dust II. W.O. automático de 15 minutos.",
-      server: { ip: "45.122.9.12", port: "27015", password: "shootoutpass", active: false },
-      bracket: {
-        round1: [
-          { id: 1, teamA: "Imperial Esports", teamB: "Legacy Team", scoreA: 16, scoreB: 12, winner: "Imperial Esports", status: "Finalizado", time: "18:00", mapScores: "16-12", mvp: "Fallen_Fan", maps: ["Dust II"] },
-          { id: 2, teamA: "FURIA Gaming", teamB: "Pain Gaming", scoreA: 14, scoreB: 16, winner: "Pain Gaming", status: "Finalizado", time: "18:45", mapScores: "14-16", mvp: "SnipeKing_BR", maps: ["Dust II"] }
-        ],
-        round2: [
-          { id: 3, teamA: "Imperial Esports", teamB: "Pain Gaming", scoreA: 16, scoreB: 8, winner: "Imperial Esports", status: "Finalizado", time: "19:30", mapScores: "16-8", mvp: "Cold_Clone", maps: ["Dust II"] }
-        ]
-      },
-      history: [
-        { place: 1, team: "Imperial Esports", prize: "R$ 1.750" },
-        { place: 2, team: "Pain Gaming", prize: "R$ 750" },
-        { place: 3, team: "FURIA Gaming", prize: "R$ 0" }
-      ]
-    }
-  ];
-
+  const defaultTournaments = [];
   let tournaments = JSON.parse(localStorage.getItem(STORAGE_KEY_CAMPS)) || defaultTournaments;
 
   // 5. Mock Data for Feed
