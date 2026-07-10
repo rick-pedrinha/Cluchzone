@@ -1577,3 +1577,17 @@ section { position: relative; z-index: 1; padding: 100px 0; }
   .hero-content { padding-top: 20px; }
   .section-hero { align-items: flex-start; padding-top: 80px; }
 }
+
+/* ── DEBUGGING SUMMARY LAYOUT FIXES ── */
+#cursor-glow {
+  max-width: 100vw;
+  overflow: hidden;
+}
+
+#pixie-tts-widget-host {
+  z-index: 9999 !important;
+}
+
+.modal-overlay:not(.open) {
+  display: none !important;
+}
