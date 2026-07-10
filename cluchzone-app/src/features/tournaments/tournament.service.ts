@@ -106,6 +106,22 @@ class TournamentService {
     return true;
   }
 
+  // ── Delete tournament ─────────────────────────────────
+  async delete(id: string, role: UserRole): Promise<boolean> {
+    if (!can(role, 'delete:tournament') && !can(role, 'edit:tournament')) {
+      toast.error('Você não tem permissão para excluir campeonatos.');
+      return false;
+    }
+    const success = await tournamentRepository.delete(id);
+    if (success) {
+      await this.loadAll();
+      toast.success('Campeonato excluído com sucesso.');
+    } else {
+      toast.error('Não foi possível excluir o campeonato.');
+    }
+    return success;
+  }
+
   // ── Subscribe to real-time changes ────────────────────
   subscribe(callback?: (tournaments: Tournament[]) => void): () => void {
     return tournamentRepository.onChanges(fresh => {

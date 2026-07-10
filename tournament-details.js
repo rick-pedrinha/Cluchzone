@@ -815,6 +815,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
+  window.confirmDeleteCamp = async () => {
+    if (!camp) return;
+    const confirm = window.confirm(`Você tem certeza que deseja excluir o campeonato "${camp.name}"? Esta ação não pode ser desfeita.`);
+    if (!confirm) return;
+
+    // Filter out this tournament
+    const filtered = tournaments.filter(t => String(t.id) !== String(campId));
+    
+    // Save state back to Firestore
+    localStorage.setItem(CAMP_KEY, JSON.stringify(filtered));
+    if (window.CluchAPI?.setStore) {
+      await CluchAPI.setStore(CAMP_KEY, filtered);
+    }
+    
+    showToast('❌ Campeonato excluído com sucesso!', '#ff3333');
+    setTimeout(() => {
+      window.location.href = 'csgo.html';
+    }, 1000);
+  };
+
   const btnJoinTeam = document.getElementById('td-join-team-btn');
   const btnJoinSolo = document.getElementById('td-join-solo-btn');
 

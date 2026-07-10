@@ -6,6 +6,7 @@ import { authService } from '../core/auth/auth-service.js';
 import { tournamentService } from '../features/tournaments/tournament.service.js';
 import { teamService } from '../features/teams/team.service.js';
 import { modal } from '../core/ui/modal.js';
+import { toast } from '../core/ui/toast.js';
 import { escapeHtml } from '../core/ui/sanitize.js';
 import type { Tournament, PixStatus } from '../types/index.js';
 
@@ -182,6 +183,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     (document.getElementById('edit-c-maxTeams') as HTMLInputElement).value = String(tournament.maxTeams || 8);
     (document.getElementById('edit-c-region') as HTMLInputElement).value = tournament.region || '';
     (document.getElementById('edit-c-status') as HTMLSelectElement).value = tournament.status || 'Registros Abertos';
+  };
+
+  // Global delete handler
+  (window as any).confirmDeleteCamp = async () => {
+    if (!tournament) return;
+    const confirm = window.confirm(`Você tem certeza que deseja excluir o campeonato "${tournament.name}"? Esta ação não pode ser desfeita.`);
+    if (!confirm) return;
+
+    const ok = await tournamentService.delete(safeCampId, currentUser.role);
+    if (ok) {
+      toast.success('Redirecionando...');
+      setTimeout(() => {
+        window.location.href = 'csgo.html';
+      }, 1000);
+    }
   };
 
   // Real-time listener
