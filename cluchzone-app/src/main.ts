@@ -8,6 +8,13 @@ import { teamService } from './features/teams/team.service.js';
 import { toast } from './core/ui/toast.js';
 
 async function bootstrap(): Promise<void> {
+  // Cache buster for mock data (July 2026 update)
+  if (!localStorage.getItem('cluchzone_cleared_mocks_v2')) {
+      localStorage.removeItem('cluchzone_cs2_teams');
+      localStorage.removeItem('cluchzone_cs2_camps');
+      localStorage.setItem('cluchzone_cleared_mocks_v2', 'true');
+  }
+
   // 1. Initialize auth session
   const user = authService.init();
   

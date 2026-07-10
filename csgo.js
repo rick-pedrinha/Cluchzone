@@ -6,6 +6,13 @@
 
 'use strict';
 
+// Cache buster for mock data (July 2026 update)
+if (!localStorage.getItem('cluchzone_cleared_mocks_v2')) {
+    localStorage.removeItem('cluchzone_cs2_teams');
+    localStorage.removeItem('cluchzone_cs2_camps');
+    localStorage.setItem('cluchzone_cleared_mocks_v2', 'true');
+}
+
 document.addEventListener('DOMContentLoaded', () => {
 
   /* ─── DATA PERSISTENCE & INITIALIZATION ─── */
