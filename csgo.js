@@ -1492,6 +1492,36 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
       renderTournaments();
     }, 1200);
+
+    // ── Real-time Firebase listeners ──
+    // Whenever ANY user creates/edits a tournament, all screens update instantly
+    if (window.CluchAPI?.onStoreChange) {
+      CluchAPI.onStoreChange(STORAGE_KEY_CAMPS, (freshTournaments) => {
+        if (!Array.isArray(freshTournaments)) return;
+        tournaments = freshTournaments;
+        renderTournaments();
+        updateHeroCounters();
+      });
+
+      CluchAPI.onStoreChange(STORAGE_KEY_TEAMS, (freshTeams) => {
+        if (!Array.isArray(freshTeams)) return;
+        teams = freshTeams;
+        renderTeams();
+        updateHeroCounters();
+      });
+
+      CluchAPI.onStoreChange(STORAGE_KEY_FEED, (freshFeed) => {
+        if (!Array.isArray(freshFeed)) return;
+        feedItems = freshFeed;
+        renderFeed();
+      });
+
+      CluchAPI.onStoreChange(STORAGE_KEY_NOTIFS, (freshNotifs) => {
+        if (!Array.isArray(freshNotifs)) return;
+        notifications = freshNotifs;
+        renderNotifications();
+      });
+    }
   }
 
   init();

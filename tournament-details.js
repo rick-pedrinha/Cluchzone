@@ -542,4 +542,35 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderBracket();
   renderSoloQueue();
   renderAdminPanel();
+
+  // ── Real-time Firebase listeners ──
+  // Qualquer alteração feita por outro usuário atualiza esta página instantaneamente
+  if (window.CluchAPI?.onStoreChange) {
+    CluchAPI.onStoreChange(CAMP_KEY, (freshTournaments) => {
+      if (!Array.isArray(freshTournaments)) return;
+      const fresh = freshTournaments.find(t => String(t.id) === String(campId));
+      if (!fresh) return;
+
+      // Sync camp data in place
+      Object.assign(camp, fresh);
+
+      // Sync allCampTeamNames
+      allCampTeamNames.length = 0;
+      [...new Set([...(camp.registeredTeams || []), ...(camp.pendingApprovals || [])])].forEach(n => allCampTeamNames.push(n));
+
+      renderHeader();
+      renderTeams();
+      renderBracket();
+      renderSoloQueue();
+      renderAdminPanel();
+    });
+
+    CluchAPI.onStoreChange(TEAM_KEY, (freshTeams) => {
+      if (!Array.isArray(freshTeams)) return;
+      teams = freshTeams;
+      renderTeams();
+      renderAdminPanel();
+    });
+  }
 });
+
