@@ -30,13 +30,21 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ── RBAC: Role-Based Access Control ──────────────────────
-  // Known admin nicks (transitional — replace with Firebase custom claims)
-  const ADMIN_NICKS = new Set(['admin', 'Staff_CS2', 'Staff_PUBG', 'Staff_Brawl']);
+  const ADMIN_NICKS = new Set([
+    'admin',
+    'staff_cs2',
+    'staff_pubg',
+    'staff_brawl',
+    'xdropx_steam',
+    'xdropx',
+    'rique',
+    'rick'
+  ]);
 
   function getUserRole() {
     if (!currentUser) return 'guest';
     if (currentUser.role && currentUser.role !== 'guest') return currentUser.role;
-    if (ADMIN_NICKS.has(currentUser.nick)) return 'admin';
+    if (ADMIN_NICKS.has(String(currentUser.nick).trim().toLowerCase())) return 'admin';
     return 'player';
   }
 

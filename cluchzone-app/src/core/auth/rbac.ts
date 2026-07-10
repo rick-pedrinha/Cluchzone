@@ -78,10 +78,19 @@ export function canAny(role: UserRole, permissions: Permission[]): boolean {
 }
 
 // Admin nicks — transitional until Firebase Auth custom claims are set
-export const ADMIN_NICKS = new Set(['admin', 'Staff_CS2', 'Staff_PUBG', 'Staff_Brawl']);
+export const ADMIN_NICKS = new Set([
+  'admin',
+  'staff_cs2',
+  'staff_pubg',
+  'staff_brawl',
+  'xdropx_steam',
+  'xdropx',
+  'rique',
+  'rick'
+]);
 
 export function resolveRole(nick: string, explicitRole?: UserRole): UserRole {
   if (explicitRole && explicitRole !== 'guest') return explicitRole;
-  if (ADMIN_NICKS.has(nick)) return 'admin';
+  if (ADMIN_NICKS.has(String(nick).trim().toLowerCase())) return 'admin';
   return 'player';
 }
