@@ -387,6 +387,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             " onmouseover="this.style.background='rgba(0,212,255,0.15)'" onmouseout="this.style.background='rgba(0,212,255,0.05)'">
               💲 FINANCEIRO
             </a>
+            <a href="my-teams.html?teamName=${encodeURIComponent(name)}" style="
+              display:inline-flex; align-items:center; gap:3px;
+              font-family:'Orbitron',sans-serif; font-size:8px; font-weight:900;
+              color:#a0aec0; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.03);
+              padding:2px 6px; border-radius:4px; text-decoration:none; transition: all 0.2s;
+            " onmouseover="this.style.background='rgba(255,255,255,0.1)';this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.03)';this.style.color='#a0aec0';">
+              🛡️ VER EQUIPE
+            </a>
           </div>
         </div>
         <div style="font-family:'Orbitron',sans-serif;font-size:8px;font-weight:900;padding:3px 7px;border-radius:4px;background:${statusColor};color:${borderColor};white-space:nowrap;">
