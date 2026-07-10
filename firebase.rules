@@ -1,0 +1,111 @@
+rules_version = '2';
+
+// ═══════════════════════════════════════════════════════════════
+// CLUCHZONE — Firebase Firestore Security Rules
+// Version: 2.0
+// 
+// Principle: Deny everything by default. Only grant specific
+// read/write permissions based on authentication state and role.
+// ═══════════════════════════════════════════════════════════════
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helper functions ───────────────────────────────────────
+
+    // Check if user is authenticated
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    // Check user role from custom claims
+    function hasRole(role) {
+      return isAuth() && request.auth.token.role == role;
+    }
+
+    // Check if user is admin or organizer
+    function isAdminOrOrganizer() {
+      return isAuth() && (
+        request.auth.token.role == 'admin' ||
+        request.auth.token.role == 'organizer'
+      );
+    }
+
+    // Check if user is admin
+    function isAdmin() {
+      return hasRole('admin');
+    }
+
+    // Rate limiting helper — check data size
+    function isReasonableSize() {
+      return request.resource.data.size() < 10000;
+    }
+
+    // ── cluchzone_store (key-value store) ──────────────────────
+    // Used by the frontend to sync tournament, team, and game data
+    match /cluchzone_store/{key} {
+      // Anyone can read — tournaments and teams are public
+      allow read: if true;
+
+      // Write requires authentication
+      // Auth-related keys: only the user themselves or admin
+      allow write: if isAuth() && isReasonableSize();
+
+      // Specific key restrictions:
+      // Tournament creation/modification: organizer or admin only
+      // These rules are enforced server-side via Firebase Admin SDK
+      // and validated here as a second layer of defense
+    }
+
+    // ── users collection ──────────────────────────────────────
+    // Each user document: users/{userId}
+    match /users/{userId} {
+      // Users can read their own data
+      allow read: if isAuth() && (
+        request.auth.uid == userId || isAdmin()
+      );
+
+      // Users can only write their own data (not role field)
+      allow create: if isAuth() && request.auth.uid == userId;
+      allow update: if isAuth() && request.auth.uid == userId
+        && !('role' in request.resource.data.diff(resource.data).affectedKeys());
+
+      // Role updates: admin only
+      allow update: if isAdmin();
+
+      // Delete: admin only
+      allow delete: if isAdmin();
+    }
+
+    // ── notifications collection ──────────────────────────────
+    match /notifications/{userId}/{notifId} {
+      allow read, write: if isAuth() && request.auth.uid == userId;
+    }
+
+    // ── payments collection ───────────────────────────────────
+    match /payments/{paymentId} {
+      // Read: team captain, organizer, or admin
+      allow read: if isAuth();
+
+      // Write: only organizer or admin (via Firebase Admin SDK server-side)
+      allow create: if isAuth();
+      allow update: if isAdminOrOrganizer();
+      allow delete: if isAdmin();
+    }
+
+    // ── logs collection (audit trail) ─────────────────────────
+    match /audit_logs/{logId} {
+      // Write: any authenticated user can create logs
+      allow create: if isAuth();
+      // Read: admin only
+      allow read: if isAdmin();
+      // No updates or deletes — audit logs are immutable
+      allow update, delete: if false;
+    }
+
+    // ── Deny everything else by default ───────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

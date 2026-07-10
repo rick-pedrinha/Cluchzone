@@ -5,14 +5,25 @@
    Substitua o objeto FIREBASE_CONFIG com suas credenciais.
    ═══════════════════════════════════════════════════════════════ */
 
-window.CLUCH_FIREBASE_CONFIG = {
-  apiKey: "AIzaSyBuqG7XFuqK6eYMgpKMZ62kAJnZXVsXFmc",
-  authDomain: "cluchzone-944a.firebaseapp.com",
-  projectId: "cluchzone-944a",
-  storageBucket: "cluchzone-944a.firebasestorage.app",
-  messagingSenderId: "969276597478",
-  appId: "1:969276597478:web:4ba24dce99bb9659d24727"
-};
+/* eslint-disable */
+// ── Firebase config ─────────────────────────────────────────────
+// NOTE: In the new Vite app, credentials come from .env.local
+// This legacy config is kept for backward compatibility only.
+// ⚠️  Never commit real API keys to version control.
+window.CLUCH_FIREBASE_CONFIG = (function () {
+  // If the Vite app has injected the config, use it
+  if (window.__CLUCH_ENV_CONFIG__) return window.__CLUCH_ENV_CONFIG__;
+  // Fallback: read from a non-committed config file injected by the server
+  // If neither is available, Firebase will not initialize (offline mode)
+  return {
+    apiKey: '',
+    authDomain: '',
+    projectId: '',
+    storageBucket: '',
+    messagingSenderId: '',
+    appId: '',
+  };
+})();
 
 window.CluchAPI = (() => {
   // ── Internal state ──

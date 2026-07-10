@@ -26,9 +26,10 @@ function initTeams() {
   ];
   let notifications = JSON.parse(localStorage.getItem(STORAGE_KEY_NOTIFS)) || [];
 
-  // Sync data to localStorage
+  // Sync data to localStorage and Firebase Firestore
   function syncStorage(key, val) {
     localStorage.setItem(key, JSON.stringify(val));
+    window.CluchAPI?.setStore(key, val);
   }
 
   /* ─── TOASTS ─── */
@@ -799,6 +800,25 @@ function initTeams() {
     loadTeamsDashboard();
     renderPendingIncomingInvites();
     renderNotificationsNav();
+
+    // ── Real-time Firebase listeners ──
+    if (window.CluchAPI?.onStoreChange) {
+      CluchAPI.onStoreChange(STORAGE_KEY_TEAMS, (freshTeams) => {
+        if (!Array.isArray(freshTeams)) return;
+        teams = freshTeams;
+        loadTeamsDashboard();
+      });
+
+      if (paramCampId) {
+        CluchAPI.onStoreChange('cluchzone_cs2_camps', (freshTournaments) => {
+          if (!Array.isArray(freshTournaments)) return;
+          allTournaments = freshTournaments;
+          activeCamp = freshTournaments.find(c => String(c.id) === String(paramCampId));
+          const targetTeam = teams.find(t => t.name === selectedTeamName);
+          if (targetTeam) renderTeamDetails(targetTeam);
+        });
+      }
+    }
   }
 
   startup();

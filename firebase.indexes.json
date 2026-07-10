@@ -1,0 +1,12 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "cluchzone_store",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "updatedAt", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

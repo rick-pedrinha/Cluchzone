@@ -24,14 +24,53 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentUser = JSON.parse(localStorage.getItem('cluchzone_auth') || 'null');
   let isPremiumUser = localStorage.getItem('cluchzone_premium') === 'true';
 
-  // Fallback guest session if not logged in
+  // Fallback guest session if not logged in — no permissions
   if (!currentUser) {
-    currentUser = { nick: "Jogador_Convidado", provider: "email", games: ["CS2"] };
+    currentUser = { nick: 'Visitante', provider: 'email', role: 'guest', games: [] };
   }
 
-  // Check if user has permissions to create tournaments (enabled by default for local testing)
+  // ── RBAC: Role-Based Access Control ──────────────────────
+  // Known admin nicks (transitional — replace with Firebase custom claims)
+  const ADMIN_NICKS = new Set(['admin', 'Staff_CS2', 'Staff_PUBG', 'Staff_Brawl']);
+
+  function getUserRole() {
+    if (!currentUser) return 'guest';
+    if (currentUser.role && currentUser.role !== 'guest') return currentUser.role;
+    if (ADMIN_NICKS.has(currentUser.nick)) return 'admin';
+    return 'player';
+  }
+
   function checkOrganizerPermission() {
-    return true; // Habilitado para testes locais completos de organizador/admin
+    const role = getUserRole();
+    return role === 'admin' || role === 'organizer';
+  }
+
+  function can(permission) {
+    const role = getUserRole();
+    const ROLE_PERMS = {
+      guest:     ['view:tournaments'],
+      player:    ['view:tournaments', 'join:team'],
+      captain:   ['view:tournaments', 'create:team', 'edit:team', 'join:team', 'invite:player'],
+      organizer: ['view:tournaments', 'create:tournament', 'edit:tournament', 'approve:team',
+                  'reject:team', 'confirm:payment', 'reject:payment', 'view:adminPanel',
+                  'create:team', 'edit:team', 'join:team', 'invite:player'],
+      admin:     ['view:tournaments', 'create:tournament', 'edit:tournament', 'delete:tournament',
+                  'approve:team', 'reject:team', 'create:team', 'edit:team', 'join:team',
+                  'invite:player', 'confirm:payment', 'reject:payment', 'view:adminPanel',
+                  'ban:user', 'manage:roles'],
+    };
+    return (ROLE_PERMS[role] || []).includes(permission);
+  }
+
+  // ── XSS Prevention helper ─────────────────────────────────
+  function escapeHtml(str) {
+    if (str == null) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#x27;');
   }
 
   // 2. Mock Data for Players
