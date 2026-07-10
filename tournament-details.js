@@ -278,6 +278,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderTeams();
     renderBracket();
     renderAdminPanel();
+    checkAndRenderPixPayment();
   }
 
   function buildAdminCard({ name, accentColor, borderColor, actions, statusLabel, statusColor }) {
@@ -290,6 +291,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     const members = team?.members || [];
     const reserves = team?.reserves || [];
     const safeId = name.replace(/[^a-z0-9]/gi, '_');
+
+    const pixStatus = camp.pixStatus?.[name] || 'pendente';
+    let pixBadge = '';
+    if (pixStatus === 'pago') {
+      pixBadge = `<span style="font-family:'Orbitron',sans-serif;font-size:9px;font-weight:900;background:rgba(0,255,136,0.1);color:#00ff88;border:1px solid rgba(0,255,136,0.25);padding:2px 6px;border-radius:4px;white-space:nowrap;margin-left:6px;">🟢 Pix Confirmado</span>`;
+    } else if (pixStatus === 'enviado') {
+      pixBadge = `<span style="font-family:'Orbitron',sans-serif;font-size:9px;font-weight:900;background:rgba(255,215,0,0.1);color:#ffd700;border:1px solid rgba(255,215,0,0.25);padding:2px 6px;border-radius:4px;white-space:nowrap;margin-left:6px;">🟡 Pix sob análise</span>`;
+    } else {
+      pixBadge = `<span style="font-family:'Orbitron',sans-serif;font-size:9px;font-weight:900;background:rgba(255,51,51,0.1);color:#ff3333;border:1px solid rgba(255,51,51,0.25);padding:2px 6px;border-radius:4px;white-space:nowrap;margin-left:6px;">🔴 Pix Pendente</span>`;
+    }
 
     const memberRows = members.map((m, i) => {
       const isCap = m === team?.captain;
@@ -318,6 +329,35 @@ document.addEventListener('DOMContentLoaded', async () => {
           <div style="font-size:11px;color:#4a5568;">${r}</div>
         </div>`).join('')}` : '';
 
+    let receiptInspectorHtml = '';
+    if (pixStatus === 'enviado') {
+      receiptInspectorHtml = `
+        <div style="padding:10px 12px;background:rgba(255,215,0,0.02);border-top:1px solid rgba(255,255,255,0.05);border-bottom:1px solid rgba(255,255,255,0.05);">
+          <div style="font-family:'Orbitron',sans-serif;font-size:9px;font-weight:900;color:#ffd700;letter-spacing:0.5px;margin-bottom:6px;">📄 COMPROVANTE ENVIADO PELO CAPITÃO</div>
+          
+          <div style="display:flex;align-items:center;gap:10px;background:rgba(0,0,0,0.25);padding:8px;border-radius:6px;border:1px solid rgba(255,215,0,0.15);margin-bottom:8px;">
+            <div style="font-size:20px;">🧾</div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:11px;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">comprovante_pix_${safeId}.png</div>
+              <div style="font-size:9px;color:#718096;">Simulado - Transferência de R$ 50,00 autorizada</div>
+            </div>
+            <button onclick="window.adminViewSimulatedReceipt('${name}')" style="background:rgba(255,215,0,0.1);color:#ffd700;border:1px solid rgba(255,215,0,0.3);border-radius:4px;padding:3px 8px;font-size:9px;font-weight:700;cursor:pointer;">Ver</button>
+          </div>
+
+          <div style="display:flex;gap:6px;">
+            <button onclick="window.adminConfirmPix('${name}')" style="flex:1;background:rgba(0,255,136,0.12);color:#00ff88;border:1px solid rgba(0,255,136,0.25);border-radius:4px;padding:5px;font-size:10px;font-family:'Rajdhani',sans-serif;font-weight:700;cursor:pointer;">✓ Autorizar Pix</button>
+            <button onclick="window.adminRejectPix('${name}')" style="flex:1;background:rgba(255,51,51,0.08);color:#ff3333;border:1px solid rgba(255,51,51,0.2);border-radius:4px;padding:5px;font-size:10px;font-family:'Rajdhani',sans-serif;font-weight:700;cursor:pointer;">✕ Recusar</button>
+          </div>
+        </div>
+      `;
+    } else if (pixStatus === 'pendente' && statusLabel === 'PENDENTE') {
+      receiptInspectorHtml = `
+        <div style="padding:10px 12px;background:rgba(255,255,255,0.01);border-top:1px solid rgba(255,255,255,0.05);font-size:10px;color:#718096;">
+          ⏳ Aguardando envio do comprovante Pix pelo capitão da equipe.
+        </div>
+      `;
+    }
+
     const card = document.createElement('div');
     card.style.cssText = `
       border: 1px solid ${borderColor};
@@ -335,9 +375,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         </div>
         <div style="min-width:0;">
           <div style="font-size:13px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${name}</div>
-          <div style="font-size:10px;color:#718096;margin-top:1px;">
+          <div style="font-size:10px;color:#718096;margin-top:1px;display:flex;align-items:center;gap:4px;flex-wrap:wrap;">
             👑 <span style="color:${accentColor};font-weight:700;">${team?.captain || '—'}</span>
             · ${members.length}j · ${team?.region || 'SA'}
+            ${pixBadge}
           </div>
         </div>
         <div style="font-family:'Orbitron',sans-serif;font-size:8px;font-weight:900;padding:3px 7px;border-radius:4px;background:${statusColor};color:${borderColor};white-space:nowrap;">
@@ -360,6 +401,9 @@ document.addEventListener('DOMContentLoaded', async () => {
           ${reserveRows}
         </div>
       </div>
+
+      <!-- Receipt Inspector View -->
+      ${receiptInspectorHtml}
 
       <!-- Action Buttons -->
       ${actions}
@@ -396,13 +440,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         </div>`;
       } else {
         pending.forEach(name => {
+          const isPixPaid = (camp.pixStatus?.[name] || 'pendente') === 'pago';
           const actionHtml = `
-            <div style="display:flex;gap:6px;padding:10px 12px;border-top:1px solid rgba(255,255,255,0.05);">
-              <button onclick="adminApprove('${name}')" style="
+            <div style="display:flex;flex-direction:column;gap:6px;padding:10px 12px;border-top:1px solid rgba(255,255,255,0.05);">
+              <button onclick="adminApprove('${name}')" ${isPixPaid ? '' : 'disabled style="opacity:0.4; cursor:not-allowed;"'} style="
                 flex:1;font-family:'Orbitron',sans-serif;font-size:9px;font-weight:900;
                 padding:7px 6px;border-radius:6px;cursor:pointer;border:1px solid #00ff88;
                 background:rgba(0,255,136,0.08);color:#00ff88;transition:background 0.2s;
-              " onmouseover="this.style.background='rgba(0,255,136,0.2)'" onmouseout="this.style.background='rgba(0,255,136,0.08)'">✓ APROVAR</button>
+              " onmouseover="if(!this.disabled) this.style.background='rgba(0,255,136,0.2)'" onmouseout="if(!this.disabled) this.style.background='rgba(0,255,136,0.08)'">✓ APROVAR</button>
+              ${isPixPaid ? '' : '<div style="font-size:9px;color:#ff3333;text-align:center;font-weight:700;margin-top:2px;font-family:\'Orbitron\',sans-serif;letter-spacing:0.5px;">Aprovação bloqueada: Pix pendente</div>'}
               <button onclick="adminReject('${name}')" style="
                 flex:1;font-family:'Orbitron',sans-serif;font-size:9px;font-weight:900;
                 padding:7px 6px;border-radius:6px;cursor:pointer;border:1px solid #ff3333;
@@ -524,6 +570,193 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   };
 
+  // ── Pix Helper Functions ──
+  window.copyPixKey = () => {
+    const key = document.getElementById('pix-key-val')?.textContent || "45.922.015/0001-90";
+    navigator.clipboard.writeText(key).then(() => {
+      showToast('📋 Chave Pix copiada com sucesso!', '#ffd700');
+    }).catch(() => {
+      showToast('Erro ao copiar chave Pix.', '#ff3333');
+    });
+  };
+
+  window.uploadSimulatedPix = (teamName, fileInput) => {
+    if (!fileInput.files || !fileInput.files[0]) return;
+    showToast('🧾 Enviando comprovante Pix...', '#ffd700');
+    
+    setTimeout(() => {
+      camp.pixStatus = camp.pixStatus || {};
+      camp.pixStatus[teamName] = 'enviado';
+      
+      saveAndRefreshAll();
+      showToast('✓ Comprovante Pix enviado para análise!', '#00ff88');
+      addNotification(`Comprovante de pagamento da equipe ${teamName} enviado para análise.`);
+    }, 1500);
+  };
+
+  window.adminConfirmPix = (teamName) => {
+    camp.pixStatus = camp.pixStatus || {};
+    camp.pixStatus[teamName] = 'pago';
+    saveAndRefreshAll();
+    showToast(`✓ Pagamento Pix de ${teamName} autorizado!`, '#00ff88');
+    addNotification(`O pagamento Pix da sua equipe ${teamName} foi confirmado pela organização.`);
+  };
+
+  window.adminRejectPix = (teamName) => {
+    camp.pixStatus = camp.pixStatus || {};
+    camp.pixStatus[teamName] = 'pendente';
+    saveAndRefreshAll();
+    showToast(`✕ Pagamento Pix de ${teamName} recusado.`, '#ff3333');
+    addNotification(`O comprovante Pix da equipe ${teamName} foi recusado. Envie novamente.`);
+  };
+
+  window.adminViewSimulatedReceipt = (teamName) => {
+    const safeId = teamName.replace(/[^a-z0-9]/gi, '_');
+    showToast(`Visualizando comprovante de ${teamName}...`, '#00d4ff');
+    alert(`[CLUCHZONE PIX ENGINE]\nComprovante do Time: ${teamName}\nArquivo: comprovante_pix_${safeId}.png\nValor: R$ 50,00\nAutenticação: MOCK-PIX-VAL-84920492-OK`);
+  };
+
+  function checkAndRenderPixPayment() {
+    const paymentContainer = document.getElementById('td-payment-container');
+    if (!paymentContainer) return;
+
+    if (!currentUser || !currentUser.nick) {
+      paymentContainer.style.display = 'none';
+      return;
+    }
+
+    const allPending = camp.pendingApprovals || [];
+    const allApproved = camp.registeredTeams || [];
+    
+    const userTeam = teams.find(t => 
+      (t.captain === currentUser.nick) && 
+      (allPending.includes(t.name) || allApproved.includes(t.name))
+    );
+
+    if (!userTeam) {
+      paymentContainer.style.display = 'none';
+      return;
+    }
+
+    const teamName = userTeam.name;
+    camp.pixStatus = camp.pixStatus || {};
+    const status = camp.pixStatus[teamName] || 'pendente';
+
+    paymentContainer.style.display = 'block';
+    
+    let content = '';
+    if (status === 'pendente') {
+      content = `
+        <div style="
+          background: linear-gradient(135deg, rgba(7,9,14,0.98), rgba(20,15,10,0.98));
+          border: 1px solid rgba(222,155,53,0.3);
+          border-radius: 12px;
+          padding: 24px;
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 20px;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+          margin-bottom: 24px;
+        ">
+          <div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+              <span style="font-size:24px;">💸</span>
+              <div>
+                <h3 style="font-family:'Orbitron',sans-serif;font-size:14px;font-weight:900;color:#ffd700;letter-spacing:1px;margin:0;">PAGAMENTO DA INSCRIÇÃO VIA PIX</h3>
+                <p style="font-size:11px;color:#718096;margin:2px 0 0;">Taxa de inscrição obrigatória para homologação da equipe</p>
+              </div>
+            </div>
+            
+            <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-radius:8px;padding:14px;margin-bottom:16px;">
+              <div style="font-size:12px;color:#a0aec0;line-height:1.5;">
+                Sua equipe <strong style="color:#ffd700;">${teamName}</strong> está inscrita, mas o status está <span style="color:#ffd700;font-weight:700;font-family:'Orbitron',sans-serif;">PENDENTE DE APROVAÇÃO</span>.
+                Para confirmar a vaga no campeonato, realize a transferência Pix correspondente à taxa de inscrição e envie o comprovante.
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:16px;margin-bottom:16px;">
+              <div style="background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.05);border-radius:8px;padding:12px;">
+                <span style="font-size:10px;color:#718096;text-transform:uppercase;font-family:'Orbitron',sans-serif;letter-spacing:0.5px;display:block;">Valor da Taxa</span>
+                <strong style="font-size:20px;color:#fff;font-family:'Orbitron',sans-serif;margin-top:2px;display:block;">R$ 50,00</strong>
+              </div>
+              <div style="background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.05);border-radius:8px;padding:12px;">
+                <span style="font-size:10px;color:#718096;text-transform:uppercase;font-family:'Orbitron',sans-serif;letter-spacing:0.5px;display:block;">Chave Pix (CNPJ)</span>
+                <div style="display:flex;align-items:center;justify-content:between;gap:8px;margin-top:2px;">
+                  <strong id="pix-key-val" style="font-size:13px;color:#ffd700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;">45.922.015/0001-90</strong>
+                  <button onclick="window.copyPixKey()" style="background:rgba(255,215,0,0.1);color:#ffd700;border:1px solid rgba(255,215,0,0.3);border-radius:4px;padding:3px 8px;font-size:9px;font-weight:700;cursor:pointer;">Copiar</button>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label style="font-size:10px;color:#718096;font-family:'Orbitron',sans-serif;letter-spacing:0.5px;margin-bottom:6px;display:block;">ENVIAR COMPROVANTE DE PAGAMENTO *</label>
+              <div onclick="document.getElementById('pix-file-input').click()" style="
+                border: 2px dashed rgba(255,215,0,0.25);
+                border-radius: 8px;
+                padding: 24px;
+                text-align: center;
+                background: rgba(255,215,0,0.01);
+                cursor: pointer;
+                transition: all 0.2s;
+              " onmouseover="this.style.borderColor='#ffd700';this.style.background='rgba(255,215,0,0.03)';" onmouseout="this.style.borderColor='rgba(255,215,0,0.25)';this.style.background='rgba(255,215,0,0.01)';">
+                <span style="font-size:28px;display:block;margin-bottom:6px;">🧾</span>
+                <span style="font-size:12px;font-weight:700;color:#e2e8f0;display:block;">Arraste o comprovante ou clique para selecionar</span>
+                <span style="font-size:10px;color:#718096;display:block;margin-top:2px;">Formatos aceitos: PNG, JPG, PDF (Max 5MB)</span>
+                <input type="file" id="pix-file-input" style="display:none;" onchange="window.uploadSimulatedPix('${teamName}', this)" />
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    } else if (status === 'enviado') {
+      content = `
+        <div style="
+          background: linear-gradient(135deg, rgba(7,9,14,0.98), rgba(15,15,20,0.98));
+          border: 1px solid rgba(255,215,0,0.25);
+          border-radius: 12px;
+          padding: 24px;
+          display:flex;
+          align-items:center;
+          gap:20px;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+          margin-bottom: 24px;
+        ">
+          <div style="font-size:36px;">⏳</div>
+          <div style="flex:1;">
+            <h3 style="font-family:'Orbitron',sans-serif;font-size:13px;font-weight:900;color:#ffd700;letter-spacing:1px;margin:0;">COMPROVANTE ENVIADO (SOB ANÁLISE)</h3>
+            <p style="font-size:12px;color:#a0aec0;margin:6px 0 0;line-height:1.5;">
+              O comprovante Pix da equipe <strong style="color:#ffd700;">${teamName}</strong> foi enviado com sucesso e está sendo analisado pela organização. A inscrição será confirmada automaticamente assim que o pagamento for verificado.
+            </p>
+          </div>
+        </div>
+      `;
+    } else if (status === 'pago') {
+      content = `
+        <div style="
+          background: linear-gradient(135deg, rgba(7,9,14,0.98), rgba(10,25,15,0.98));
+          border: 1px solid rgba(0,255,136,0.3);
+          border-radius: 12px;
+          padding: 24px;
+          display:flex;
+          align-items:center;
+          gap:20px;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+          margin-bottom: 24px;
+        ">
+          <div style="font-size:36px;">✅</div>
+          <div style="flex:1;">
+            <h3 style="font-family:'Orbitron',sans-serif;font-size:13px;font-weight:900;color:#00ff88;letter-spacing:1px;margin:0;">PAGAMENTO CONFIRMADO</h3>
+            <p style="font-size:12px;color:#a0aec0;margin:6px 0 0;line-height:1.5;">
+              Tudo certo! O pagamento Pix da equipe <strong style="color:#00ff88;">${teamName}</strong> foi autorizado pela organização. Sua vaga está garantida e o roster foi confirmado na chave oficial.
+            </p>
+          </div>
+        </div>
+      `;
+    }
+
+    paymentContainer.innerHTML = content;
+  }
+
   const btnJoinTeam = document.getElementById('td-join-team-btn');
   const btnJoinSolo = document.getElementById('td-join-solo-btn');
 
@@ -542,6 +775,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderBracket();
   renderSoloQueue();
   renderAdminPanel();
+  checkAndRenderPixPayment();
 
   // ── Real-time Firebase listeners ──
   // Qualquer alteração feita por outro usuário atualiza esta página instantaneamente
@@ -563,6 +797,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       renderBracket();
       renderSoloQueue();
       renderAdminPanel();
+      checkAndRenderPixPayment();
     });
 
     CluchAPI.onStoreChange(TEAM_KEY, (freshTeams) => {
@@ -570,6 +805,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       teams = freshTeams;
       renderTeams();
       renderAdminPanel();
+      checkAndRenderPixPayment();
     });
   }
 });

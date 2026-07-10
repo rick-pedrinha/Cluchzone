@@ -243,6 +243,9 @@
     closeAuth();
     updateNavForUser(data);
     showToast(`✅ Bem-vindo, ${data.nick}! Você entrou via ${PROVIDERS[data.provider]?.name || 'Email'}.`, '#00e676');
+    setTimeout(() => {
+      window.location.reload();
+    }, 1000);
 
     // If on passport page, update avatar/nick display
     const nickEl = document.querySelector('.profile-nick');
@@ -258,6 +261,9 @@
     window.CluchAPI?.auth('logout').catch(error => console.warn('[Auth] logout fallback:', error.message));
     updateNavForGuest();
     showToast('Você saiu da sua conta. Até logo!', '#ff4654');
+    setTimeout(() => {
+      window.location.reload();
+    }, 1000);
   }
 
   /* ─── UPDATE NAV ────────────────────────────────────────── */
