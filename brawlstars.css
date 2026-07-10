@@ -63,6 +63,12 @@ body.brawl-theme {
   text-align: center;
   padding: 85px 24px 15px;
   position: relative;
+  background: linear-gradient(135deg, rgba(18, 5, 38, 0.95) 35%, transparent 100%),
+              url('images/brawl_bg.jpg') center/cover no-repeat;
+  min-height: 380px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .brawl-logo-animation {

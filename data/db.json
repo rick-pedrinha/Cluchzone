@@ -1,0 +1,759 @@
+{
+  "users": [
+    {
+      "id": "1f9b320e-19c8-4a0c-bab7-7f0726a8a238",
+      "nick": "xDROPx_Steam",
+      "email": "steam-99bd08c4-9897-4854-8474-7c7022f46527@local.cluchzone",
+      "provider": "steam",
+      "games": [
+        "PUBG",
+        "CS2"
+      ],
+      "premium": false,
+      "createdAt": "2026-07-09T22:40:54.793Z",
+      "passwordHash": ""
+    }
+  ],
+  "sessions": {},
+  "store": {
+    "cluchzone_auth": {
+      "id": "1f9b320e-19c8-4a0c-bab7-7f0726a8a238",
+      "nick": "xDROPx_Steam",
+      "email": "steam-99bd08c4-9897-4854-8474-7c7022f46527@local.cluchzone",
+      "provider": "steam",
+      "games": [
+        "PUBG",
+        "CS2"
+      ],
+      "premium": false,
+      "createdAt": "2026-07-09T22:40:54.793Z"
+    },
+    "cluchzone_premium": false,
+    "cluchzone_cs2_camps": [
+      {
+        "id": 1,
+        "name": "Copa Deagle Master",
+        "banner": "https://images.alphacoders.com/133/1331776.jpeg",
+        "status": "Registros Abertos",
+        "prize": "R$ 5.000",
+        "p1": 60,
+        "p2": 30,
+        "p3": 10,
+        "maxTeams": 8,
+        "registeredTeams": [
+          "Imperial Esports",
+          "FURIA Gaming",
+          "MIBR Classic",
+          "Pain Gaming",
+          "Legacy Team",
+          "RED Canids"
+        ],
+        "pendingApprovals": [
+          "ODDIK",
+          "Fluxo",
+          "xDROPx_Steam Team"
+        ],
+        "format": "MD3",
+        "elimination": "Eliminatória simples",
+        "date": "2026-07-15T19:00",
+        "region": "Brasil - SP",
+        "organizer": "Staff_CS2",
+        "sponsors": [
+          "HyperX",
+          "Intel",
+          "Twitch"
+        ],
+        "discord": "https://discord.gg/cluchzone",
+        "stream": "https://twitch.tv/cluchzone",
+        "rules": "Regras padrão CLUCHZONE de CS2. Anti-cheat CluchGuard é obrigatório. W.O. após 15 minutos do horário estipulado.",
+        "server": {
+          "ip": "45.122.9.10",
+          "port": "27015",
+          "password": "cluchzone123",
+          "active": true
+        },
+        "bracket": {
+          "round1": [
+            {
+              "id": 1,
+              "teamA": "Imperial Esports",
+              "teamB": "RED Canids",
+              "scoreA": 0,
+              "scoreB": 0,
+              "winner": null,
+              "status": "Aguardando",
+              "time": "19:00",
+              "mapScores": "0-0",
+              "mvp": "",
+              "maps": [
+                "Mirage",
+                "Inferno",
+                "Anubis"
+              ]
+            },
+            {
+              "id": 2,
+              "teamA": "FURIA Gaming",
+              "teamB": "Legacy Team",
+              "scoreA": 0,
+              "scoreB": 0,
+              "winner": null,
+              "status": "Aguardando",
+              "time": "19:30",
+              "mapScores": "0-0",
+              "mvp": "",
+              "maps": [
+                "Ancient",
+                "Nuke",
+                "Vertigo"
+              ]
+            },
+            {
+              "id": 3,
+              "teamA": "MIBR Classic",
+              "teamB": "Pain Gaming",
+              "scoreA": 0,
+              "scoreB": 0,
+              "winner": null,
+              "status": "Aguardando",
+              "time": "20:00",
+              "mapScores": "0-0",
+              "mvp": "",
+              "maps": [
+                "Mirage",
+                "Overpass",
+                "Dust II"
+              ]
+            },
+            {
+              "id": 4,
+              "teamA": "ODDIK",
+              "teamB": "Fluxo",
+              "scoreA": 0,
+              "scoreB": 0,
+              "winner": null,
+              "status": "Aguardando",
+              "time": "20:30",
+              "mapScores": "0-0",
+              "mvp": "",
+              "maps": [
+                "Inferno",
+                "Ancient",
+                "Anubis"
+              ]
+            }
+          ],
+          "round2": [
+            {
+              "id": 5,
+              "teamA": "Aguardando",
+              "teamB": "Aguardando",
+              "scoreA": 0,
+              "scoreB": 0,
+              "winner": null,
+              "status": "Pendente",
+              "time": "21:00",
+              "mapScores": "0-0",
+              "mvp": "",
+              "maps": []
+            },
+            {
+              "id": 6,
+              "teamA": "Aguardando",
+              "teamB": "Aguardando",
+              "scoreA": 0,
+              "scoreB": 0,
+              "winner": null,
+              "status": "Pendente",
+              "time": "21:30",
+              "mapScores": "0-0",
+              "mvp": "",
+              "maps": []
+            }
+          ],
+          "round3": [
+            {
+              "id": 7,
+              "teamA": "Aguardando",
+              "teamB": "Aguardando",
+              "scoreA": 0,
+              "scoreB": 0,
+              "winner": null,
+              "status": "Pendente",
+              "time": "22:00",
+              "mapScores": "0-0",
+              "mvp": "",
+              "maps": []
+            }
+          ]
+        },
+        "history": []
+      },
+      {
+        "id": 2,
+        "name": "Dust II Shootout Tournament",
+        "banner": "https://images.alphacoders.com/132/1328639.png",
+        "status": "Finalizado",
+        "prize": "R$ 2.500",
+        "p1": 70,
+        "p2": 30,
+        "p3": 0,
+        "maxTeams": 4,
+        "registeredTeams": [
+          "Imperial Esports",
+          "FURIA Gaming",
+          "Pain Gaming",
+          "Legacy Team"
+        ],
+        "pendingApprovals": [],
+        "format": "MD1",
+        "elimination": "Eliminatória simples",
+        "date": "2026-07-02T18:00",
+        "region": "América do Sul",
+        "organizer": "Staff_CS2",
+        "sponsors": [
+          "Acer Predator",
+          "Monster Energy"
+        ],
+        "discord": "https://discord.gg/cluchzone",
+        "stream": "https://twitch.tv/cluchzone2",
+        "rules": "MD1 em todo o torneio com mapa Dust II. W.O. automático de 15 minutos.",
+        "server": {
+          "ip": "45.122.9.12",
+          "port": "27015",
+          "password": "shootoutpass",
+          "active": false
+        },
+        "bracket": {
+          "round1": [
+            {
+              "id": 1,
+              "teamA": "Imperial Esports",
+              "teamB": "Legacy Team",
+              "scoreA": 16,
+              "scoreB": 12,
+              "winner": "Imperial Esports",
+              "status": "Finalizado",
+              "time": "18:00",
+              "mapScores": "16-12",
+              "mvp": "Fallen_Fan",
+              "maps": [
+                "Dust II"
+              ]
+            },
+            {
+              "id": 2,
+              "teamA": "FURIA Gaming",
+              "teamB": "Pain Gaming",
+              "scoreA": 14,
+              "scoreB": 16,
+              "winner": "Pain Gaming",
+              "status": "Finalizado",
+              "time": "18:45",
+              "mapScores": "14-16",
+              "mvp": "SnipeKing_BR",
+              "maps": [
+                "Dust II"
+              ]
+            }
+          ],
+          "round2": [
+            {
+              "id": 3,
+              "teamA": "Imperial Esports",
+              "teamB": "Pain Gaming",
+              "scoreA": 16,
+              "scoreB": 8,
+              "winner": "Imperial Esports",
+              "status": "Finalizado",
+              "time": "19:30",
+              "mapScores": "16-8",
+              "mvp": "Cold_Clone",
+              "maps": [
+                "Dust II"
+              ]
+            }
+          ]
+        },
+        "history": [
+          {
+            "place": 1,
+            "team": "Imperial Esports",
+            "prize": "R$ 1.750"
+          },
+          {
+            "place": 2,
+            "team": "Pain Gaming",
+            "prize": "R$ 750"
+          },
+          {
+            "place": 3,
+            "team": "FURIA Gaming",
+            "prize": "R$ 0"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "name": "CS2 OPEN PRO ",
+        "banner": "https://images.alphacoders.com/133/1331776.jpeg",
+        "status": "Registros Abertos",
+        "prize": "R$ 12.000",
+        "p1": 70,
+        "p2": 50,
+        "p3": 20,
+        "maxTeams": 8,
+        "registeredTeams": [
+          "xDROPx_Steam Team"
+        ],
+        "pendingApprovals": [],
+        "format": "MD1",
+        "elimination": "Eliminatória simples",
+        "date": "2026-12-12T16:00",
+        "region": "Brasil - SP",
+        "organizer": "Jogador_Convidado",
+        "sponsors": [],
+        "discord": "https://discord.gg/cluchzone",
+        "stream": "https://twitch.tv/cluchzone",
+        "rules": "Regras padrão aplicáveis.",
+        "server": {
+          "ip": "45.122.9.22",
+          "port": "27015",
+          "password": "password",
+          "active": false
+        },
+        "bracket": {
+          "round1": [],
+          "round2": [],
+          "round3": []
+        },
+        "soloPlayers": [
+          "xDROPx_Steam"
+        ]
+      }
+    ],
+    "cluchzone_cs2_teams": [
+      {
+        "logo": "🛡️",
+        "banner": "https://images.alphacoders.com/605/605592.jpg",
+        "name": "Imperial Esports",
+        "captain": "Fallen_Fan",
+        "vice": "Cold_Clone",
+        "members": [
+          "Fallen_Fan",
+          "Cold_Clone",
+          "Lurk_Star",
+          "Boltz_Fake",
+          "Vini_Fake"
+        ],
+        "reserves": [
+          "fnx_Fake"
+        ],
+        "stats": "5-1",
+        "history": [
+          "win",
+          "win",
+          "loss",
+          "win",
+          "win"
+        ],
+        "ranking": 1,
+        "points": 4200
+      },
+      {
+        "logo": "⚡",
+        "banner": "https://images.alphacoders.com/908/908129.jpg",
+        "name": "FURIA Gaming",
+        "captain": "Zywoo_Step",
+        "vice": "S1mple_Soul",
+        "members": [
+          "Zywoo_Step",
+          "S1mple_Soul",
+          "Niko_Rifle",
+          "Kscerato_Fake",
+          "Yuurih_Fake"
+        ],
+        "reserves": [
+          "guerri_Fake"
+        ],
+        "stats": "4-2",
+        "history": [
+          "win",
+          "loss",
+          "win",
+          "win",
+          "loss"
+        ],
+        "ranking": 2,
+        "points": 3850
+      },
+      {
+        "logo": "🐺",
+        "banner": "https://images.alphacoders.com/605/605592.jpg",
+        "name": "MIBR Classic",
+        "captain": "Apex_Lead",
+        "vice": "Karrigan_Brain",
+        "members": [
+          "Apex_Lead",
+          "Karrigan_Brain",
+          "Rain_Spray",
+          "Tacitus_Fake",
+          "Hen1_Fake"
+        ],
+        "reserves": [
+          "bit_Fake"
+        ],
+        "stats": "3-3",
+        "history": [
+          "loss",
+          "win",
+          "loss",
+          "win",
+          "win"
+        ],
+        "ranking": 3,
+        "points": 3100
+      },
+      {
+        "logo": "💀",
+        "banner": "https://images.alphacoders.com/908/908129.jpg",
+        "name": "Pain Gaming",
+        "captain": "SnipeKing_BR",
+        "vice": "Biguzera_Fake",
+        "members": [
+          "SnipeKing_BR",
+          "Biguzera_Fake",
+          "Kauez_Fake",
+          "Lux_Fake",
+          "Rodrigo_Fake"
+        ],
+        "reserves": [
+          "Pkz_Fake"
+        ],
+        "stats": "2-4",
+        "history": [
+          "loss",
+          "loss",
+          "win",
+          "loss",
+          "win"
+        ],
+        "ranking": 4,
+        "points": 2450
+      },
+      {
+        "logo": "🛡️",
+        "banner": "https://images.alphacoders.com/605/605592.jpg",
+        "name": "Legacy Team",
+        "captain": "Coldzera_Fan",
+        "vice": "Dumau_Fake",
+        "members": [
+          "Coldzera_Fan",
+          "Dumau_Fake",
+          "Latto_Fake",
+          "B4t_Fake",
+          "Nekiz_Fake"
+        ],
+        "reserves": [],
+        "stats": "1-5",
+        "history": [
+          "loss",
+          "loss",
+          "loss",
+          "loss",
+          "win"
+        ],
+        "ranking": 5,
+        "points": 1900
+      },
+      {
+        "logo": "🎮",
+        "banner": "https://images.alphacoders.com/908/908129.jpg",
+        "name": "RED Canids",
+        "captain": "Naza_Fake",
+        "vice": "Gla1ve_Clone",
+        "members": [
+          "Naza_Fake",
+          "Gla1ve_Clone",
+          "Hardza_Fake",
+          "Deagle_God",
+          "Fire_Aim"
+        ],
+        "reserves": [],
+        "stats": "0-6",
+        "history": [
+          "loss",
+          "loss",
+          "loss",
+          "loss",
+          "loss"
+        ],
+        "ranking": 6,
+        "points": 1200
+      },
+      {
+        "logo": "💣",
+        "banner": "https://images.alphacoders.com/605/605592.jpg",
+        "name": "ODDIK",
+        "captain": "Woody_Fake",
+        "vice": "Tuurtle_Fake",
+        "members": [
+          "Woody_Fake",
+          "Tuurtle_Fake",
+          "Skull_Aim",
+          "Sniper_Pro",
+          "Entry_King"
+        ],
+        "reserves": [],
+        "stats": "3-1",
+        "history": [
+          "win",
+          "win",
+          "win",
+          "loss"
+        ],
+        "ranking": 7,
+        "points": 2900
+      },
+      {
+        "logo": "🏆",
+        "banner": "https://images.alphacoders.com/908/908129.jpg",
+        "name": "Fluxo",
+        "captain": "Zevy_Fake",
+        "vice": "Vsm_Fake",
+        "members": [
+          "Zevy_Fake",
+          "Vsm_Fake",
+          "ArT_Fake",
+          "Kye_Fake",
+          "Chucky_Fake"
+        ],
+        "reserves": [],
+        "stats": "2-2",
+        "history": [
+          "win",
+          "loss",
+          "win",
+          "loss"
+        ],
+        "ranking": 8,
+        "points": 2600
+      },
+      {
+        "logo": "CS",
+        "banner": "images/cs2_bg.jpg",
+        "name": "xDROPx_Steam Team",
+        "captain": "xDROPx_Steam",
+        "vice": "",
+        "members": [
+          "xDROPx_Steam"
+        ],
+        "reserves": [],
+        "stats": "0-0",
+        "history": [],
+        "ranking": 9,
+        "points": 0
+      }
+    ],
+    "cluchzone_cs2_players": [
+      {
+        "avatar": "🔫",
+        "nick": "Fallen_Fan",
+        "role": "AWPer",
+        "rank": "Global Elite",
+        "wins": 342,
+        "losses": 180,
+        "mvps": 24,
+        "kd": "1.42",
+        "points": 2850
+      },
+      {
+        "avatar": "⚡",
+        "nick": "Cold_Clone",
+        "role": "Entry",
+        "rank": "Supreme Master",
+        "wins": 280,
+        "losses": 210,
+        "mvps": 18,
+        "kd": "1.21",
+        "points": 2430
+      },
+      {
+        "avatar": "🎯",
+        "nick": "Zywoo_Step",
+        "role": "AWPer",
+        "rank": "Global Elite",
+        "wins": 412,
+        "losses": 160,
+        "mvps": 38,
+        "kd": "1.53",
+        "points": 3100
+      },
+      {
+        "avatar": "👑",
+        "nick": "S1mple_Soul",
+        "role": "IGL",
+        "rank": "Global Elite",
+        "wins": 390,
+        "losses": 175,
+        "mvps": 31,
+        "kd": "1.48",
+        "points": 2980
+      },
+      {
+        "avatar": "💥",
+        "nick": "Niko_Rifle",
+        "role": "Entry",
+        "rank": "Supreme Master",
+        "wins": 240,
+        "losses": 190,
+        "mvps": 22,
+        "kd": "1.32",
+        "points": 2150
+      },
+      {
+        "avatar": "🛡️",
+        "nick": "Apex_Lead",
+        "role": "Support",
+        "rank": "Legendary Eagle",
+        "wins": 185,
+        "losses": 160,
+        "mvps": 12,
+        "kd": "0.94",
+        "points": 1720
+      },
+      {
+        "avatar": "👤",
+        "nick": "Lurk_Star",
+        "role": "Lurker",
+        "rank": "Legendary Eagle",
+        "wins": 198,
+        "losses": 170,
+        "mvps": 14,
+        "kd": "1.08",
+        "points": 1810
+      },
+      {
+        "avatar": "🎮",
+        "nick": "SnipeKing_BR",
+        "role": "AWPer",
+        "rank": "Global Elite",
+        "wins": 310,
+        "losses": 140,
+        "mvps": 27,
+        "kd": "1.38",
+        "points": 2790
+      }
+    ],
+    "cluchzone_cs2_feed": [
+      {
+        "id": 1783636089719,
+        "user": "Jogador_Convidado",
+        "action": "Novo campeonato criado",
+        "target": "CS2 OPEN PRO ",
+        "time": "Agora mesmo",
+        "likes": 0,
+        "likedByMe": false,
+        "comments": []
+      },
+      {
+        "id": 1,
+        "user": "Imperial Esports",
+        "action": "Equipe Campeã",
+        "target": "Copa Deagle Master",
+        "time": "2 dias atrás",
+        "likes": 24,
+        "likedByMe": false,
+        "comments": [
+          {
+            "user": "Zywoo_Step",
+            "text": "GG WP! Mereceram demais."
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "user": "SnipeKing_BR",
+        "action": "Novo MVP do Torneio",
+        "target": "Dust II Shootout",
+        "time": "5 dias atrás",
+        "likes": 42,
+        "likedByMe": true,
+        "comments": []
+      },
+      {
+        "id": 3,
+        "user": "Legacy Team",
+        "action": "Nova Equipe Cadastrada",
+        "target": "CLUCHZONE Arena",
+        "time": "1 semana atrás",
+        "likes": 12,
+        "likedByMe": false,
+        "comments": []
+      }
+    ],
+    "cluchzone_cs2_notifs": [
+      {
+        "id": 1783641469037,
+        "text": "Equipe xDROPx_Steam Team foi aprovada e confirmada no campeonato CS2 OPEN PRO !",
+        "time": "Agora",
+        "read": false
+      },
+      {
+        "id": 1783641025353,
+        "text": "Pedrao entrou para a equipe xDROPx_Steam Team via contratação direta.",
+        "time": "Agora",
+        "read": false
+      },
+      {
+        "id": 1783640502744,
+        "text": "Você entrou na Fila Solo do campeonato CS2 OPEN PRO !",
+        "time": "Agora",
+        "read": false
+      },
+      {
+        "id": 1783640025078,
+        "text": "Lulinha entrou para a equipe xDROPx_Steam Team via contratação direta.",
+        "time": "Agora",
+        "read": false
+      },
+      {
+        "id": 1783638218853,
+        "text": "A equipe Stonned [STONE] foi criada oficialmente!",
+        "time": "Agora",
+        "read": false
+      },
+      {
+        "id": 1,
+        "text": "Inscrição confirmada na Copa Deagle Master!",
+        "time": "10m atrás",
+        "read": false
+      },
+      {
+        "id": 2,
+        "text": "O Servidor do confronto Imperial vs RED Canids está disponível.",
+        "time": "1h atrás",
+        "read": true
+      }
+    ],
+    "cluchzone_pubg_tournaments": null,
+    "cluchzone_brawl_teams": {
+      "blue": [
+        null,
+        {
+          "name": "LagSpike",
+          "brawler": "El Primo",
+          "class": "Heavyweight",
+          "color": "#e53935",
+          "trophies": 10492
+        },
+        null
+      ],
+      "red": [
+        null,
+        null,
+        null
+      ]
+    }
+  }
+}

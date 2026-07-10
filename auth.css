@@ -278,15 +278,21 @@
   display: flex; align-items: center; gap: 3px;
 }
 .nav-user-dropdown {
-  position: absolute; top: calc(100% + 8px); right: 0;
+  position: absolute; top: calc(100% + 4px); right: 0;
   background: rgba(13,17,23,.98);
   border: 1px solid rgba(255,255,255,.08);
-  border-radius: 12px; padding: 8px;
-  min-width: 180px;
+  border-radius: 12px; padding: 10px;
+  min-width: 190px;
   box-shadow: 0 20px 50px rgba(0,0,0,.8);
   display: none; z-index: 1001;
 }
-.nav-user-wrapper { position: relative; }
+.nav-user-dropdown::before {
+  content: '';
+  position: absolute;
+  top: -12px; left: 0; right: 0; height: 12px;
+  background: transparent;
+}
+.nav-user-wrapper { position: relative; padding-bottom: 6px; }
 .nav-user-wrapper:hover .nav-user-dropdown { display: block; }
 .dropdown-item {
   display: flex; align-items: center; gap: 8px;

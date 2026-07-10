@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data:; script-src 'self' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' https: data:; font-src 'self' https: data:; frame-src 'none'; upgrade-insecure-requests" />
   <meta name="room-name" content="Brawl Arena — Gem Mine"/>
   <meta name="room-icon" content="⭐"/>
   <meta name="org-name" content="Staff_Brawl"/>
@@ -52,6 +53,10 @@
         <h1 class="font-lilita">BRAWL STARS CLASH</h1>
       </div>
       <p class="brawl-subtitle">Pegue Gemas da mina para reivindicar sua vaga nos lobbies 3v3 de Gem Grab. Escolha seu Brawler e brigue!</p>
+      <div style="margin-top: 20px; display: flex; gap: 12px; justify-content: center;">
+        <button class="cs2-btn cs2-btn-primary" id="btn-create-tour-brawl" style="background: var(--brawl-gold); color: #000; border-color: var(--brawl-gold);">Criar Campeonato</button>
+        <button class="cs2-btn cs2-btn-secondary">Explorar Campeonatos</button>
+      </div>
     </div>
   </header>
 
@@ -172,6 +177,7 @@
 
   <div id="toast-container"></div>
 
+  <script src="api.js"></script>
   <script src="main.js"></script>
   <script src="brawlstars.js"></script>
   <script src="chat.js"></script>

@@ -237,6 +237,7 @@
         setTimeout(() => {
           isPremium = true;
           localStorage.setItem('cluchzone_premium', 'true');
+          window.CluchAPI?.setStore('cluchzone_premium', true);
           closeModal('modal-premium');
           updateNav();
           showToast('👑 Bem-vindo ao CLUCHZONE PREMIUM! Aproveite todos os benefícios.', '#ffd700');

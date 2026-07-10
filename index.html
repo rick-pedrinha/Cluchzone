@@ -423,9 +423,14 @@
           <div class="hub-badge">👥 148k Jogadores</div>
           <div class="hub-badge">🎮 8 Jogos</div>
         </div>
-        <a href="#games" class="btn-primary" style="font-family:var(--font-ui);font-size:16px;font-weight:700;letter-spacing:2px;padding:16px 48px;border:none;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,#00d4ff,#7b2ff7);color:#fff;border-radius:12px;transition:all .3s;" id="btn-choose-game">
-          ESCOLHER JOGO →
-        </a>
+        <div style="display: flex; gap: 14px; justify-content: center; align-items: center; margin-top: 18px; flex-wrap: wrap;">
+          <a href="#games" class="btn-primary" style="font-family:var(--font-ui);font-size:16px;font-weight:700;letter-spacing:2px;padding:16px 48px;border:none;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,#00d4ff,#7b2ff7);color:#fff;border-radius:12px;transition:all .3s;" id="btn-choose-game">
+            ESCOLHER JOGO →
+          </a>
+          <a href="team-create.html" class="btn-primary" style="font-family:var(--font-ui);font-size:16px;font-weight:700;letter-spacing:2px;padding:16px 48px;border:1px solid var(--tm-cyan);cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:10px;background:rgba(255,255,255,0.03);color:var(--tm-cyan);border-radius:12px;transition:all .3s;">
+            🛡️ CRIAR EQUIPE
+          </a>
+        </div>
       </div>
     </section>
 
@@ -591,60 +596,11 @@
     <p>© 2026 CLUCHZONE Esports · Feito para a cena competitiva brasileira ⚡</p>
   </footer>
 
-  <!-- MODAL LOGIN -->
-  <div class="modal-overlay" id="modal-login">
-    <div class="modal-box">
-      <button class="modal-close" id="close-login">✕</button>
-      <div style="font-family:var(--font-head);font-size:24px;font-weight:900;text-align:center;margin-bottom:6px;background:linear-gradient(135deg,#00d4ff,#7b2ff7,#ff2d7a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">CLUCHZONE</div>
-      <h2 class="modal-title">Entrar na Plataforma</h2>
-      <form class="modal-form" id="login-form">
-        <div class="form-group"><label>E-mail ou Nickname</label><input type="text" placeholder="SeuNick ou email@..." id="l-email"/></div>
-        <div class="form-group"><label>Senha</label><input type="password" placeholder="••••••••" id="l-pass"/></div>
-        <button type="submit" class="btn-primary full" style="border:none;cursor:pointer;">ENTRAR</button>
-        <div class="modal-divider"><span>ou</span></div>
-        <div class="social-logins">
-          <button type="button" class="btn-social-login steam">Steam</button>
-          <button type="button" class="btn-social-login google">Google</button>
-          <button type="button" class="btn-social-login discord">Discord</button>
-        </div>
-        <p class="modal-switch">Não tem conta? <a href="#" id="go-register">Cadastrar grátis</a></p>
-      </form>
-    </div>
-  </div>
-
-  <!-- MODAL REGISTER -->
-  <div class="modal-overlay" id="modal-register">
-    <div class="modal-box">
-      <button class="modal-close" id="close-register">✕</button>
-      <div style="font-family:var(--font-head);font-size:24px;font-weight:900;text-align:center;margin-bottom:6px;background:linear-gradient(135deg,#00d4ff,#7b2ff7,#ff2d7a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">CLUCHZONE</div>
-      <h2 class="modal-title">Criar Conta Grátis</h2>
-      <form class="modal-form" id="register-form">
-        <div class="form-group"><label>Nickname</label><input type="text" placeholder="SeuNickAqui" id="r-nick"/></div>
-        <div class="form-group"><label>E-mail</label><input type="email" placeholder="seu@email.com" id="r-email"/></div>
-        <div class="form-group"><label>Senha</label><input type="password" placeholder="Mín. 8 caracteres" id="r-pass"/></div>
-        <button type="submit" class="btn-primary full" style="border:none;cursor:pointer;">CRIAR CONTA</button>
-        <p class="modal-switch">Já tem conta? <a href="#" id="go-login">Entrar</a></p>
-      </form>
-    </div>
-  </div>
-
   <div id="toast-container"></div>
 
+  <script src="api.js"></script>
   <script src="main.js"></script>
   <script>
-    // Modal controls
-    const openModal  = id => { document.getElementById(id).classList.add('open'); document.body.style.overflow='hidden'; };
-    const closeModal = id => { document.getElementById(id).classList.remove('open'); document.body.style.overflow=''; };
-    document.getElementById('btn-login').addEventListener('click',    () => openModal('modal-login'));
-    document.getElementById('btn-register').addEventListener('click', () => openModal('modal-register'));
-    document.getElementById('close-login').addEventListener('click',  () => closeModal('modal-login'));
-    document.getElementById('close-register').addEventListener('click',()=> closeModal('modal-register'));
-    document.getElementById('go-register').addEventListener('click', e=>{e.preventDefault();closeModal('modal-login');openModal('modal-register');});
-    document.getElementById('go-login').addEventListener('click',    e=>{e.preventDefault();closeModal('modal-register');openModal('modal-login');});
-    document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m){m.classList.remove('open');document.body.style.overflow='';}}));
-    document.getElementById('login-form').addEventListener('submit',e=>{e.preventDefault();showToast('🎮 Bem-vindo de volta!','success');closeModal('modal-login');});
-    document.getElementById('register-form').addEventListener('submit',e=>{e.preventDefault();const n=document.getElementById('r-nick').value;showToast(`✅ Conta criada! Bem-vindo, ${n||'Jogador'}!`,'success');closeModal('modal-register');});
-
     // "Em breve" cards
     ['card-val','card-apex','card-r6','card-cod','card-lol'].forEach(id=>{
       document.getElementById(id)?.addEventListener('click',e=>{e.preventDefault();showToast('🔵 Este jogo estará disponível em breve!','info');});

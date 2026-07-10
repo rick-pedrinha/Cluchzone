@@ -4,6 +4,20 @@
 ═══════════════════════════════════════════════════════════════ */
 
 document.addEventListener('DOMContentLoaded', () => {
+    // DOM Elements - Create Tournament Button
+    const btnCreateTourBrawl = document.getElementById('btn-create-tour-brawl');
+    if (btnCreateTourBrawl) {
+      btnCreateTourBrawl.addEventListener('click', () => {
+        setTimeout(() => {
+          try {
+            window.location.href = 'create-tournament.html';
+          } catch (e) {
+            window.open('create-tournament.html', '_self');
+          }
+        }, 50);
+      });
+    }
+
     // DOM Elements
     const gemCore = document.getElementById('gem-core');
     const blueTeamGrid = document.getElementById('blue-team');
@@ -39,6 +53,18 @@ document.addEventListener('DOMContentLoaded', () => {
         blue: [null, null, null],
         red: [null, null, null]
     };
+
+    async function syncInitialState() {
+        const saved = await window.CluchAPI?.getStore('cluchzone_brawl_teams', null);
+        if (saved && saved.blue && saved.red) {
+            teams.blue = saved.blue;
+            teams.red = saved.red;
+        }
+    }
+
+    function saveState() {
+        window.CluchAPI?.setStore('cluchzone_brawl_teams', teams);
+    }
 
     // Pre-fill some slots randomly
     function prefillTeams() {
@@ -176,6 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
         playSound('brawler');
         showNotification(`Você entrou na Equipe ${teamColor === 'blue' ? 'Azul' : 'Vermelha'}!`, 'success');
         renderTeams();
+        saveState();
         checkMatchReady();
     }
 
@@ -187,6 +214,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             showNotification('Você saiu da equipe.', 'info');
             renderTeams();
+            saveState();
         }
     }
 
@@ -224,8 +252,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Initialize
-    prefillTeams();
-    renderTeams();
+    (async () => {
+        await syncInitialState();
+        if (!teams.blue.some(Boolean) && !teams.red.some(Boolean)) {
+            prefillTeams();
+            saveState();
+        }
+        renderTeams();
+    })();
 
     // Floating animation for gems (if any exist via JS)
     setInterval(() => {

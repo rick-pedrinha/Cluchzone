@@ -5,6 +5,18 @@
 
 'use strict';
 
+// Disable unload warnings
+if (typeof window !== 'undefined') {
+  // Prevent CSP violations
+  try {
+    if (window.opener) {
+      window.onbeforeunload = null;
+    }
+  } catch (e) {
+    // Ignore errors
+  }
+}
+
 // ══════════════════════════════════════
 // CURSOR GLOW
 // ══════════════════════════════════════
@@ -211,8 +223,9 @@ filterBtns.forEach(btn => {
 });
 
 // ══════════════════════════════════════
-// MODALS
+// MODALS (Legacy support, disabled in favor of auth.js platform modals)
 // ══════════════════════════════════════
+/*
 function openModal(id) {
   const m = document.getElementById(id);
   if (m) { m.classList.add('open'); document.body.style.overflow = 'hidden'; }
@@ -264,6 +277,7 @@ document.getElementById('register-form')?.addEventListener('submit', (e) => {
   showToast(`✅ Passaporte criado! Bem-vindo, ${nick}!`, 'success');
   closeModal('modal-register');
 });
+*/
 
 // Game selection in register form
 document.querySelectorAll('.game-sel-btn').forEach(btn => {

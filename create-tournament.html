@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data:; script-src 'self' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' https: data:; font-src 'self' https: data:; frame-src 'none'; upgrade-insecure-requests" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CLUCHZONE — Criar Campeonato</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;600;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="csgo.css" />
+  <link rel="stylesheet" href="chat.css"/>
+  <link rel="stylesheet" href="premium.css"/>
+  <link rel="stylesheet" href="auth.css"/>
+  <style>
+    .create-tournament-page {
+      min-height: 100vh;
+      padding-top: 60px;
+      padding-bottom: 60px;
+    }
+
+    .tournament-creator {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 40px;
+    }
+
+    .creator-header {
+      text-align: center;
+      margin-bottom: 50px;
+    }
+
+    .creator-header h1 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 42px;
+      font-weight: 900;
+      color: #fff;
+      margin-bottom: 12px;
+      letter-spacing: 1px;
+    }
+
+    .creator-header p {
+      color: #cbd5e0;
+      font-size: 16px;
+    }
+
+    .creator-steps {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      margin-top: 50px;
+    }
+
+    .step-box {
+      background: rgba(10, 15, 30, 0.85);
+      border: 1px solid rgba(0, 212, 255, 0.2);
+      border-radius: 12px;
+      padding: 30px;
+      transition: all 0.3s ease;
+    }
+
+    .step-box:hover {
+      border-color: rgba(0, 212, 255, 0.4);
+      box-shadow: 0 0 30px rgba(0, 212, 255, 0.1);
+    }
+
+    .step-number {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #7b2ff7 0%, #00d4ff 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      margin-bottom: 12px;
+    }
+
+    .step-box h3 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 20px;
+      color: #fff;
+      margin-bottom: 12px;
+    }
+
+    .step-box p {
+      color: #a0aec0;
+      font-size: 14px;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+
+    .bracket-types {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .bracket-option {
+      padding: 12px;
+      background: rgba(0, 212, 255, 0.05);
+      border: 1px solid rgba(0, 212, 255, 0.2);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      color: #cbd5e0;
+      font-size: 14px;
+      text-align: center;
+      font-weight: 500;
+    }
+
+    .bracket-option:hover {
+      background: rgba(0, 212, 255, 0.15);
+      border-color: rgba(0, 212, 255, 0.4);
+      color: #00d4ff;
+    }
+
+    .bracket-option.selected {
+      background: rgba(0, 212, 255, 0.25);
+      border-color: #00d4ff;
+      color: #00d4ff;
+      font-weight: 700;
+    }
+
+    .form-section {
+      margin-top: 50px;
+      background: rgba(10, 15, 30, 0.85);
+      border: 1px solid rgba(0, 212, 255, 0.2);
+      border-radius: 12px;
+      padding: 30px;
+    }
+
+    .form-section h2 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 24px;
+      color: #fff;
+      margin-bottom: 24px;
+      letter-spacing: 1px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .form-grid.full {
+      grid-template-columns: 1fr;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-label {
+      color: #00d4ff;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    .form-input,
+    .form-select {
+      background: rgba(5, 8, 17, 0.8);
+      border: 1px solid rgba(0, 212, 255, 0.2);
+      border-radius: 6px;
+      padding: 10px 12px;
+      color: #e2e8f0;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 14px;
+      transition: all 0.2s ease;
+    }
+
+    .form-input:focus,
+    .form-select:focus {
+      outline: none;
+      border-color: #00d4ff;
+      box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
+    }
+
+    .form-input::placeholder {
+      color: #4a5568;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 15px;
+      margin-top: 40px;
+      justify-content: center;
+    }
+
+    .btn-create {
+      padding: 12px 40px;
+      background: linear-gradient(135deg, #ff5500 0%, #ff3333 100%);
+      border: none;
+      border-radius: 6px;
+      color: #fff;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+    }
+
+    .btn-create:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(255, 85, 0, 0.3);
+    }
+
+    .btn-cancel {
+      padding: 12px 40px;
+      background: transparent;
+      border: 1px solid rgba(0, 212, 255, 0.3);
+      border-radius: 6px;
+      color: #00d4ff;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+    }
+
+    .btn-cancel:hover {
+      border-color: #00d4ff;
+      background: rgba(0, 212, 255, 0.1);
+    }
+
+    .preview-bracket {
+      margin-top: 30px;
+      padding: 20px;
+      background: rgba(0, 212, 255, 0.05);
+      border: 1px dashed rgba(0, 212, 255, 0.2);
+      border-radius: 6px;
+      text-align: center;
+      color: #a0aec0;
+    }
+
+    .preview-bracket.active {
+      border-style: solid;
+      background: rgba(0, 212, 255, 0.1);
+    }
+
+    @media (max-width: 768px) {
+      .creator-steps {
+        grid-template-columns: 1fr;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .tournament-creator {
+        padding: 20px;
+      }
+
+      .creator-header h1 {
+        font-size: 28px;
+      }
+    }
+  </style>
+</head>
+<body class="csgo-theme">
+
+  <!-- Custom Cursor Glow -->
+  <div id="cursor-glow"></div>
+
+  <!-- NAVBAR -->
+  <nav id="navbar" class="csgo-nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">CLUCHZONE</a>
+      <ul class="nav-links">
+        <li><a href="index.html#games" class="nav-link">Jogos</a></li>
+        <li><a href="pubg.html" class="nav-link">PUBG</a></li>
+        <li><a href="csgo.html" class="nav-link">CS2</a></li>
+        <li><a href="brawlstars.html" class="nav-link">Brawl Stars</a></li>
+        <li><a href="passport.html" class="nav-link">🛂 Passaporte</a></li>
+      </ul>
+      <div class="nav-actions">
+        <a href="csgo.html" class="btn-login-back">VOLTAR</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- CREATOR PAGE -->
+  <div class="create-tournament-page">
+    <div class="tournament-creator">
+      <div class="creator-header">
+        <h1>🏆 CRIAR CAMPEONATO</h1>
+        <p>Configure seu torneio e escolha o tipo de chaveamento para seu campeonato</p>
+      </div>
+
+      <!-- STEP 1: CHOOSE BRACKET TYPE -->
+      <div class="creator-steps">
+        <div class="step-box">
+          <div class="step-number">1</div>
+          <h3>Escolha o Chaveamento</h3>
+          <p>Selecione o formato de bracket que melhor se adequa ao seu torneio</p>
+          <div class="bracket-types">
+            <div class="bracket-option" onclick="selectBracket('8', this)">🎯 Oitavas (8 Times)</div>
+            <div class="bracket-option" onclick="selectBracket('16', this)">🎯 Oitavas Dupla (16 Times)</div>
+            <div class="bracket-option" onclick="selectBracket('4', this)">⚔️ Quartas (4 Times)</div>
+            <div class="bracket-option" onclick="selectBracket('8-dbls', this)">⚔️ Quartas Dupla (8 Times)</div>
+            <div class="bracket-option" onclick="selectBracket('semi', this)">🔥 Semifinal (2 Times)</div>
+            <div class="bracket-option" onclick="selectBracket('groups', this)">👥 Grupos + Eliminação</div>
+          </div>
+        </div>
+
+        <div class="step-box">
+          <div class="step-number">2</div>
+          <h3>Pré-visualizar Chaveamento</h3>
+          <p>Confira como ficará o bracket do seu torneio</p>
+          <div class="preview-bracket" id="preview-bracket">
+            Selecione um tipo de chaveamento →
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 2: TOURNAMENT INFO -->
+      <div class="form-section">
+        <h2>📋 Informações do Campeonato</h2>
+        <form id="tournament-form">
+          <div class="form-grid full">
+            <div class="form-group">
+              <label class="form-label">Nome do Campeonato *</label>
+              <input class="form-input" type="text" id="tournament-name" placeholder="Ex: Copa Noturna de CS2 #5" required maxlength="60"/>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Jogo *</label>
+              <select class="form-select" id="tournament-game" required>
+                <option value="">Selecione um jogo</option>
+                <option value="CS2">CS2 / CS:GO</option>
+                <option value="PUBG">PUBG</option>
+                <option value="Valorant">Valorant</option>
+                <option value="Apex">Apex Legends</option>
+                <option value="R6">Rainbow Six Siege</option>
+                <option value="COD">Call of Duty: Warzone</option>
+                <option value="LoL">League of Legends</option>
+                <option value="Brawl">Brawl Stars</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Formato *</label>
+              <select class="form-select" id="tournament-format" required>
+                <option value="">Selecione o formato</option>
+                <option value="1v1">1v1</option>
+                <option value="2v2">2v2</option>
+                <option value="3v3">3v3</option>
+                <option value="5v5">5v5</option>
+                <option value="BR">Battle Royale</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Data do Campeonato *</label>
+              <input class="form-input" type="datetime-local" id="tournament-date" required/>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Taxa de Inscrição</label>
+              <select class="form-select" id="tournament-fee">
+                <option value="free">Gratuito</option>
+                <option value="5">R$ 5,00</option>
+                <option value="10">R$ 10,00</option>
+                <option value="15">R$ 15,00</option>
+                <option value="20">R$ 20,00</option>
+                <option value="30">R$ 30,00</option>
+                <option value="50">R$ 50,00</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Região *</label>
+              <select class="form-select" id="tournament-region" required>
+                <option value="">Selecione a região</option>
+                <option value="sp">Brasil - São Paulo</option>
+                <option value="rj">Brasil - Rio de Janeiro</option>
+                <option value="sud">Brasil - Sul</option>
+                <option value="sa">América do Sul</option>
+                <option value="na">América do Norte</option>
+                <option value="eu">Europa</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Prêmio em Reais (opcional)</label>
+              <input class="form-input" type="number" id="tournament-prize" placeholder="Ex: 1000" min="0"/>
+            </div>
+          </div>
+
+          <div class="form-grid full">
+            <div class="form-group">
+              <label class="form-label">Descrição (opcional)</label>
+              <input class="form-input" type="text" id="tournament-desc" placeholder="Breve descrição do seu campeonato" maxlength="200"/>
+            </div>
+          </div>
+
+          <div class="action-buttons">
+            <button type="button" class="btn-cancel" onclick="goBack()">Cancelar</button>
+            <button type="submit" class="btn-create">Criar Campeonato</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="api.js"></script>
+  <script src="main.js"></script>
+  <script>
+    let selectedBracket = null;
+
+    function selectBracket(type, element) {
+      // Remove previous selection
+      document.querySelectorAll('.bracket-option').forEach(el => el.classList.remove('selected'));
+      
+      // Add selection to clicked element
+      element.classList.add('selected');
+      selectedBracket = type;
+
+      // Update preview
+      updatePreview(type);
+    }
+
+    function updatePreview(type) {
+      const preview = document.getElementById('preview-bracket');
+      const bracketNames = {
+        '8': '8️⃣ Oitavas - 8 Times',
+        '16': '1️⃣6️⃣ Oitavas Dupla - 16 Times',
+        '4': '4️⃣ Quartas - 4 Times',
+        '8-dbls': '8️⃣ Quartas Dupla - 8 Times',
+        'semi': '2️⃣ Semifinal - 2 Times',
+        'groups': '👥 Grupos + Eliminação'
+      };
+
+      preview.innerHTML = `✓ ${bracketNames[type] || 'Chaveamento Selecionado'} <br><br>Você poderá adicionar os times após criar o campeonato.`;
+      preview.classList.add('active');
+    }
+
+    function goBack() {
+      window.history.back();
+    }
+
+    document.getElementById('tournament-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      if (!selectedBracket) {
+        alert('Por favor, selecione um tipo de chaveamento');
+        return;
+      }
+
+      const currentUser = JSON.parse(localStorage.getItem('cluchzone_auth') || '{"nick":"Jogador_Convidado","provider":"email"}');
+      
+      const tournamentData = {
+        id: Date.now(),
+        name: document.getElementById('tournament-name').value,
+        game: document.getElementById('tournament-game').value,
+        format: document.getElementById('tournament-format').value,
+        date: document.getElementById('tournament-date').value,
+        fee: document.getElementById('tournament-fee').value,
+        region: document.getElementById('tournament-region').value,
+        prize: 'R$ ' + (document.getElementById('tournament-prize').value || '0'),
+        description: document.getElementById('tournament-desc').value,
+        bracket: selectedBracket,
+        organizer: currentUser.nick || 'Staff_CS2',
+        status: 'Registros Abertos',
+        banner: 'images/cs2_open_pro.jpg',
+        maxTeams: parseInt(selectedBracket === '8' ? 8 : selectedBracket === '16' ? 16 : selectedBracket === '4' ? 4 : selectedBracket === '8-dbls' ? 8 : 2),
+        registeredTeams: [],
+        pendingApprovals: [],
+        p1: 60,
+        p2: 30,
+        p3: 10,
+        format: document.getElementById('tournament-format').value + ' - Eliminatória simples',
+        elimination: 'Eliminatória simples',
+        sponsors: [],
+        discord: '',
+        stream: '',
+        rules: 'Regras padrão CLUCHZONE de CS2.',
+        server: { ip: '', port: '27015', password: '', active: false },
+        bracket_list: {},
+        history: [],
+        createdAt: new Date().toISOString(),
+        isUserTournament: true
+      };
+
+      // Save to localStorage with correct key
+      let tournaments = await window.CluchAPI?.getStore('cluchzone_cs2_camps', null);
+      if (!Array.isArray(tournaments)) {
+        tournaments = JSON.parse(localStorage.getItem('cluchzone_cs2_camps') || '[]');
+      }
+      tournaments.push(tournamentData);
+      localStorage.setItem('cluchzone_cs2_camps', JSON.stringify(tournaments));
+      await window.CluchAPI?.setStore('cluchzone_cs2_camps', tournaments);
+
+      alert('✓ Campeonato criado com sucesso!');
+      setTimeout(() => {
+        try {
+          window.location.href = 'csgo.html';
+        } catch (e) {
+          window.open('csgo.html', '_self');
+        }
+      }, 100);
+    });
+
+    // Custom Cursor Glow
+    document.addEventListener('mousemove', (e) => {
+      const glow = document.getElementById('cursor-glow');
+      if (glow) {
+        glow.style.left = e.clientX + 'px';
+        glow.style.top = e.clientY + 'px';
+      }
+    });
+  </script>
+</body>
+</html>

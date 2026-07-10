@@ -76,6 +76,12 @@ body.pubg-theme {
   text-align: center; padding: 36px 0 18px;
   border-bottom: 1px solid rgba(223,143,38,.15);
   margin-bottom: 48px;
+  background: linear-gradient(135deg, rgba(7, 9, 13, 0.92) 40%, transparent 100%),
+              url('images/pubg_bg.jpg') center/cover no-repeat;
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 .pubg-game-logo { display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 12px; }
 .pubg-game-logo .game-icon { font-size: 38px; animation: plane-hover 3s ease-in-out infinite; }

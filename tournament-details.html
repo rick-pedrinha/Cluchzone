@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data:; script-src 'self' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' https: data:; font-src 'self' https: data:; frame-src 'none'; upgrade-insecure-requests" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CLUCHZONE - Detalhes do Campeonato</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;600;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="csgo.css" />
+  <link rel="stylesheet" href="chat.css" />
+  <link rel="stylesheet" href="premium.css" />
+  <link rel="stylesheet" href="auth.css" />
+</head>
+<body class="csgo-theme tournament-detail-page">
+  <div id="cursor-glow"></div>
+
+  <nav id="navbar" class="csgo-nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">CLUCHZONE</a>
+      <ul class="nav-links">
+        <li><a href="csgo.html" class="nav-link">Campeonatos</a></li>
+        <li><a href="csgo.html" class="nav-link">CS2</a></li>
+        <li><a href="passport.html" class="nav-link">Passaporte</a></li>
+      </ul>
+      <div class="nav-actions">
+        <a href="csgo.html" class="btn-login-back">VOLTAR</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="td-shell">
+    <section class="td-hero">
+      <div class="td-hero-bg" id="td-hero-bg"></div>
+      <div class="td-hero-overlay"></div>
+      <div class="td-hero-content">
+        <div class="td-status" id="td-status">Carregando</div>
+        <h1 id="td-title">Campeonato</h1>
+        <p id="td-description">Detalhes completos do campeonato CLUCHZONE.</p>
+        <div class="td-actions" style="display: flex; gap: 12px; flex-wrap: wrap;">
+          <button class="cs2-btn cs2-btn-primary" id="td-join-team-btn" style="background: linear-gradient(135deg, #ffd700, #ffaa00); color: #000; border-color: #ffaa00;">🛡️ Inscrever Equipe</button>
+          <button class="cs2-btn cs2-btn-primary" id="td-join-solo-btn">👤 Jogar Solo (Fila)</button>
+          <a class="cs2-btn cs2-btn-secondary" href="csgo.html">Ver todos</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="td-stats" aria-label="Resumo do campeonato">
+      <div class="td-stat"><span>Premiação</span><strong id="td-prize">-</strong></div>
+      <div class="td-stat"><span>Inscrições</span><strong id="td-slots">-</strong></div>
+      <div class="td-stat"><span>Formato</span><strong id="td-format">-</strong></div>
+      <div class="td-stat"><span>Região</span><strong id="td-region">-</strong></div>
+      <div class="td-stat"><span>Organizador</span><strong id="td-organizer">-</strong></div>
+    </section>
+
+    <section class="td-layout">
+      <div class="td-main">
+        <div class="td-section-head">
+          <h2>Chaveamento</h2>
+          <span id="td-bracket-note">Atualizado automaticamente</span>
+        </div>
+        <div class="td-bracket" id="td-bracket"></div>
+      </div>
+
+      <aside class="td-side">
+
+        <!-- ─── PUBLIC: Equipes (visible to everyone) ─── -->
+        <div id="td-public-teams-block">
+          <div class="td-section-head">
+            <h2>Equipes</h2>
+            <span id="td-team-count">0 equipes</span>
+          </div>
+          <div class="td-team-list" id="td-team-list"></div>
+        </div>
+
+        <!-- ─── ADMIN PANEL (replaces equipes block for admins) ─── -->
+        <div id="td-admin-panel" style="display:none;">
+
+          <!-- Admin header -->
+          <div style="
+            display:flex; align-items:center; justify-content:space-between;
+            margin-bottom:14px; flex-wrap:wrap; gap:8px;
+          ">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <div style="
+                width:32px; height:32px; border-radius:8px;
+                background:rgba(0,212,255,0.1); border:1px solid rgba(0,212,255,0.3);
+                display:flex; align-items:center; justify-content:center; font-size:15px;
+              ">⚙️</div>
+              <div>
+                <div style="font-family:'Orbitron',sans-serif; font-size:11px; font-weight:900; color:#fff; letter-spacing:0.5px;">PAINEL DO ORG.</div>
+                <div style="font-size:10px; color:#718096;">Aprovação de equipes</div>
+              </div>
+            </div>
+            <div style="display:flex; gap:6px; align-items:center;">
+              <div id="admin-pending-badge" style="
+                font-family:'Orbitron',sans-serif; font-size:10px; font-weight:900;
+                background:rgba(255,215,0,0.1); color:#ffd700; border:1px solid rgba(255,215,0,0.3);
+                padding:2px 8px; border-radius:20px;
+              ">0</div>
+              <div id="admin-approved-badge" style="
+                font-family:'Orbitron',sans-serif; font-size:10px; font-weight:900;
+                background:rgba(0,255,136,0.08); color:#00ff88; border:1px solid rgba(0,255,136,0.25);
+                padding:2px 8px; border-radius:20px;
+              ">0</div>
+            </div>
+          </div>
+
+          <!-- Tabs -->
+          <div style="display:flex; border-bottom:1px solid rgba(255,255,255,0.06); margin-bottom:14px;">
+            <button id="admin-tab-pending" onclick="adminSwitchTab('pending')" style="
+              font-family:'Orbitron',sans-serif; font-size:9px; font-weight:900; letter-spacing:0.5px;
+              padding:10px 12px; background:none; border:none; color:#ffd700; cursor:pointer;
+              border-bottom:2px solid #ffd700; margin-bottom:-1px;
+            ">⏳ PENDENTES</button>
+            <button id="admin-tab-approved" onclick="adminSwitchTab('approved')" style="
+              font-family:'Orbitron',sans-serif; font-size:9px; font-weight:900; letter-spacing:0.5px;
+              padding:10px 12px; background:none; border:none; color:#718096; cursor:pointer;
+              border-bottom:2px solid transparent; margin-bottom:-1px;
+            ">✅ APROVADAS</button>
+            <button id="admin-tab-rejected" onclick="adminSwitchTab('rejected')" style="
+              font-family:'Orbitron',sans-serif; font-size:9px; font-weight:900; letter-spacing:0.5px;
+              padding:10px 12px; background:none; border:none; color:#718096; cursor:pointer;
+              border-bottom:2px solid transparent; margin-bottom:-1px;
+            ">❌ REJEITADAS</button>
+          </div>
+
+          <!-- Tab content -->
+          <div id="admin-content-pending"><div id="admin-pending-list" style="display:flex;flex-direction:column;gap:10px;"></div></div>
+          <div id="admin-content-approved" style="display:none;"><div id="admin-approved-list" style="display:flex;flex-direction:column;gap:10px;"></div></div>
+          <div id="admin-content-rejected" style="display:none;"><div id="admin-rejected-list" style="display:flex;flex-direction:column;gap:10px;"></div></div>
+        </div>
+
+        <!-- Solo Queue -->
+        <div class="td-section-head" style="margin-top: 32px;">
+          <h2 style="color: #00d4ff;">👤 Fila Solo</h2>
+          <span id="td-solo-count" style="color: #00d4ff;">0 jogadores</span>
+        </div>
+        <p style="font-size: 11px; color: #4a5568; margin-bottom: 12px; line-height: 1.5;">
+          Jogadores aguardando para completar vagas em equipes com slots abertos.
+        </p>
+        <div id="td-solo-list"></div>
+      </aside>
+    </section>
+
+    <section class="td-rules">
+      <div class="td-section-head">
+        <h2>Regras e Servidor</h2>
+      </div>
+      <div class="td-rule-grid">
+        <div>
+          <span>Regras</span>
+          <p id="td-rules">-</p>
+        </div>
+        <div>
+          <span>Servidor</span>
+          <p id="td-server">Aguardando liberação</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast-container"></div>
+
+  <script src="api.js"></script>
+  <script src="tournament-details.js"></script>
+  <script src="chat.js"></script>
+  <script src="premium.js"></script>
+  <script src="auth.js"></script>
+</body>
+</html>

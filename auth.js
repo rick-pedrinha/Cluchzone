@@ -229,7 +229,15 @@
   }
 
   /* ─── LOGIN USER ────────────────────────────────────────── */
-  function loginUser(data) {
+  async function loginUser(data) {
+    try {
+      if (window.CluchAPI) {
+        const result = await CluchAPI.auth('oauth', data);
+        data = result.user || data;
+      }
+    } catch (error) {
+      console.warn('[Auth] backend login fallback:', error.message);
+    }
     authState = data;
     localStorage.setItem(STATE_KEY, JSON.stringify(data));
     closeAuth();
@@ -247,10 +255,12 @@
   function logoutUser() {
     authState = null;
     localStorage.removeItem(STATE_KEY);
+    window.CluchAPI?.auth('logout').catch(error => console.warn('[Auth] logout fallback:', error.message));
     updateNavForGuest();
     showToast('Você saiu da sua conta. Até logo!', '#ff4654');
   }
 
+  /* ─── UPDATE NAV ────────────────────────────────────────── */
   /* ─── UPDATE NAV ────────────────────────────────────────── */
   function updateNavForUser(data) {
     const actions = document.querySelector('.nav-actions');
@@ -261,6 +271,54 @@
 
     const initial = data.nick.charAt(0).toUpperCase();
     const provTag = `<span class="provider-tag ${data.provider}">${PROVIDERS[data.provider]?.name || 'Email'}</span>`;
+
+    // Retrieve teams list to populate the active team dropdown
+    const TEAMS_KEY = 'cluchzone_cs2_teams';
+    let localTeams = JSON.parse(localStorage.getItem(TEAMS_KEY) || '[]');
+    
+    // Seed STONNED team if not present to fulfill requirements
+    const hasStonned = localTeams.some(t => t.name.toLowerCase() === 'stonned');
+    if (!hasStonned) {
+      localTeams.push({
+        logo: '⚡',
+        banner: 'https://images.alphacoders.com/605/605592.jpg',
+        name: 'STONNED',
+        tag: 'STN',
+        description: 'Equipe oficial Stonned esports tática.',
+        region: 'América do Sul',
+        captain: data.nick,
+        vice: 'Vice_Esportivo',
+        members: [data.nick, 'Vice_Esportivo', 'Player_1', 'Player_2', 'Player_3'],
+        reserves: [],
+        socials: { discord: '#', steam: '#', insta: '#', site: '#' },
+        stats: '15-4',
+        winrate: '78%',
+        matches: 19,
+        ranking: 3,
+        points: 1450,
+        history: [],
+        medals: ['🏆 Campeão da Liga']
+      });
+      // Save it back to local storage
+      localStorage.setItem(TEAMS_KEY, JSON.stringify(localTeams));
+    }
+
+    // Recover current active team
+    const ACTIVE_TEAM_KEY = 'cluchzone_active_team';
+    let activeTeamName = localStorage.getItem(ACTIVE_TEAM_KEY) || (localTeams[0] ? localTeams[0].name : '');
+    if (activeTeamName && !localTeams.some(t => t.name === activeTeamName)) {
+      activeTeamName = localTeams[0] ? localTeams[0].name : '';
+    }
+    if (activeTeamName) {
+      localStorage.setItem(ACTIVE_TEAM_KEY, activeTeamName);
+    }
+
+    // Build select options
+    let teamOptions = '';
+    localTeams.forEach(t => {
+      const selectedAttr = t.name === activeTeamName ? 'selected' : '';
+      teamOptions += `<option value="${t.name}" ${selectedAttr}>${t.name} [${t.tag}]</option>`;
+    });
 
     const wrapper = document.createElement('div');
     wrapper.className = 'nav-user-wrapper';
@@ -274,32 +332,57 @@
       </div>
       <div class="nav-user-dropdown">
         <a href="passport.html" class="dropdown-item">🛂 Passaporte</a>
+        <a href="my-teams.html" class="dropdown-item">👥 Minhas Equipes</a>
         <a class="dropdown-item" id="dd-premium">👑 Premium</a>
+        
+        <div class="dropdown-sep"></div>
+        <div style="padding: 6px 8px; display: flex; flex-direction: column; gap: 4px;">
+          <label style="font-size: 9px; color: var(--tm-cyan); font-weight: 700; letter-spacing: 1px; text-transform: uppercase;">🛡️ Equipe Ativa</label>
+          <select id="dd-active-team-select" style="background:#07090d; color:#e2e8f0; border:1px solid rgba(255,255,255,0.1); border-radius:6px; padding:4px 6px; font-family:'Rajdhani',sans-serif; font-size:12px; font-weight:700; outline:none; width:100%; cursor:pointer;">
+            ${teamOptions || '<option value="">Sem Equipe</option>'}
+          </select>
+        </div>
+
         <div class="dropdown-sep"></div>
         <div class="dropdown-item" id="dd-settings">⚙️ Configurações</div>
         <div class="dropdown-item danger" id="dd-logout">⟵ Sair</div>
       </div>`;
     actions.appendChild(wrapper);
 
+    // Event Listeners
     document.getElementById('dd-logout')?.addEventListener('click', logoutUser);
     document.getElementById('dd-premium')?.addEventListener('click', () => {
       closeAuth();
       window.openPremiumModal?.();
     });
+
+    const teamSelect = document.getElementById('dd-active-team-select');
+    if (teamSelect) {
+      teamSelect.addEventListener('change', (e) => {
+        const selectedVal = e.target.value;
+        if (selectedVal) {
+          localStorage.setItem(ACTIVE_TEAM_KEY, selectedVal);
+          showToast(`🛡️ Equipe ativa alterada para: ${selectedVal}`, '#00ff88');
+          // If on a page that listens to active team changes, trigger reload/event
+          const event = new CustomEvent('activeTeamChanged', { detail: selectedVal });
+          window.dispatchEvent(event);
+        }
+      });
+    }
   }
 
   function updateNavForGuest() {
     const actions = document.querySelector('.nav-actions');
     if (!actions) return;
-    actions.querySelectorAll('.btn-nav-login, .btn-nav-register, .nav-user-wrapper').forEach(el => el.remove());
+    actions.querySelectorAll('.btn-nav-login, .btn-nav-register, .btn-login, .btn-register, .nav-user-wrapper').forEach(el => el.remove());
 
     const loginBtn = document.createElement('button');
-    loginBtn.className = 'btn-nav-login';
+    loginBtn.className = 'btn-login btn-nav-login';
     loginBtn.textContent = 'Entrar';
     loginBtn.addEventListener('click', () => openAuth('login'));
 
     const regBtn = document.createElement('button');
-    regBtn.className = 'btn-nav-register';
+    regBtn.className = 'btn-register btn-nav-register';
     regBtn.textContent = 'Criar Conta';
     regBtn.addEventListener('click', () => openAuth('register'));
 

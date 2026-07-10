@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CLUCHZONE — Minhas Equipes</title>
+  <meta name="description" content="Acesse, gerencie e acompanhe o ranking, conquistas e partidas das suas equipes táticas." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;600;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="teams.css" />
+  <link rel="stylesheet" href="chat.css"/>
+  <link rel="stylesheet" href="premium.css"/>
+  <link rel="stylesheet" href="auth.css"/>
+</head>
+<body class="csgo-theme">
+
+  <!-- Custom Cursor Glow -->
+  <div id="cursor-glow" style="position:fixed;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(0,212,255,.05) 0%,transparent 70%);pointer-events:none;z-index:9999;transform:translate(-50%,-50%);"></div>
+
+  <!-- NAVBAR -->
+  <nav id="navbar" class="csgo-nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">CLUCHZONE</a>
+      <ul class="nav-links">
+        <li><a href="index.html#games" class="nav-link">Jogos</a></li>
+        <li><a href="pubg.html" class="nav-link">PUBG</a></li>
+        <li><a href="csgo.html" class="nav-link">CS2</a></li>
+        <li><a href="brawlstars.html" class="nav-link">Brawl Stars</a></li>
+        <li><a href="passport.html" class="nav-link">🛂 Passaporte</a></li>
+        <li><a href="my-teams.html" class="nav-link active">👥 Equipes</a></li>
+      </ul>
+      <div class="nav-actions">
+        <!-- Notification bell -->
+        <div class="notif-badge-bell" id="btn-notif-bell" style="cursor: pointer; position: relative;">
+          🔔
+          <div class="notif-count-bubble" id="notif-count" style="display: none;">0</div>
+        </div>
+        <a href="team-create.html" class="btn-nav-register" style="text-decoration: none;">🛡️ CRIAR EQUIPE</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- NOTIFICATIONS BOX -->
+  <div class="nav-user-dropdown" id="notif-drawer" style="right: 80px; width: 260px; max-height: 300px; overflow-y: auto;">
+    <div class="dropdown-item" style="font-weight: 700; border-bottom: 1px solid var(--tm-border); padding-bottom: 8px;">Notificações</div>
+    <div id="notif-list">
+      <!-- Generated via JS -->
+    </div>
+  </div>
+
+  <!-- TEAM FACEIT HEADER (Loaded dynamically based on active team) -->
+  <header class="team-faceit-header" id="active-team-banner" style="background-image: url('https://images.alphacoders.com/605/605592.jpg');">
+    <div class="team-header-content">
+      <div class="team-header-logo" id="active-team-logo">🛡️</div>
+      <div class="team-header-info">
+        <div class="team-header-name-row">
+          <h1 class="team-header-name" id="active-team-name">Imperial Esports</h1>
+          <span class="team-header-tag" id="active-team-tag">IMP</span>
+        </div>
+        <div class="team-header-meta" id="active-team-meta">
+          Região: Brasil - SP &nbsp;·&nbsp; Capitão: Fallen_Fan &nbsp;·&nbsp; Pontuação: 4.200 pts
+        </div>
+        <!-- Social links -->
+        <div class="team-header-socials">
+          <a href="#" class="team-social-link" id="soc-discord" target="_blank">Discord</a>
+          <a href="#" class="team-social-link" id="soc-steam" target="_blank">Steam Group</a>
+          <a href="#" class="team-social-link" id="soc-insta" target="_blank">Instagram</a>
+          <a href="#" class="team-social-link" id="soc-site" target="_blank">Website</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN TEAM DASHBOARD -->
+  <main class="team-container">
+
+    <!-- TEAM SELECTOR ROW -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 14px;">
+      <div>
+        <label style="font-size: 11px; font-weight: 700; color: #4a5568; letter-spacing: 1px; text-transform: uppercase;">SELECIONAR EQUIPE:</label>
+        <select class="form-select" id="active-team-selector" style="width: 260px; margin-top: 4px;">
+          <!-- Generated via JS -->
+        </select>
+      </div>
+      <div>
+        <a href="team-create.html" class="cs2-btn cs2-btn-primary">🛡️ Criar Nova Equipe</a>
+      </div>
+    </div>
+
+    <!-- PENDING INVITES NOTIFICATION AREA -->
+    <div class="server-room-card" id="pending-invites-card" style="display: none; border-color: var(--tm-purple); background: linear-gradient(135deg, rgba(123, 47, 247, 0.05) 0%, rgba(7, 9, 14, 0.98) 100%);">
+      <div class="server-header">
+        <h3>✉️ Convites de Equipe Pendentes</h3>
+        <span class="csgo-status-badge" style="background: rgba(123, 47, 247, 0.15); border-color: var(--tm-purple); color: #c084fc;">AÇÃO REQUERIDA</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 12px;" id="pending-invites-list">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- MAIN FACEIT LAYOUT -->
+    <div class="team-layout-grid">
+      
+      <!-- Left Column: Roster & Stats -->
+      <div>
+        <!-- StatsKPI Strip -->
+        <div class="team-stats-grid">
+          <div class="team-stat-kpi">
+            <div class="team-stat-kpi-num" id="stat-winrate">83%</div>
+            <div class="team-stat-kpi-lbl">Taxa de Vitória</div>
+          </div>
+          <div class="team-stat-kpi">
+            <div class="team-stat-kpi-num" id="stat-matches">48</div>
+            <div class="team-stat-kpi-lbl">Partidas Jogadas</div>
+          </div>
+          <div class="team-stat-kpi">
+            <div class="team-stat-kpi-num" id="stat-rank">#1</div>
+            <div class="team-stat-kpi-lbl">Ranking Geral</div>
+          </div>
+          <div class="team-stat-kpi">
+            <div class="team-stat-kpi-num" id="stat-points">4.200</div>
+            <div class="team-stat-kpi-lbl">Pontos CLUCH</div>
+          </div>
+        </div>
+
+        <!-- Team Roster -->
+        <div class="team-card">
+          <div class="team-card-title">🛡️ ELENCO DA EQUIPE</div>
+          <div class="roster-list" id="active-roster-list">
+            <!-- Generated via JS -->
+          </div>
+        </div>
+
+        <!-- Team History of Tournaments -->
+        <div class="team-card">
+          <div class="team-card-title">📜 HISTÓRICO DE CAMPEONATOS</div>
+          <table class="leaderboard-table">
+            <thead>
+              <tr><th>Campeonato</th><th>Região</th><th>Formato</th><th>Posição</th><th>Resultado</th></tr>
+            </thead>
+            <tbody id="team-camp-history-tbody">
+              <!-- Generated via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Right Column: Settings, Invites, and Medals -->
+      <div>
+        <!-- Team Organizer Panel (Visible to captain and vice) -->
+        <div class="team-card" id="team-settings-card" style="display: none;">
+          <div class="team-card-title">⚙️ GERENCIAR EQUIPE</div>
+          <p style="font-size: 12px; color: #718096; line-height: 1.4; margin-bottom: 14px;">Gerencie o elenco, altere dados ou desfaça a equipe.</p>
+          
+          <!-- Send Invite Form -->
+          <div class="form-field">
+            <label>Convidar via Nickname / Steam ID</label>
+            <div class="invite-form-row">
+              <input class="form-input" id="invite-player-name" type="text" placeholder="Ex: S1mple_Soul"/>
+              <button class="cs2-btn cs2-btn-primary" id="btn-send-invite" style="padding: 10px 18px;">Convidar</button>
+            </div>
+          </div>
+
+          <!-- Add Member Directly Form -->
+          <div class="form-field" style="margin-top: 14px;">
+            <label>Adicionar Membro Diretamente</label>
+            <div class="invite-form-row">
+              <input class="form-input" id="direct-player-name" type="text" placeholder="Ex: Fallen_Fan"/>
+              <button class="cs2-btn cs2-btn-primary" id="btn-direct-add" style="padding: 10px 18px; border-color: var(--tm-cyan); color: var(--tm-cyan); background: rgba(0, 212, 255, 0.04);">➕ Adicionar</button>
+            </div>
+          </div>
+
+          <div style="margin-top: 18px; border-top: 1px solid var(--tm-border); padding-top: 14px; display: flex; flex-direction: column; gap: 10px;">
+            <button class="cs2-btn cs2-btn-secondary" id="btn-toggle-edit-fields" style="width: 100%; border-color: var(--tm-cyan); color: var(--tm-cyan);">✏️ Editar Informações da Equipe</button>
+            
+            <!-- Collapsible Edit Fields -->
+            <div id="edit-team-fields-container" style="display: none; flex-direction: column; gap: 12px; border: 1px solid var(--tm-border); border-radius: 8px; padding: 14px; background: rgba(0, 0, 0, 0.2);">
+              <div class="form-field">
+                <label>Alterar Nome da Equipe</label>
+                <input class="form-input" id="edit-team-name" type="text" />
+              </div>
+              <div class="form-field">
+                <label>Alterar TAG (Max 5 letras)</label>
+                <input class="form-input" id="edit-team-tag" type="text" maxlength="5" style="text-transform: uppercase;" />
+              </div>
+              <div class="form-field">
+                <label>Descrição</label>
+                <textarea class="form-input" id="edit-team-desc" style="height: 60px; resize: none;"></textarea>
+              </div>
+              <div class="form-field">
+                <label>Região</label>
+                <select class="form-input" id="edit-team-region" style="background:#07090d; border-color:var(--tm-border); color:#fff; font-family:'Rajdhani',sans-serif;">
+                  <option value="Brasil - SP">Brasil - SP</option>
+                  <option value="Brasil - RJ">Brasil - RJ</option>
+                  <option value="América do Sul">América do Sul</option>
+                  <option value="Europa">Europa</option>
+                </select>
+              </div>
+              
+              <!-- Drag & Drop Logo update -->
+              <div class="form-field">
+                <label>Atualizar Logo (Arraste ou clique)</label>
+                <div class="tm-upload-box" id="edit-logo-upload-box" style="padding: 10px; border-width: 1px;">
+                  <span style="font-size: 16px;">📁</span>
+                  <p style="font-size: 9px; color:#718096; margin-top:2px;">Arraste a logo ou clique aqui</p>
+                  <input type="file" id="edit-logo-file" accept="image/*" style="position:absolute; inset:0; opacity:0; cursor:pointer;" />
+                  <img id="edit-logo-preview" class="tm-upload-preview" alt="Preview da Logo" style="max-height: 50px;" />
+                </div>
+              </div>
+
+              <!-- Drag & Drop Banner update -->
+              <div class="form-field">
+                <label>Atualizar Banner (Arraste ou clique)</label>
+                <div class="tm-upload-box" id="edit-banner-upload-box" style="padding: 10px; border-width: 1px;">
+                  <span style="font-size: 16px;">🖼️</span>
+                  <p style="font-size: 9px; color:#718096; margin-top:2px;">Arraste o banner ou clique aqui</p>
+                  <input type="file" id="edit-banner-file" accept="image/*" style="position:absolute; inset:0; opacity:0; cursor:pointer;" />
+                  <img id="edit-banner-preview" class="tm-upload-preview" alt="Preview do Banner" style="max-height: 50px;" />
+                </div>
+              </div>
+
+              <button class="cs2-btn cs2-btn-primary" id="btn-save-team-changes" style="width: 100%; margin-top: 6px;">💾 Salvar Alterações</button>
+            </div>
+
+            <button class="cs2-btn cs2-btn-secondary" id="btn-disband-team" style="width: 100%; border-color: var(--tm-red); color: var(--tm-red); background: rgba(255, 51, 81, 0.02);">💥 DESFAZER EQUIPE</button>
+          </div>
+        </div>
+
+        <!-- Team Medals & Trophies -->
+        <div class="team-card">
+          <div class="team-card-title">🏅 TROFÉUS E CONQUISTAS</div>
+          <div class="medals-grid" id="team-medals-grid" style="grid-template-columns: repeat(2, 1fr); gap: 8px;">
+            <!-- Generated via JS -->
+          </div>
+        </div>
+
+        <!-- Active Invites Sent Tracker (Visible to captain and vice) -->
+        <div class="team-card" id="sent-invites-card" style="display: none;">
+          <div class="team-card-title">✉️ CONVITES ENVIADOS PENDENTES</div>
+          <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;" id="sent-invites-list">
+            <!-- Generated via JS -->
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <footer class="hub-footer">
+    <div class="hub-footer-logo">CLUCHZONE</div>
+    <p>© 2026 CLUCHZONE Esports · Todos os direitos reservados ⚡</p>
+  </footer>
+
+  <div id="toast-container" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;align-items:center;gap:8px;"></div>
+
+  <script src="main.js"></script>
+  <script src="teams.js"></script>
+  <script src="chat.js"></script>
+  <script src="premium.js"></script>
+  <script src="auth.js"></script>
+  <script>
+    const glow = document.getElementById('cursor-glow');
+    document.addEventListener('mousemove', (e) => {
+      glow.style.left = e.clientX + 'px';
+      glow.style.top = e.clientY + 'px';
+    });
+  </script>
+</body>
+</html>

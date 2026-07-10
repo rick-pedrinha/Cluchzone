@@ -271,8 +271,8 @@
       <li><a href="passport.html" class="nav-link active">Passaporte</a></li>
     </ul>
     <div class="nav-actions">
-      <button class="btn-nav-login">Entrar</button>
-      <button class="btn-nav-register">Criar Conta</button>
+      <button class="btn-login btn-nav-login">Entrar</button>
+      <button class="btn-register btn-nav-register">Criar Conta</button>
     </div>
   </div>
 </nav>
@@ -288,17 +288,18 @@
   <div class="passport-profile">
     <!-- Avatar photo -->
     <div class="avatar-wrap">
-      <img src="images/passport_avatar.jpg" alt="Avatar de xDROPx" onerror="this.style.display='none';this.parentElement.style.background='linear-gradient(135deg,#7b2ff7,#00d4ff)'"/>
-      <div class="avatar-level">LVL 42</div>
+      <img id="pass-avatar-img" src="images/passport_avatar.jpg" alt="Avatar" onerror="this.style.display='none';document.getElementById('pass-avatar-txt').style.display='flex';" />
+      <div id="pass-avatar-txt" style="display:none; width:100%; height:100%; align-items:center; justify-content:center; font-size:42px; background:linear-gradient(135deg,#7b2ff7,#00d4ff); color:#fff;">👤</div>
+      <div class="avatar-level" id="pass-level-badge">LVL 42</div>
     </div>
     <!-- Profile info -->
     <div class="profile-info">
-      <div class="profile-nick">
+      <div class="profile-nick" id="pass-nick-text">
         xDROPx
-        <span class="premium-star">👑 PREMIUM</span>
+        <span class="premium-star" id="pass-premium-star">👑 PREMIUM</span>
       </div>
-      <div class="profile-handle">@xdropx &nbsp;·&nbsp; Membro desde Jan 2024 &nbsp;·&nbsp; Brasil — SP</div>
-      <div class="profile-tags">
+      <div class="profile-handle" id="pass-handle-text">@xdropx &nbsp;·&nbsp; Membro desde Jan 2024 &nbsp;·&nbsp; Brasil — SP</div>
+      <div class="profile-tags" id="pass-badge-row">
         <span class="profile-tag tag-rank">💎 Diamond II</span>
         <span class="profile-tag tag-tours">⚔️ 47 Campeonatos</span>
         <span class="profile-tag tag-wins">🏆 12 Vitórias</span>
@@ -312,10 +313,10 @@
 
   <!-- Stats strip (fully below, no overlap) -->
   <div class="passport-stats-strip">
-    <div class="pstat"><div class="pstat-num">Diamond II</div><div class="pstat-lbl">Ranking</div></div>
-    <div class="pstat"><div class="pstat-num">47</div><div class="pstat-lbl">Campeonatos</div></div>
-    <div class="pstat"><div class="pstat-num">12</div><div class="pstat-lbl">Vitórias</div></div>
-    <div class="pstat"><div class="pstat-num">R$2.4k</div><div class="pstat-lbl">Ganhos</div></div>
+    <div class="pstat"><div class="pstat-num" id="strip-rank-title">Diamond II</div><div class="pstat-lbl">Ranking</div></div>
+    <div class="pstat"><div class="pstat-num" id="strip-camps-count">47</div><div class="pstat-lbl">Campeonatos</div></div>
+    <div class="pstat"><div class="pstat-num" id="strip-wins-count">12</div><div class="pstat-lbl">Vitórias</div></div>
+    <div class="pstat"><div class="pstat-num" id="strip-revenue-count">R$2.4k</div><div class="pstat-lbl">Ganhos</div></div>
   </div>
 </div>
 
@@ -326,6 +327,7 @@
   <button class="passport-tab" data-tab="ux">📈 UX Analytics</button>
   <button class="passport-tab" data-tab="history">📜 Histórico</button>
   <button class="passport-tab" data-tab="medals">🏅 Medalhas</button>
+  <button class="passport-tab" data-tab="connections">🔌 Conexões</button>
 </div>
 
 <!-- CONTENT -->
@@ -353,32 +355,25 @@
         <!-- Stats by game -->
         <div class="pp-card">
           <div class="pp-card-title">ESTATÍSTICAS POR JOGO</div>
-          <div class="game-stat-row">
-            <div class="game-stat-icon">🪂</div>
-            <div class="game-stat-info"><div class="game-stat-name">PUBG</div><div class="game-stat-sub">Battle Royale · 284 partidas</div></div>
-            <div class="game-stat-vals">
-              <div class="stat-chip"><div class="stat-chip-num">3.2</div><div class="stat-chip-lbl">K/D</div></div>
-              <div class="stat-chip"><div class="stat-chip-num">18%</div><div class="stat-chip-lbl">Win</div></div>
-              <div class="stat-chip"><div class="stat-chip-num">147</div><div class="stat-chip-lbl">TOP10</div></div>
-            </div>
+          
+          <!-- PUBG -->
+          <div class="game-stat-row" id="stat-pane-pubg">
+            <!-- Filled via JS -->
           </div>
-          <div class="game-stat-row">
-            <div class="game-stat-icon">🔫</div>
-            <div class="game-stat-info"><div class="game-stat-name">CS2</div><div class="game-stat-sub">FPS Tático · 512 partidas</div></div>
-            <div class="game-stat-vals">
-              <div class="stat-chip"><div class="stat-chip-num">1.8</div><div class="stat-chip-lbl">K/D</div></div>
-              <div class="stat-chip"><div class="stat-chip-num">54%</div><div class="stat-chip-lbl">Win</div></div>
-              <div class="stat-chip"><div class="stat-chip-num">210</div><div class="stat-chip-lbl">ADR</div></div>
-            </div>
+          
+          <!-- CS2 -->
+          <div class="game-stat-row" id="stat-pane-cs2">
+            <!-- Filled via JS -->
           </div>
-          <div class="game-stat-row">
-            <div class="game-stat-icon">⭐</div>
-            <div class="game-stat-info"><div class="game-stat-name">Brawl Stars</div><div class="game-stat-sub">MOBA · 1.240 batalhas</div></div>
-            <div class="game-stat-vals">
-              <div class="stat-chip"><div class="stat-chip-num">48k</div><div class="stat-chip-lbl">Troféus</div></div>
-              <div class="stat-chip"><div class="stat-chip-num">61%</div><div class="stat-chip-lbl">Win</div></div>
-              <div class="stat-chip"><div class="stat-chip-num">14</div><div class="stat-chip-lbl">Brawlers</div></div>
-            </div>
+          
+          <!-- Brawl Stars -->
+          <div class="game-stat-row" id="stat-pane-brawl">
+            <!-- Filled via JS -->
+          </div>
+
+          <!-- Valorant -->
+          <div class="game-stat-row" id="stat-pane-val">
+            <!-- Filled via JS -->
           </div>
         </div>
       </div>
@@ -532,10 +527,25 @@
     </div>
   </div>
 
+  <!-- ── CONNECTIONS ── -->
+  <div class="tab-pane" id="pane-connections">
+    <div style="display:flex; flex-direction:column; gap:20px;">
+      <div class="pp-card">
+        <div class="pp-card-title">🔌 CONEXÕES DE PLATAFORMAS</div>
+        <p style="font-size: 13px; color: #a0aec0; line-height: 1.4; margin-bottom: 16px;">Vincule suas contas oficiais de jogos para carregar estatísticas reais em tempo real, liberar conquistas automáticas e sincronizar seu elenco de times no CLUCHZONE.</p>
+        
+        <div style="display:flex; flex-direction:column; gap:16px;" id="platform-connections-list">
+          <!-- Rendered via JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div><!-- /passport-content -->
 
 <div id="toast-container" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;align-items:center;gap:8px;"></div>
 
+<script src="api.js"></script>
 <script src="premium.js"></script>
 <script src="chat.js"></script>
 <script>
@@ -685,6 +695,7 @@ if (mgrid) {
   });
 }
 </script>
+<script src="passport.js"></script>
 <script src="auth.js"></script>
 </body>
 </html>

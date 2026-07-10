@@ -10,11 +10,36 @@ document.addEventListener('DOMContentLoaded', () => {
   const ROWS  = 25;
   const TOTAL = 100;
 
+  /* ── CREATE TOURNAMENT BUTTON ── */
+  const btnCreateTourPubg = document.getElementById('btn-create-tour-pubg');
+  if (btnCreateTourPubg) {
+    btnCreateTourPubg.addEventListener('click', () => {
+      setTimeout(() => {
+        try {
+          window.location.href = 'create-tournament.html';
+        } catch (e) {
+          window.open('create-tournament.html', '_self');
+        }
+      }, 50);
+    });
+  }
+
   /* ── STATE per tournament ── */
   const tournaments = {
     1: { title: 'Erangel Survivor Cup',  seats: {} },
     2: { title: 'Miramar Desert Clash',  seats: {} },
   };
+
+  async function syncInitialState() {
+    const saved = await window.CluchAPI?.getStore('cluchzone_pubg_tournaments', null);
+    if (saved && typeof saved === 'object') {
+      Object.assign(tournaments, saved);
+    }
+  }
+
+  function saveState() {
+    window.CluchAPI?.setStore('cluchzone_pubg_tournaments', tournaments);
+  }
   let activeTour  = null;
   let mySeats     = new Set(); // seats I've selected
   let timerHandle = null;
@@ -171,6 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
       tour.seats[num] = { status: 'mine', nick: '✈ VOCÊ', rank: 'Seu Assento', kd:'-', wins:'-', rep:'100%' };
     }
     render();
+    saveState();
     updateOccupancy();
     if (!mySeats.has(num)) {
       showToast(`Assento ${num} liberado.`, 'info');
@@ -264,8 +290,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /* ── BIND BUTTONS ── */
   document.querySelectorAll('.open-airplane-btn').forEach(btn => {
-    btn.addEventListener('click', () => openLobby(parseInt(btn.dataset.tourId)));
+    btn.addEventListener('click', async () => {
+      await syncInitialState();
+      openLobby(parseInt(btn.dataset.tourId));
+    });
   });
+
+  syncInitialState();
 
   /* ── CURSOR GLOW ── */
   const glow = document.getElementById('cursor-glow');
