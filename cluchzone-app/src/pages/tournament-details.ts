@@ -166,15 +166,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     const updated = await tournamentService.update(safeCampId, {
       name, description, prize, maxTeams, region, status
     }, currentUser.role);
-
     if (updated) {
       modal.close('modal-edit-camp');
       loadTournamentData();
     }
   });
 
-  // Global edit modal openers
-  (window as any).openEditCampModal = () => {
+  const openEditModalFn = () => {
     if (!tournament) return;
     modal.open('modal-edit-camp');
     (document.getElementById('edit-c-name') as HTMLInputElement).value = tournament.name || '';
@@ -185,8 +183,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     (document.getElementById('edit-c-status') as HTMLSelectElement).value = tournament.status || 'Registros Abertos';
   };
 
-  // Global delete handler
-  (window as any).confirmDeleteCamp = async () => {
+  const confirmDeleteFn = async () => {
     if (!tournament) return;
     const confirm = window.confirm(`Você tem certeza que deseja excluir o campeonato "${tournament.name}"? Esta ação não pode ser desfeita.`);
     if (!confirm) return;
@@ -199,6 +196,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       }, 1000);
     }
   };
+
+  // Global bindings (backward compat)
+  (window as any).openEditCampModal = openEditModalFn;
+  (window as any).confirmDeleteCamp = confirmDeleteFn;
+
+  // Programmatic event bindings
+  document.getElementById('admin-btn-edit')?.addEventListener('click', openEditModalFn);
+  document.getElementById('admin-btn-delete')?.addEventListener('click', confirmDeleteFn);
 
   // Real-time listener
   tournamentService.subscribe(() => {

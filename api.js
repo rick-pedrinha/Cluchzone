@@ -38,7 +38,7 @@ window.CluchAPI = (() => {
       if (firebaseReady) return resolve(true);
 
       const cfg = window.CLUCH_FIREBASE_CONFIG;
-      if (!cfg || cfg.apiKey === 'COLE_AQUI') {
+      if (!cfg || !cfg.apiKey || cfg.apiKey === 'COLE_AQUI') {
         console.warn('[CluchAPI] Firebase não configurado — usando localStorage.');
         return resolve(false);
       }
