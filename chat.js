@@ -37,7 +37,7 @@
     const wrapper = document.createElement('div');
     wrapper.id = 'cluch-social-widget';
     wrapper.innerHTML = `
-      <button id="chat-toggle-btn" aria-label="Abrir bate-papo" title="Bate-papo e amigos">💬<span class="chat-notif" id="chat-notif">3</span></button>
+      <button id="chat-toggle-btn" aria-label="Abrir bate-papo com a comunidade" title="Bate-papo com a comunidade"><span class="chat-toggle-icon">💬</span><span class="chat-toggle-copy"><strong>Bate-papo</strong><small>Comunidade ao vivo</small></span><span class="chat-notif" id="chat-notif">3</span></button>
       <section id="chat-panel" role="dialog" aria-label="Bate-papo CLUCHZONE">
         <header class="chat-header">
           <div class="chat-header-icon">${GAME_ICON}</div>
@@ -332,8 +332,8 @@
 
     const panel = document.getElementById('chat-panel');
     const toggle = document.getElementById('chat-toggle-btn');
-    const close = () => { isOpen = false; panel.classList.remove('open'); toggle.firstChild.nodeValue = '💬'; };
-    const open = () => { isOpen = true; panel.classList.add('open'); toggle.firstChild.nodeValue = '×'; document.getElementById('chat-notif')?.remove(); };
+    const close = () => { isOpen = false; panel.classList.remove('open'); toggle.classList.remove('chat-toggle-open'); };
+    const open = () => { isOpen = true; panel.classList.add('open'); toggle.classList.add('chat-toggle-open'); document.getElementById('chat-notif')?.remove(); };
     toggle.addEventListener('click', () => isOpen ? close() : open());
     document.getElementById('chat-close-btn').addEventListener('click', close);
     document.querySelectorAll('.chat-tab').forEach(button => button.addEventListener('click', () => switchTab(button.dataset.tab)));
