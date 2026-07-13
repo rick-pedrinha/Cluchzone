@@ -1,7 +1,7 @@
 (function () {
   'use strict';
 
-  const ROOM_NAME = document.querySelector('meta[name="room-name"]')?.content || 'Lobby CLUCHZONE';
+  const ROOM_NAME = document.querySelector('meta[name="room-name"]')?.content || 'Lobby ClutchZone';
   const GAME_ICON = document.querySelector('meta[name="room-icon"]')?.content || '🎮';
   const ORG_NAME = document.querySelector('meta[name="org-name"]')?.content || 'Organizador';
   const SOCIAL_KEY = 'cluchzone_social_network_v1';
@@ -42,7 +42,7 @@
     wrapper.innerHTML = `
       <div id="team-chat-buttons" aria-label="Chats das minhas equipes"></div>
       <button id="chat-toggle-btn" aria-label="Abrir bate-papo com a comunidade" title="Bate-papo com a comunidade"><span class="chat-toggle-icon">💬</span><span class="chat-toggle-copy"><strong>Bate-papo</strong><small>Comunidade ao vivo</small></span><span class="chat-notif" id="chat-notif">3</span></button>
-      <section id="chat-panel" role="dialog" aria-label="Bate-papo CLUCHZONE">
+      <section id="chat-panel" role="dialog" aria-label="Bate-papo ClutchZone">
         <header class="chat-header">
           <div class="chat-header-icon">${GAME_ICON}</div>
           <div class="chat-header-info"><strong class="chat-header-title">CLUCH SOCIAL</strong><span class="chat-header-sub"><i class="chat-online-dot"></i><span id="chat-online-count">Conectando...</span></span></div>
@@ -236,7 +236,7 @@
     if (!term || !currentUser?.nick) return;
     const matches = social.profiles.filter(profile => profile.id !== userKey(currentUser.nick) && profile.nick.toLowerCase().includes(term)).slice(0, 5);
     if (!matches.length) {
-      container.innerHTML = '<p class="social-empty">Nenhum jogador encontrado. O usuário precisa entrar na CLUCHZONE ao menos uma vez.</p>';
+      container.innerHTML = '<p class="social-empty">Nenhum jogador encontrado. O usuário precisa entrar na ClutchZone ao menos uma vez.</p>';
       return;
     }
     matches.forEach(profile => {

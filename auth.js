@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   CLUCHZONE — AUTH SYSTEM JS
+   ClutchZone — AUTH SYSTEM JS
    Login via Steam, Supercell, Riot + Email/Password
    Simulates OAuth flow with realistic loading screens
    ═══════════════════════════════════════════════════════════════ */
@@ -67,7 +67,7 @@
   /* ─── BUILD MODAL ──────────────────────────────────────────── */
   function buildModal() {
     const html = `
-    <div id="auth-overlay" role="dialog" aria-modal="true" aria-label="Login CLUCHZONE">
+    <div id="auth-overlay" role="dialog" aria-modal="true" aria-label="Login ClutchZone">
       <div class="auth-box">
 
         <!-- Loading screen -->
@@ -80,7 +80,7 @@
 
         <!-- Header -->
         <div class="auth-header">
-          <div class="auth-logo">CLUCHZONE</div>
+          <div class="auth-logo">ClutchZone</div>
           <div class="auth-title" id="auth-modal-title">Bem-vindo de volta</div>
           <div class="auth-sub" id="auth-modal-sub">Escolha como deseja acessar a plataforma</div>
           <button class="auth-close" id="auth-close-btn" aria-label="Fechar">✕</button>
@@ -145,7 +145,7 @@
 
         <div class="auth-terms">
           Ao entrar você concorda com os <a href="#">Termos de Uso</a> e a
-          <a href="#">Política de Privacidade</a> do CLUCHZONE.
+          <a href="#">Política de Privacidade</a> do ClutchZone.
         </div>
       </div>
     </div>`;
@@ -186,7 +186,7 @@
       if (pw)     pw.setAttribute('autocomplete', 'current-password');
     } else {
       if (title)  title.textContent  = 'Criar sua conta';
-      if (sub)    sub.textContent    = 'Junte-se a milhares de jogadores no CLUCHZONE';
+      if (sub)    sub.textContent    = 'Junte-se a milhares de jogadores no ClutchZone';
       if (submit) submit.textContent = 'CRIAR CONTA GRÁTIS →';
       if (pw)     pw.setAttribute('autocomplete', 'new-password');
     }

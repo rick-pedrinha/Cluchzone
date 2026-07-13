@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   CLUCHZONE — TEAMS ENGINE JS
+   ClutchZone — TEAMS ENGINE JS
    Handles team creation, rosters editing, FACEIT-style view,
    invitation send/receive system, and integration with tournaments.
    ═══════════════════════════════════════════════════════════════ */

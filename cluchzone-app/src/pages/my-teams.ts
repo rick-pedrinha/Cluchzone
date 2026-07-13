@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════
-// CLUCHZONE — My Teams Page Controller
+// ClutchZone — My Teams Page Controller
 // ═══════════════════════════════════════════════════════════
 
 import { authService } from '../core/auth/auth-service.js';

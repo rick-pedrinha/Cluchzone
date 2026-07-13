@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   CLUCHZONE — PASSPORT GAME ENGINE JS
+   ClutchZone — PASSPORT GAME ENGINE JS
    Manages player profile statistics, Chart.js updates,
    multi-platform connections (Steam, Supercell, Riot)
    and dynamic profile mapping based on connected profiles.
@@ -345,7 +345,7 @@ document.addEventListener('DOMContentLoaded', () => {
         connectedPlatforms.push(platformKey);
         localStorage.setItem(STORAGE_KEY_CONN, JSON.stringify(connectedPlatforms));
       }
-      addNotification(`Conta ${platformKey.toUpperCase()} conectada ao seu Passaporte CLUCHZONE!`);
+      addNotification(`Conta ${platformKey.toUpperCase()} conectada ao seu Passaporte ClutchZone!`);
       showToast(`✓ Conta ${platformKey.toUpperCase()} vinculada com sucesso!`, '#00e676');
       
       renderProfileHeader();

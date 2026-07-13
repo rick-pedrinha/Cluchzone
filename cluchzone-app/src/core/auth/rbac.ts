@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════
-// CLUCHZONE — Role-Based Access Control
+// ClutchZone — Role-Based Access Control
 // Defines what each role can do
 // ═══════════════════════════════════════════════════════════
 

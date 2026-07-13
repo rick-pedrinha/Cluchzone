@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════
-// CLUCHZONE — Tournament Details Page Controller
+// ClutchZone — Tournament Details Page Controller
 // ═══════════════════════════════════════════════════════════
 
 import { authService } from '../core/auth/auth-service.js';

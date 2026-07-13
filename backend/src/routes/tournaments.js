@@ -1,7 +1,7 @@
 'use strict';
 
 // ═══════════════════════════════════════════════════════════════
-// CLUCHZONE — Tournament Routes
+// ClutchZone — Tournament Routes
 // Protected REST endpoints for tournament management
 // ═══════════════════════════════════════════════════════════════
 

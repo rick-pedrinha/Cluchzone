@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════
-// CLUCHZONE — Tournament Repository
+// ClutchZone — Tournament Repository
 // Data access layer — only this class touches Firestore for tournaments
 // ═══════════════════════════════════════════════════════════
 

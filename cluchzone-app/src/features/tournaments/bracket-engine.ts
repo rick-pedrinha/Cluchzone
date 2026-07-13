@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════
-// CLUCHZONE — Bracket Engine
+// ClutchZone — Bracket Engine
 // Generates tournament brackets: Single Elimination, Double Elim, Round Robin
 // ═══════════════════════════════════════════════════════════
 

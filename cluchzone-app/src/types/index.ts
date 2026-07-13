@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════
-// CLUCHZONE — Central Type Definitions
+// ClutchZone — Central Type Definitions
 // ═══════════════════════════════════════════════════════════
 
 export type UserRole = 'admin' | 'organizer' | 'captain' | 'player' | 'guest';

@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   CLUCHZONE — PUBG AIRPLANE LOBBY SCRIPT
+   ClutchZone — PUBG AIRPLANE LOBBY SCRIPT
    Layout: 25 rows × 4 seats = 100 total
    Left side: seats 1-50 (2 per row)
    Right side: seats 51-100 (2 per row)

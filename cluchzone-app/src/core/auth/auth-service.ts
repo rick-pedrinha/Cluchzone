@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════
-// CLUCHZONE — Auth Service
+// ClutchZone — Auth Service
 // Wraps localStorage auth + prepares for Firebase Auth migration
 // ═══════════════════════════════════════════════════════════
 

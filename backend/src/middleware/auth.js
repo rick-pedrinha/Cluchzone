@@ -1,7 +1,7 @@
 'use strict';
 
 // ═══════════════════════════════════════════════════════════════
-// CLUCHZONE — Firebase Admin Auth Middleware
+// ClutchZone — Firebase Admin Auth Middleware
 // Verifies Firebase ID tokens on protected routes.
 // ═══════════════════════════════════════════════════════════════
 

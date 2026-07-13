@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════
-// CLUCHZONE — Index Hub Page Controller
+// ClutchZone — Index Hub Page Controller
 // ═══════════════════════════════════════════════════════════
 
 import { authService } from '../core/auth/auth-service.js';

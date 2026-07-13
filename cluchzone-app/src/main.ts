@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════
-// CLUCHZONE — Application Entry Point
+// ClutchZone — Application Entry Point
 // ═══════════════════════════════════════════════════════════
 
 import { authService } from './core/auth/auth-service.js';
@@ -19,7 +19,7 @@ async function bootstrap(): Promise<void> {
   const user = authService.init();
   
   if (!user) {
-    console.info('[CLUCHZONE] No session found — guest mode');
+    console.info('[ClutchZone] No session found — guest mode');
   }
 
   // 2. Load initial data
@@ -29,7 +29,7 @@ async function bootstrap(): Promise<void> {
       teamService.loadAll(),
     ]);
   } catch (err) {
-    console.error('[CLUCHZONE] Failed to load initial data:', err);
+    console.error('[ClutchZone] Failed to load initial data:', err);
     toast.error('Erro ao carregar dados. Tente recarregar a página.');
   }
 

@@ -1,7 +1,7 @@
 'use strict';
 
 // ═══════════════════════════════════════════════════════════════
-// CLUCHZONE — RBAC Middleware
+// ClutchZone — RBAC Middleware
 // Role-based access control for Express routes
 // ═══════════════════════════════════════════════════════════════
 

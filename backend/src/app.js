@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════
-// CLUCHZONE — Express Backend (Professional)
+// ClutchZone — Express Backend (Professional)
 // Replaces the flat server.js with proper routing and middleware
 // ═══════════════════════════════════════════════════════════════
 
@@ -329,13 +329,13 @@ app.use((req, res) => {
 
 // ── Global error handler ───────────────────────────────────────
 app.use((err, _req, res, _next) => {
-  console.error('[CLUCHZONE Error]', err);
+  console.error('[ClutchZone Error]', err);
   res.status(500).json({ ok: false, error: 'Erro interno do servidor.' });
 });
 
 // ── Start server ───────────────────────────────────────────────
 app.listen(PORT, () => {
-  console.log(`\n🏆 CLUCHZONE v2.0 rodando em http://localhost:${PORT}`);
+  console.log(`\n🏆 ClutchZone v2.0 rodando em http://localhost:${PORT}`);
   console.log(`📦 API disponível em http://localhost:${PORT}/api`);
   console.log(`🔒 Helmet, CORS e Rate Limiting ativos\n`);
 });

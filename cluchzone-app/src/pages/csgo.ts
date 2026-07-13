@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════
-// CLUCHZONE — CS2 Tactical Arena Page Controller
+// ClutchZone — CS2 Tactical Arena Page Controller
 // ═══════════════════════════════════════════════════════════
 
 import { authService } from '../core/auth/auth-service.js';

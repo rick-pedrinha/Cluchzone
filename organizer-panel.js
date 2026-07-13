@@ -564,7 +564,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   window.adminViewSimulatedReceipt = (teamName) => {
     const safeId = teamName.replace(/[^a-z0-9]/gi, '_');
     showToast(`Inspecionando comprovante...`, '#00d4ff');
-    alert(`[CLUCHZONE PIX ENGINE]\nComprovante do Time: ${teamName}\nArquivo: comprovante_pix_${safeId}.png\nValor: R$ 50,00\nAutenticação: MOCK-PIX-VAL-84920492-OK`);
+    alert(`[ClutchZone PIX ENGINE]\nComprovante do Time: ${teamName}\nArquivo: comprovante_pix_${safeId}.png\nValor: R$ 50,00\nAutenticação: MOCK-PIX-VAL-84920492-OK`);
   };
 
   window.adminGenerateBracket = () => {

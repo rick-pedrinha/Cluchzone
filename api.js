@@ -1,7 +1,7 @@
 'use strict';
 
 /* ═══════════════════════════════════════════════════════════════
-   CLUCHZONE API — Firebase Firestore Real-time Backend
+   ClutchZone API — Firebase Firestore Real-time Backend
    Substitua o objeto FIREBASE_CONFIG com suas credenciais.
    ═══════════════════════════════════════════════════════════════ */
 

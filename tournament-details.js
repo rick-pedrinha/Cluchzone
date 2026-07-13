@@ -49,14 +49,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     const banner = EVENT_BANNERS[normalizedName] || (String(camp.banner || '').startsWith('images/') ? camp.banner : 'images/cs2_open_pro.jpg');
     document.getElementById('td-hero-bg').style.backgroundImage = `url('${banner}')`;
     setText('td-status', camp.status || 'Registros Abertos');
-    setText('td-title', camp.name || 'Campeonato CLUCHZONE');
+    setText('td-title', camp.name || 'Campeonato ClutchZone');
     setText('td-description', camp.description || camp.rules || 'Confira equipes, capitães, regras e chaveamento do campeonato.');
     setText('td-prize', camp.prize || 'R$ 0');
     setText('td-slots', `${(camp.registeredTeams || []).length}/${camp.maxTeams || 0}`);
     setText('td-format', `${camp.format || '-'}${camp.elimination ? ` - ${camp.elimination}` : ''}`);
     setText('td-region', camp.region || '-');
     setText('td-organizer', camp.organizer || '-');
-    setText('td-rules', camp.rules || 'Regras padrão CLUCHZONE.');
+    setText('td-rules', camp.rules || 'Regras padrão ClutchZone.');
     setText('td-server', camp.server?.active ? `connect ${camp.server.ip}:${camp.server.port}; password ${camp.server.password}` : 'Aguardando liberação do organizador.');
   }
 
