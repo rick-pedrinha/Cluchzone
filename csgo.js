@@ -972,13 +972,13 @@ document.addEventListener('DOMContentLoaded', () => {
             <div><strong>Equipe:</strong> Imperial Esports</div>
             <div><strong>Valor:</strong> R$ 50,00</div>
             <div><strong>ID Transação:</strong> PIX98427498274X912</div>
-            <div style="color:#00ff88; margin-top:4px;">✓ Validado pelo CLUCHGUARD</div>
+            <div style="color:#00ff88; margin-top:4px;">✓ Validado pelo CLUTCHGUARD</div>
           </div>
           <div style="background:rgba(255,255,255,0.02); padding:12px; border-radius:6px; font-size:12px;">
             <div><strong>Equipe:</strong> FURIA Gaming</div>
             <div><strong>Valor:</strong> R$ 50,00</div>
             <div><strong>ID Transação:</strong> PIX12398471298X384</div>
-            <div style="color:#00ff88; margin-top:4px;">✓ Validado pelo CLUCHGUARD</div>
+            <div style="color:#00ff88; margin-top:4px;">✓ Validado pelo CLUTCHGUARD</div>
           </div>
         </div>
       `;
@@ -1210,7 +1210,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       while (list.length < 8) {
-        list.push(`CluchGuard Bot Team ${list.length + 1}`);
+        list.push(`ClutchGuard Bot Team ${list.length + 1}`);
       }
       
       camp.bracket.round1 = [

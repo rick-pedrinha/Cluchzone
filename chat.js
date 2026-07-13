@@ -50,14 +50,14 @@
 
   function buildWidget() {
     const wrapper = document.createElement('div');
-    wrapper.id = 'cluch-social-widget';
+    wrapper.id = 'clutch-social-widget';
     wrapper.innerHTML = `
       <div id="team-chat-buttons" aria-label="Chats das minhas equipes"></div>
       <button id="chat-toggle-btn" aria-label="Abrir bate-papo com a comunidade" title="Bate-papo com a comunidade"><span class="chat-toggle-icon">💬</span><span class="chat-toggle-copy"><strong>Bate-papo</strong><small>Comunidade ao vivo</small></span><span class="chat-notif" id="chat-notif">3</span></button>
       <section id="chat-panel" role="dialog" aria-label="Bate-papo CLUTCHZONE">
         <header class="chat-header">
           <div class="chat-header-icon">${GAME_ICON}</div>
-          <div class="chat-header-info"><strong class="chat-header-title">CLUCH SOCIAL</strong><span class="chat-header-sub"><i class="chat-online-dot"></i><span id="chat-online-count">Conectando...</span></span></div>
+          <div class="chat-header-info"><strong class="chat-header-title">CLUTCH SOCIAL</strong><span class="chat-header-sub"><i class="chat-online-dot"></i><span id="chat-online-count">Conectando...</span></span></div>
           <button class="chat-close-btn" id="chat-close-btn" aria-label="Fechar">×</button>
         </header>
         <nav class="chat-tabs" aria-label="Seções do chat">

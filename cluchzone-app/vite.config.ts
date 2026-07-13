@@ -9,7 +9,7 @@ const sharedChatAssets = {
 
 // Mantém o widget social idêntico na versão estática e na versão Vite.
 const sharedChatPlugin = {
-  name: 'shared-cluch-chat',
+  name: 'shared-clutch-chat',
   configureServer(server: { middlewares: { use: (path: string, handler: (req: unknown, res: { setHeader: (name: string, value: string) => void; end: (body: Buffer) => void }) => void) => void } }) {
     server.middlewares.use('/shared-chat.js', (_req, res) => {
       res.setHeader('Content-Type', 'application/javascript; charset=utf-8');

@@ -282,7 +282,7 @@
   .team-chat-float-btn { min-width:145px; }
 }
 
-/* ── CLUCH SOCIAL: friends and private messages ── */
+/* ── CLUTCH SOCIAL: friends and private messages ── */
 #chat-panel { height: 560px; }
 .chat-tab-content { min-height:0; flex:1; flex-direction:column; }
 .social-request-badge { display:inline-flex; min-width:14px; height:14px; align-items:center; justify-content:center; border-radius:8px; background:#ff2d7a; color:#fff; font-size:9px; }
