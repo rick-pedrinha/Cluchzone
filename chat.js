@@ -63,7 +63,7 @@
         <nav class="chat-tabs" aria-label="Seções do chat">
           <button class="chat-tab active" data-tab="room">🏠 Sala</button>
           <button class="chat-tab" data-tab="social">👥 Amigos <span class="social-request-badge" id="social-request-badge" hidden>0</span></button>
-          <button class="chat-tab" id="team-chat-tab" data-tab="team" style="display:none">🛡 Equipe</button>
+          <button class="chat-tab" id="team-chat-tab" data-tab="team" style="display:none">🛡 Equipes</button>
           <button class="chat-tab" data-tab="dm">🏆 Org.</button>
         </nav>
         <div id="tab-room" class="chat-tab-content">
@@ -85,7 +85,7 @@
             <div class="chat-input-area"><input id="social-message-input" maxlength="500" placeholder="Escreva uma mensagem..." autocomplete="off"><button id="social-send-btn" type="button" aria-label="Enviar">➤</button></div>
           </div>
         </div>
-        <div id="tab-team" class="chat-tab-content" style="display:none"><div class="team-chat-head"><button id="team-chat-change-btn" type="button" title="Trocar equipe">🛡</button><div><strong id="team-chat-name">Chat da equipe</strong><small id="team-chat-members">Equipe privada</small></div></div><div class="chat-messages" id="team-chat-messages"></div><div class="chat-input-area"><input id="team-chat-input" maxlength="500" placeholder="Mensagem para a equipe..." autocomplete="off"><button id="team-chat-send-btn" type="button" aria-label="Enviar">➤</button></div></div>
+        <div id="tab-team" class="chat-tab-content" style="display:none"><div class="team-chat-picker" id="team-chat-picker" aria-label="Escolha uma equipe"></div><div class="team-chat-head"><button id="team-chat-change-btn" type="button" title="Próxima equipe">🛡</button><div><strong id="team-chat-name">Chat da equipe</strong><small id="team-chat-members">Equipe privada</small></div></div><div class="chat-messages" id="team-chat-messages"></div><div class="chat-input-area"><input id="team-chat-input" maxlength="500" placeholder="Mensagem para a equipe..." autocomplete="off"><button id="team-chat-send-btn" type="button" aria-label="Enviar">➤</button></div></div>
         <div id="tab-dm" class="chat-tab-content" style="display:none"><div class="chat-dm-header"><div class="chat-dm-avatar">🏆</div><strong class="chat-dm-name">${escapeHtml(ORG_NAME)}</strong><small class="chat-dm-role">Organizador verificado</small></div><div class="chat-messages" id="chat-messages-dm"></div><div class="chat-input-area"><input id="chat-input-dm" maxlength="300" placeholder="Mensagem para o organizador..." autocomplete="off"><button id="chat-send-dm-btn" type="button" aria-label="Enviar">➤</button></div></div>
       </section>`;
     document.body.appendChild(wrapper);
@@ -173,9 +173,11 @@
     userTeams = teams.filter(team => userKey(team.captain) === me || userKey(team.vice) === me || team.members?.some(member => userKey(member) === me));
     renderTeamButtons();
     if (!activeTeamName && userTeams.length) activeTeamName = userTeams[0].name;
+    renderTeamChat();
     window.CluchAPI?.onStoreChange?.(TEAM_KEY, freshTeams => {
       if (!Array.isArray(freshTeams)) return;
       userTeams = freshTeams.filter(team => userKey(team.captain) === me || userKey(team.vice) === me || team.members?.some(member => userKey(member) === me));
+      if (!userTeams.some(team => team.name === activeTeamName)) activeTeamName = userTeams[0]?.name || null;
       renderTeamButtons();
       renderTeamChat();
     });
@@ -392,6 +394,21 @@
     const team = activeTeam();
     if (tab) tab.style.display = userTeams.length ? '' : 'none';
     if (!team) return;
+    const picker = document.getElementById('team-chat-picker');
+    if (picker) {
+      picker.innerHTML = '';
+      userTeams.forEach(userTeam => {
+        const option = document.createElement('button');
+        option.type = 'button';
+        option.className = `team-chat-option${userTeam.name === team.name ? ' active' : ''}`;
+        option.innerHTML = `<span>🛡</span><strong>${escapeHtml(userTeam.name)}</strong><small>${userTeam.members?.length || 0} jogadores</small>`;
+        option.addEventListener('click', () => {
+          activeTeamName = userTeam.name;
+          renderTeamChat();
+        });
+        picker.appendChild(option);
+      });
+    }
     const chat = teamChatFor(team, true);
     document.getElementById('team-chat-name').textContent = team.name;
     document.getElementById('team-chat-members').textContent = `${team.members?.length || 0} jogadores no roster`;
