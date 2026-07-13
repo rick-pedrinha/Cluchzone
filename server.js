@@ -254,5 +254,5 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`ClutchZone rodando em http://localhost:${PORT}`);
+  console.log(`CLUTCHZONE rodando em http://localhost:${PORT}`);
 });

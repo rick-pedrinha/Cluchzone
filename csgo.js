@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   ClutchZone — CS2 COMPETITIVE ARENA JS
+   CLUTCHZONE — CS2 COMPETITIVE ARENA JS
    Full automated tournament engine, eSports brackets,
    organizer dashboard, match rooms, Steam feed, and notifications.
    ═══════════════════════════════════════════════════════════════ */
@@ -110,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const defaultFeed = [
     { id: 1, user: "Imperial Esports", action: "Equipe Campeã", target: "Copa Deagle Master", time: "2 dias atrás", likes: 24, likedByMe: false, comments: [{ user: "Zywoo_Step", text: "GG WP! Mereceram demais." }] },
     { id: 2, user: "SnipeKing_BR", action: "Novo MVP do Torneio", target: "Dust II Shootout", time: "5 dias atrás", likes: 42, likedByMe: true, comments: [] },
-    { id: 3, user: "Legacy Team", action: "Nova Equipe Cadastrada", target: "ClutchZone Arena", time: "1 semana atrás", likes: 12, likedByMe: false, comments: [] }
+    { id: 3, user: "Legacy Team", action: "Nova Equipe Cadastrada", target: "CLUTCHZONE Arena", time: "1 semana atrás", likes: 12, likedByMe: false, comments: [] }
   ];
 
   let feedItems = JSON.parse(localStorage.getItem(STORAGE_KEY_FEED)) || defaultFeed;

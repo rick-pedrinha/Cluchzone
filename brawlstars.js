@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   ClutchZone — BRAWL STARS LOBBY SCRIPT
+   CLUTCHZONE — BRAWL STARS LOBBY SCRIPT
    Interactive 3v3 team allocation & Gem Mine registration
 ═══════════════════════════════════════════════════════════════ */
 

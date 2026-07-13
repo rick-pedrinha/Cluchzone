@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   ClutchZone — PREMIUM SYSTEM JS
+   CLUTCHZONE — PREMIUM SYSTEM JS
    Assinatura Premium + Criar Campeonato (para subscribers)
    ═══════════════════════════════════════════════════════════════ */
 (function() {
@@ -22,7 +22,7 @@
         <button class="modal-close" data-close="modal-premium">✕</button>
         <div class="premium-header">
           <span class="premium-crown">👑</span>
-          <div class="premium-title">ClutchZone PREMIUM</div>
+          <div class="premium-title">CLUTCHZONE PREMIUM</div>
           <div class="premium-sub">Eleve seu jogo. Organize seus campeonatos. Domine a plataforma.</div>
         </div>
 
@@ -67,7 +67,7 @@
           <div class="create-tour-icon">🏆</div>
           <div>
             <div class="create-tour-title">CRIAR CAMPEONATO</div>
-            <div class="create-tour-sub">Configure e publique seu torneio para a comunidade ClutchZone</div>
+            <div class="create-tour-sub">Configure e publique seu torneio para a comunidade CLUTCHZONE</div>
           </div>
         </div>
 
@@ -240,7 +240,7 @@
           window.CluchAPI?.setStore('cluchzone_premium', true);
           closeModal('modal-premium');
           updateNav();
-          showToast('👑 Bem-vindo ao ClutchZone PREMIUM! Aproveite todos os benefícios.', '#ffd700');
+          showToast('👑 Bem-vindo ao CLUTCHZONE PREMIUM! Aproveite todos os benefícios.', '#ffd700');
           subscribeBtn.textContent = '👑 ASSINAR PREMIUM AGORA';
         }, 1600);
       });

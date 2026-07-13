@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════
-// ClutchZone — Global Application State Store
+// CLUTCHZONE — Global Application State Store
 // Reactive state management using EventTarget pattern
 // ═══════════════════════════════════════════════════════════
 

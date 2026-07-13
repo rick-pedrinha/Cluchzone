@@ -1,18 +1,20 @@
 (function () {
   'use strict';
 
-  const ROOM_NAME = document.querySelector('meta[name="room-name"]')?.content || 'Lobby ClutchZone';
+  const ROOM_NAME = document.querySelector('meta[name="room-name"]')?.content || 'Lobby CLUTCHZONE';
   const GAME_ICON = document.querySelector('meta[name="room-icon"]')?.content || '🎮';
   const ORG_NAME = document.querySelector('meta[name="org-name"]')?.content || 'Organizador';
   const SOCIAL_KEY = 'cluchzone_social_network_v1';
   const AUTH_KEY = 'cluchzone_auth';
   const TEAM_KEY = 'cluchzone_cs2_teams';
+  const HIDDEN_TEAM_CHATS_KEY = 'cluchzone_hidden_team_chats';
 
   let social = { profiles: [], friendships: [], conversations: [], teamChats: [] };
   let currentUser = null;
   let activeConversationId = null;
   let activeTeamName = null;
   let userTeams = [];
+  let hiddenTeamChats = new Set();
   let activeTab = 'room';
   let isOpen = false;
   let serverSocialAvailable = null;
@@ -32,6 +34,16 @@
     try { return JSON.parse(localStorage.getItem(AUTH_KEY) || 'null'); } catch (_) { return null; }
   }
 
+  function loadHiddenTeamChats() {
+    try { hiddenTeamChats = new Set(JSON.parse(localStorage.getItem(HIDDEN_TEAM_CHATS_KEY) || '[]')); } catch (_) { hiddenTeamChats = new Set(); }
+  }
+
+  function hideTeamChatShortcut(teamName) {
+    hiddenTeamChats.add(userKey(teamName));
+    localStorage.setItem(HIDDEN_TEAM_CHATS_KEY, JSON.stringify([...hiddenTeamChats]));
+    renderTeamButtons();
+  }
+
   function getProfileAvatar() {
     try { return JSON.parse(localStorage.getItem('cluchzone_profile') || '{}').avatar || ''; } catch (_) { return ''; }
   }
@@ -42,7 +54,7 @@
     wrapper.innerHTML = `
       <div id="team-chat-buttons" aria-label="Chats das minhas equipes"></div>
       <button id="chat-toggle-btn" aria-label="Abrir bate-papo com a comunidade" title="Bate-papo com a comunidade"><span class="chat-toggle-icon">💬</span><span class="chat-toggle-copy"><strong>Bate-papo</strong><small>Comunidade ao vivo</small></span><span class="chat-notif" id="chat-notif">3</span></button>
-      <section id="chat-panel" role="dialog" aria-label="Bate-papo ClutchZone">
+      <section id="chat-panel" role="dialog" aria-label="Bate-papo CLUTCHZONE">
         <header class="chat-header">
           <div class="chat-header-icon">${GAME_ICON}</div>
           <div class="chat-header-info"><strong class="chat-header-title">CLUCH SOCIAL</strong><span class="chat-header-sub"><i class="chat-online-dot"></i><span id="chat-online-count">Conectando...</span></span></div>
@@ -173,17 +185,23 @@
     const container = document.getElementById('team-chat-buttons');
     if (!container) return;
     container.innerHTML = '';
-    userTeams.forEach(team => {
-      const button = document.createElement('button');
+    userTeams.filter(team => !hiddenTeamChats.has(userKey(team.name))).forEach(team => {
+      const button = document.createElement('div');
       button.className = 'team-chat-float-btn';
-      button.type = 'button';
-      button.innerHTML = `<span>🛡</span><span><strong>${escapeHtml(team.name)}</strong><small>Chat do time</small></span>`;
+      button.setAttribute('role', 'button');
+      button.tabIndex = 0;
+      button.innerHTML = `<span>🛡</span><span><strong>${escapeHtml(team.name)}</strong><small>Chat do time</small></span><button class="team-chat-dismiss" type="button" aria-label="Ocultar chat de ${escapeHtml(team.name)}" title="Ocultar atalho">×</button>`;
       button.addEventListener('click', () => {
         activeTeamName = team.name;
         isOpen = true;
         document.getElementById('chat-panel').classList.add('open');
         document.getElementById('chat-toggle-btn').classList.add('chat-toggle-open');
         switchTab('team');
+      });
+      button.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') button.click(); });
+      button.querySelector('.team-chat-dismiss').addEventListener('click', event => {
+        event.stopPropagation();
+        hideTeamChatShortcut(team.name);
       });
       container.appendChild(button);
     });
@@ -236,7 +254,7 @@
     if (!term || !currentUser?.nick) return;
     const matches = social.profiles.filter(profile => profile.id !== userKey(currentUser.nick) && profile.nick.toLowerCase().includes(term)).slice(0, 5);
     if (!matches.length) {
-      container.innerHTML = '<p class="social-empty">Nenhum jogador encontrado. O usuário precisa entrar na ClutchZone ao menos uma vez.</p>';
+      container.innerHTML = '<p class="social-empty">Nenhum jogador encontrado. O usuário precisa entrar na CLUTCHZONE ao menos uma vez.</p>';
       return;
     }
     matches.forEach(profile => {
@@ -414,6 +432,7 @@
   function init() {
     buildWidget();
     currentUser = getAuth();
+    loadHiddenTeamChats();
     const roomMessages = [
       { nick: 'Sistema', text: `Bem-vindo à sala ${ROOM_NAME}!`, createdAt: Date.now() - 180000 },
       { nick: 'BattlePro', text: 'Alguém formando equipe para hoje?', createdAt: Date.now() - 90000 },

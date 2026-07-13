@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 
 // ═══════════════════════════════════════════════════════════════
-// ClutchZone — Firebase Client (Singleton)
+// CLUTCHZONE — Firebase Client (Singleton)
 // Single access point to Firestore — replaces all saveData()
 // duplicates across csgo.js, teams.js, organizer-panel.js
 // ═══════════════════════════════════════════════════════════════

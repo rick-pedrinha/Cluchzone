@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════
-// ClutchZone — Modal Manager (Singleton)
+// CLUTCHZONE — Modal Manager (Singleton)
 // Replaces multiple modal open/close implementations
 // ═══════════════════════════════════════════════════════════
 

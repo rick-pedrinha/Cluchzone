@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════
-// ClutchZone — XSS Sanitization
+// CLUTCHZONE — XSS Sanitization
 // MUST be used for ALL user-generated content in innerHTML
 // ═══════════════════════════════════════════════════════════
 

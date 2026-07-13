@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════
-// ClutchZone — Tournament Service
+// CLUTCHZONE — Tournament Service
 // Business logic layer for tournaments
 // ═══════════════════════════════════════════════════════════
 

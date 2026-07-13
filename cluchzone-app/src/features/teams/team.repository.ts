@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════
-// ClutchZone — Team Repository
+// CLUTCHZONE — Team Repository
 // Data access layer for teams
 // ═══════════════════════════════════════════════════════════
 

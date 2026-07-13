@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════
-// ClutchZone — Team Service
+// CLUTCHZONE — Team Service
 // Business logic layer for teams
 // ═══════════════════════════════════════════════════════════
 

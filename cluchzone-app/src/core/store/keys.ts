@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════
-// ClutchZone — Centralized Storage Keys
+// CLUTCHZONE — Centralized Storage Keys
 // Single source of truth — eliminates string literal duplication
 // ═══════════════════════════════════════════════════════════
 

@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════
-// ClutchZone — Toast Notification System (Singleton)
+// CLUTCHZONE — Toast Notification System (Singleton)
 // Replaces 4+ duplicate showToast() implementations
 // ═══════════════════════════════════════════════════════════
 
