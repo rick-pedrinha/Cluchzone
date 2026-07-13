@@ -55,6 +55,44 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (node) node.textContent = value;
   }
 
+  function renderSteamLobby() {
+    const lobby = camp.steamLobby;
+    const accessButton = document.getElementById('td-steam-lobby-access');
+    const userHasApprovedTeam = teams.some(team =>
+      (camp.registeredTeams || []).includes(team.name) &&
+      (team.captain === currentUser.nick || team.vice === currentUser.nick || team.members?.includes(currentUser.nick))
+    );
+
+    if (!lobby?.active || !lobby.invite) {
+      setText('td-server', 'Aguardando liberação do organizador.');
+      if (accessButton) accessButton.style.display = 'none';
+      return;
+    }
+
+    if (!userHasApprovedTeam) {
+      setText('td-server', 'A sala será liberada para a sua equipe após a confirmação da inscrição.');
+      if (accessButton) accessButton.style.display = 'none';
+      return;
+    }
+
+    setText('td-server', lobby.instructions || 'Sua equipe está confirmada. Entre na sala privada Steam antes da partida.');
+    if (!accessButton) return;
+    accessButton.style.display = 'inline-flex';
+    accessButton.textContent = /^https?:\/\//i.test(lobby.invite) ? 'ENTRAR NA SALA STEAM' : 'COPIAR CÓDIGO DA SALA';
+    accessButton.onclick = async () => {
+      if (/^https?:\/\//i.test(lobby.invite)) {
+        window.open(lobby.invite, '_blank', 'noopener');
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(lobby.invite);
+        showToast('✓ Código da sala copiado. Cole-o no convite da Steam.', '#00ff88');
+      } catch (_) {
+        showToast(`Código da sala: ${lobby.invite}`, '#00d4ff');
+      }
+    };
+  }
+
   function renderHeader() {
     const normalizedName = String(camp.name || '').trim().toLowerCase();
     const banner = EVENT_BANNERS[normalizedName] || (String(camp.banner || '').startsWith('images/') ? camp.banner : 'images/cs2_open_pro.jpg');
@@ -68,7 +106,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     setText('td-region', camp.region || '-');
     setText('td-organizer', displayOrganizerName());
     setText('td-rules', camp.rules || 'Regras padrão CLUTCHZONE.');
-    setText('td-server', camp.server?.active ? `connect ${camp.server.ip}:${camp.server.port}; password ${camp.server.password}` : 'Aguardando liberação do organizador.');
+    renderSteamLobby();
   }
 
   function renderTeams() {

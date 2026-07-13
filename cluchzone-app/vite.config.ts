@@ -6,6 +6,13 @@ const sharedChatAssets = {
   js: resolve(__dirname, '..', 'chat.js'),
   css: resolve(__dirname, '..', 'chat.css'),
 };
+const sharedLegacyAssets = {
+  'api.js': resolve(__dirname, '..', 'api.js'),
+  'auth.js': resolve(__dirname, '..', 'auth.js'),
+  'premium.js': resolve(__dirname, '..', 'premium.js'),
+  'organizer-panel.js': resolve(__dirname, '..', 'organizer-panel.js'),
+  'style.css': resolve(__dirname, '..', 'style.css'),
+};
 
 // Mantém o widget social idêntico na versão estática e na versão Vite.
 const sharedChatPlugin = {
@@ -19,10 +26,19 @@ const sharedChatPlugin = {
       res.setHeader('Content-Type', 'text/css; charset=utf-8');
       res.end(readFileSync(sharedChatAssets.css));
     });
+    Object.entries(sharedLegacyAssets).forEach(([name, path]) => {
+      server.middlewares.use(`/${name}`, (_req, res) => {
+        res.setHeader('Content-Type', name.endsWith('.css') ? 'text/css; charset=utf-8' : 'application/javascript; charset=utf-8');
+        res.end(readFileSync(path));
+      });
+    });
   },
   closeBundle() {
     copyFileSync(sharedChatAssets.js, resolve(__dirname, 'dist', 'shared-chat.js'));
     copyFileSync(sharedChatAssets.css, resolve(__dirname, 'dist', 'shared-chat.css'));
+    Object.entries(sharedLegacyAssets).forEach(([name, path]) => {
+      copyFileSync(path, resolve(__dirname, 'dist', name));
+    });
   },
 };
 

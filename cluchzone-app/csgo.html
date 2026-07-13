@@ -313,22 +313,22 @@
 
       <!-- INNER TOURNAMENT TABS -->
       <div style="display: flex; gap: 12px; margin-bottom: 24px; border-bottom: 1px solid rgba(255,255,255,0.04); padding-bottom: 8px;">
-        <button class="cs2-tab-btn active" id="btn-subtab-bracket" style="padding: 8px 16px; font-size: 11px;">📊 Chaves & Servidor</button>
+        <button class="cs2-tab-btn active" id="btn-subtab-bracket" style="padding: 8px 16px; font-size: 11px;">📊 Chaves & Sala Steam</button>
         <button class="cs2-tab-btn" id="btn-subtab-teams" style="padding: 8px 16px; font-size: 11px;">🛡️ Equipes & Inscrição</button>
       </div>
 
       <!-- SUB-TAB CONTENT: BRACKETS & SERVER -->
       <div id="subtab-content-bracket">
-        <!-- SERVER CONNECTION INFO (Visible to registered players) -->
+        <!-- STEAM PRIVATE LOBBY (Visible to confirmed players) -->
         <div class="server-room-card" id="server-room-box" style="display: none;">
           <div class="server-header">
-            <h3>🎮 Servidor da Partida Disponível</h3>
-            <span class="csgo-status-badge"><span class="pulse-light yellow"></span> PRONTO PARA CONEXÃO</span>
+            <h3>🎮 Sala Privada Steam Liberada</h3>
+            <span class="csgo-status-badge"><span class="pulse-light yellow"></span> PRONTA PARA ENTRAR</span>
           </div>
-          <p style="font-size: 13px; color: #a0aec0; margin-bottom: 12px;">Seu confronto está pronto. Copie o comando abaixo, abra o console do CS2 (tecla ~ ou ') e pressione Enter para entrar no servidor oficial da CLUTCHZONE.</p>
+          <p style="font-size: 13px; color: #a0aec0; margin-bottom: 12px;">Sua equipe foi confirmada. Entre pelo convite da Steam ou copie o código da sala privada antes da partida.</p>
           <div class="server-code-box">
-            <span id="server-cmd-text">connect 45.122.9.10:27015; password cluchzone123</span>
-            <button class="btn-copy-code" id="btn-copy-server-cmd">Copiar Comando</button>
+            <span id="steam-lobby-text">Convite da sala Steam</span>
+            <button class="btn-copy-code" id="btn-steam-lobby-access">Entrar na Sala Steam</button>
           </div>
         </div>
 
@@ -342,7 +342,7 @@
             <button class="btn-org-action" id="btn-org-view-receipts">Visualizar Comprovantes</button>
             <button class="btn-org-action" id="btn-org-edit-camp">Editar Torneio</button>
             <button class="btn-org-action accent" id="btn-org-generate-bracket">Gerar Bracket (Chaves)</button>
-            <button class="btn-org-action" id="btn-org-configure-server">Configurar Servidor</button>
+            <button class="btn-org-action" id="btn-org-configure-steam">Configurar Sala Steam</button>
             <button class="btn-org-action" id="btn-org-post-results">Inserir Placar</button>
             <button class="btn-org-action" id="btn-org-close-camp" style="border-color: #ff3333; color: #ff3333;">Encerrar Torneio</button>
           </div>

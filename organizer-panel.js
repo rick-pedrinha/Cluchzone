@@ -78,6 +78,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
+  function renderSteamLobbyConfig() {
+    const lobby = camp.steamLobby || {};
+    const invite = document.getElementById('admin-steam-invite');
+    const instructions = document.getElementById('admin-steam-instructions');
+    const active = document.getElementById('admin-steam-active');
+    if (invite) invite.value = lobby.invite || '';
+    if (instructions) instructions.value = lobby.instructions || '';
+    if (active) active.checked = Boolean(lobby.active);
+  }
+
   window.switchPanel = (panel) => {
     const panels = ['teams', 'matches', 'solo', 'config'];
     panels.forEach(p => {
@@ -101,6 +111,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderMatches();
     renderSolo();
     renderHeader();
+    renderSteamLobbyConfig();
   }
 
   function showToast(message, color = '#00d4ff') {
@@ -765,27 +776,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     addNotification(`Nova equipe [${teamName}] formada com jogadores da Fila Solo.`);
   };
 
-  window.adminSaveServer = () => {
-    const ip = document.getElementById('admin-srv-ip').value.trim();
-    const port = document.getElementById('admin-srv-port').value.trim();
-    const password = document.getElementById('admin-srv-pass').value.trim();
-    const active = document.getElementById('admin-srv-active').checked;
+  window.adminSaveSteamLobby = () => {
+    const invite = document.getElementById('admin-steam-invite').value.trim();
+    const instructions = document.getElementById('admin-steam-instructions').value.trim();
+    const active = document.getElementById('admin-steam-active').checked;
 
-    if (!ip || !port) {
-      showToast('⚠️ Preencha pelo menos IP e Porta!', '#ffd700');
+    if (!invite) {
+      showToast('⚠️ Cole o link ou código de convite da Steam!', '#ffd700');
       return;
     }
 
-    camp.server = camp.server || {};
-    camp.server.ip = ip;
-    camp.server.port = port;
-    camp.server.password = password;
-    camp.server.active = active;
+    camp.steamLobby = { invite, instructions, active };
 
     saveAndRefreshAll();
-    showToast('✓ Servidor atualizado com sucesso!', '#00ff88');
+    showToast('✓ Sala privada Steam atualizada!', '#00ff88');
     if (active) {
-      addNotification(`Servidor do campeonato ${camp.name} está online! connect ${ip}:${port}`);
+      addNotification(`A sala privada Steam do campeonato ${camp.name} foi liberada para as equipes confirmadas.`);
     }
   };
 
@@ -867,6 +873,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderTeams();
   renderMatches();
   renderSolo();
+  renderSteamLobbyConfig();
 
   // Switch to teams tab by default
   switchPanel('teams');
@@ -882,6 +889,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       renderTeams();
       renderMatches();
       renderSolo();
+      renderSteamLobbyConfig();
     });
 
     CluchAPI.onStoreChange(TEAM_KEY, (freshTeams) => {

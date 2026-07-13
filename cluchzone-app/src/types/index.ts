@@ -86,6 +86,7 @@ export interface Tournament {
   playerPixStatus: Record<string, Record<string, PixStatus>>;
   bracket?: Bracket;
   server?: ServerConfig;
+  steamLobby?: SteamLobbyConfig;
   date?: string;
   createdAt: string;
   updatedAt?: string;
@@ -96,6 +97,12 @@ export interface ServerConfig {
   ip?: string;
   port?: string;
   password?: string;
+}
+
+export interface SteamLobbyConfig {
+  active: boolean;
+  invite: string;
+  instructions?: string;
 }
 
 export interface Payment {

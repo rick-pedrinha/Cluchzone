@@ -12,7 +12,8 @@ import type { Tournament, PixStatus } from '../types/index.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   const currentUser = authService.init() || authService.getGuestUser();
-  await Promise.all([tournamentService.loadAll(), teamService.loadAll()]);
+  await tournamentService.loadAll();
+  const teams = await teamService.loadAll();
 
   const params = new URLSearchParams(window.location.search);
   const campId = params.get('id');
@@ -35,6 +36,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   const tdOrganizer = document.getElementById('td-organizer');
   const tdDate = document.getElementById('td-date');
   const tdSlots = document.getElementById('td-slots');
+  const tdServer = document.getElementById('td-server');
+  const steamLobbyAccess = document.getElementById('td-steam-lobby-access') as HTMLButtonElement | null;
   const adminPanelContainer = document.getElementById('admin-panel-container');
   const adminTeamsList = document.getElementById('admin-teams-list');
   const editCampForm = document.getElementById('edit-camp-form') as HTMLFormElement;
@@ -78,6 +81,37 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (tdHeroBg) {
       tdHeroBg.style.backgroundImage = `url('${tournament.banner || 'images/cs2_open_pro.jpg'}')`;
+    }
+
+    const lobby = tournament.steamLobby;
+    const userHasApprovedTeam = teams.some(team =>
+      tournament!.registeredTeams.includes(team.name) &&
+      (team.captain === currentUser.nick || team.vice === currentUser.nick || team.members.includes(currentUser.nick))
+    );
+    if (!lobby?.active || !lobby.invite) {
+      if (tdServer) tdServer.textContent = 'Aguardando liberação do organizador.';
+      if (steamLobbyAccess) steamLobbyAccess.style.display = 'none';
+    } else if (!userHasApprovedTeam) {
+      if (tdServer) tdServer.textContent = 'A sala será liberada para a sua equipe após a confirmação da inscrição.';
+      if (steamLobbyAccess) steamLobbyAccess.style.display = 'none';
+    } else {
+      if (tdServer) tdServer.textContent = lobby.instructions || 'Sua equipe está confirmada. Entre na sala privada Steam antes da partida.';
+      if (steamLobbyAccess) {
+        steamLobbyAccess.style.display = 'inline-flex';
+        steamLobbyAccess.textContent = /^https?:\/\//i.test(lobby.invite) ? 'ENTRAR NA SALA STEAM' : 'COPIAR CÓDIGO DA SALA';
+        steamLobbyAccess.onclick = async () => {
+          if (/^https?:\/\//i.test(lobby.invite)) {
+            window.open(lobby.invite, '_blank', 'noopener');
+            return;
+          }
+          try {
+            await navigator.clipboard.writeText(lobby.invite);
+            toast.success('Código da sala copiado. Cole-o no convite da Steam.');
+          } catch (_) {
+            toast.info(`Código da sala: ${lobby.invite}`);
+          }
+        };
+      }
     }
 
   }

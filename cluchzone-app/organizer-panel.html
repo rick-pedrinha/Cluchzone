@@ -206,38 +206,33 @@
 
         <!-- VIEW 4: CONFIGS -->
         <div id="panel-config" class="op-view">
-          <h2 style="font-family:'Orbitron',sans-serif; color:#fff; font-size:18px; margin:0 0 20px;">⚙️ Ajustes Gerais e Servidor</h2>
+          <h2 style="font-family:'Orbitron',sans-serif; color:#fff; font-size:18px; margin:0 0 20px;">⚙️ Ajustes Gerais e Sala Privada</h2>
           
           <div style="background:rgba(255,255,255,0.02); padding:20px; border-radius:12px; border:1px solid rgba(255,255,255,0.04); margin-bottom:24px;">
-            <h3 style="font-family:'Orbitron',sans-serif; font-size:13px; color:#fff; margin:0 0 16px; border-bottom:1px solid rgba(255,255,255,0.04); padding-bottom:6px;">💻 Servidor do Campeonato</h3>
+            <h3 style="font-family:'Orbitron',sans-serif; font-size:13px; color:#fff; margin:0 0 16px; border-bottom:1px solid rgba(255,255,255,0.04); padding-bottom:6px;">🎮 Sala Privada Steam</h3>
             
             <div style="display:grid; grid-template-columns:1fr; gap:16px;">
               <div>
-                <label style="font-size:10px; color:#718096; font-family:'Orbitron',sans-serif; display:block; margin-bottom:6px;">IP DO SERVIDOR *</label>
-                <input class="form-input" id="admin-srv-ip" type="text" placeholder="Ex: 45.122.9.22" style="font-size:13px; padding:8px 12px; background:#0c101b; width:100%; border:1px solid rgba(255,255,255,0.08); color:#fff; border-radius:6px;" />
+                <label style="font-size:10px; color:#718096; font-family:'Orbitron',sans-serif; display:block; margin-bottom:6px;">LINK OU CÓDIGO DE CONVITE STEAM *</label>
+                <input class="form-input" id="admin-steam-invite" type="text" placeholder="Cole aqui o link ou código da sala privada" style="font-size:13px; padding:8px 12px; background:#0c101b; width:100%; border:1px solid rgba(255,255,255,0.08); color:#fff; border-radius:6px;" />
               </div>
-              <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
-                <div>
-                  <label style="font-size:10px; color:#718096; font-family:'Orbitron',sans-serif; display:block; margin-bottom:6px;">PORTA *</label>
-                  <input class="form-input" id="admin-srv-port" type="text" placeholder="Ex: 27015" style="font-size:13px; padding:8px 12px; background:#0c101b; width:100%; border:1px solid rgba(255,255,255,0.08); color:#fff; border-radius:6px;" />
-                </div>
-                <div>
-                  <label style="font-size:10px; color:#718096; font-family:'Orbitron',sans-serif; display:block; margin-bottom:6px;">SENHA DE CONEXÃO *</label>
-                  <input class="form-input" id="admin-srv-pass" type="text" placeholder="Senha" style="font-size:13px; padding:8px 12px; background:#0c101b; width:100%; border:1px solid rgba(255,255,255,0.08); color:#fff; border-radius:6px;" />
-                </div>
+              <div>
+                <label style="font-size:10px; color:#718096; font-family:'Orbitron',sans-serif; display:block; margin-bottom:6px;">INSTRUÇÕES PARA AS EQUIPES</label>
+                <input class="form-input" id="admin-steam-instructions" type="text" placeholder="Ex.: Entre na sala 10 minutos antes da partida" style="font-size:13px; padding:8px 12px; background:#0c101b; width:100%; border:1px solid rgba(255,255,255,0.08); color:#fff; border-radius:6px;" />
               </div>
               <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
-                <span style="font-size:13px; color:#a0aec0;">Ativar Servidor da Partida (Exibe o connect aos jogadores)</span>
+                <span style="font-size:13px; color:#a0aec0;">Liberar sala apenas para equipes confirmadas</span>
                 <label class="switch" style="position:relative; display:inline-block; width:46px; height:24px;">
-                  <input type="checkbox" id="admin-srv-active" style="opacity:0; width:0; height:0;">
+                  <input type="checkbox" id="admin-steam-active" style="opacity:0; width:0; height:0;">
                   <span class="slider round" style="position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background-color:#1a2030; transition:.4s; border-radius:34px; border:1px solid rgba(255,255,255,0.08); cursor:pointer;"></span>
                 </label>
               </div>
             </div>
-            <button onclick="adminSaveServer()" style="
+            <p style="margin:14px 0 0; color:#718096; font-size:12px; line-height:1.5;">Crie a sala privada no CS2 e publique o convite da Steam. Não é necessário contratar ou informar um servidor.</p>
+            <button onclick="adminSaveSteamLobby()" style="
               margin-top:20px; width:100%; font-family:'Orbitron',sans-serif; font-size:11px; font-weight:900;
               padding:10px; border-radius:6px; cursor:pointer; background:#00d4ff; border:none; color:#000; transition:opacity 0.2s;
-            " onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">SALVAR CONFIG. SERVIDOR</button>
+            " onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">PUBLICAR SALA PRIVADA</button>
           </div>
 
           <!-- General actions -->

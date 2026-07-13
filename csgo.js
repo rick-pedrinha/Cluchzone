@@ -524,7 +524,7 @@ document.addEventListener('DOMContentLoaded', () => {
         discord: document.getElementById('cs2-form-discord').value || "https://discord.gg/cluchzone",
         stream: document.getElementById('cs2-form-stream').value || "https://twitch.tv/cluchzone",
         rules: document.getElementById('cs2-form-rules').value || "Regras padrão aplicáveis.",
-        server: { ip: "45.122.9.22", port: "27015", password: "password", active: false },
+        steamLobby: { invite: "", instructions: "", active: false },
         bracket: { round1: [], round2: [], round3: [] }
       };
 
@@ -588,12 +588,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
     updateJoinButtonStates(camp);
 
-    // Server Info box logic
+    // Private Steam lobby, visible only to confirmed teams.
     const serverBox = document.getElementById('server-room-box');
-    const userTeam = teams.find(t => t.captain === currentUser.nick || t.members.includes(currentUser.nick));
-    if (camp.server && camp.server.active && userTeam && camp.registeredTeams.includes(userTeam.name)) {
+    const userTeam = teams.find(t => t.captain === currentUser.nick || t.vice === currentUser.nick || t.members?.includes(currentUser.nick));
+    const lobby = camp.steamLobby;
+    if (lobby?.active && lobby.invite && userTeam && camp.registeredTeams.includes(userTeam.name)) {
       serverBox.style.display = 'block';
-      document.getElementById('server-cmd-text').textContent = `connect ${camp.server.ip}:${camp.server.port}; password ${camp.server.password}`;
+      document.getElementById('steam-lobby-text').textContent = lobby.instructions || lobby.invite;
+      const accessButton = document.getElementById('btn-steam-lobby-access');
+      accessButton.textContent = /^https?:\/\//i.test(lobby.invite) ? 'Entrar na Sala Steam' : 'Copiar Código da Sala';
+      accessButton.onclick = async () => {
+        if (/^https?:\/\//i.test(lobby.invite)) {
+          window.open(lobby.invite, '_blank', 'noopener');
+          return;
+        }
+        try {
+          await navigator.clipboard.writeText(lobby.invite);
+          showToast("✓ Código da sala copiado!", "#00ff88");
+        } catch (_) {
+          showToast(`Código da sala: ${lobby.invite}`, "#00d4ff");
+        }
+      };
     } else {
       serverBox.style.display = 'none';
     }
@@ -929,17 +944,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Copy server command to clipboard
-  const btnCopyServerCmd = document.getElementById('btn-copy-server-cmd');
-  if (btnCopyServerCmd) {
-    btnCopyServerCmd.addEventListener('click', () => {
-      const text = document.getElementById('server-cmd-text').textContent;
-      navigator.clipboard.writeText(text).then(() => {
-        showToast("📋 Comando copiado para a área de transferência!", "#00ff88");
-      });
-    });
-  }
-
   /* ─── ORGANIZER PANEL ACTIONS ─── */
   const orgDynamicForm = document.getElementById('org-dynamic-form');
 
@@ -1005,25 +1009,23 @@ document.addEventListener('DOMContentLoaded', () => {
       `;
     };
 
-    document.getElementById('btn-org-configure-server').onclick = () => {
+    document.getElementById('btn-org-configure-steam').onclick = () => {
+      const lobby = camp.steamLobby || { invite: '', instructions: '', active: false };
       orgDynamicForm.style.display = 'block';
       orgDynamicForm.innerHTML = `
-        <h4 style="font-family: 'Orbitron', sans-serif; font-size: 13px; color: #fff;">Configurar Servidor da Partida</h4>
-        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-top:10px;">
+        <h4 style="font-family: 'Orbitron', sans-serif; font-size: 13px; color: #fff;">Configurar Sala Privada Steam</h4>
+        <p style="font-size:12px; color:#718096; margin:8px 0 12px;">Crie uma sala privada no CS2 e cole o link ou código de convite. Não é necessário servidor, IP, porta ou senha.</p>
+        <div style="display:grid; grid-template-columns:1fr; gap:10px; margin-top:10px;">
           <div>
-            <label style="font-size:10px; color:#4a5568;">IP</label>
-            <input class="form-input" id="srv-ip" type="text" value="${camp.server.ip}"/>
+            <label style="font-size:10px; color:#4a5568;">LINK OU CÓDIGO DE CONVITE STEAM</label>
+            <input class="form-input" id="steam-lobby-invite" type="text" value="${lobby.invite}" placeholder="Cole aqui o convite da Steam"/>
           </div>
           <div>
-            <label style="font-size:10px; color:#4a5568;">PORTA</label>
-            <input class="form-input" id="srv-port" type="text" value="${camp.server.port}"/>
-          </div>
-          <div>
-            <label style="font-size:10px; color:#4a5568;">SENHA</label>
-            <input class="form-input" id="srv-pass" type="text" value="${camp.server.password}"/>
+            <label style="font-size:10px; color:#4a5568;">INSTRUÇÕES PARA AS EQUIPES</label>
+            <input class="form-input" id="steam-lobby-instructions" type="text" value="${lobby.instructions || ''}" placeholder="Ex.: Entrar 10 minutos antes da partida"/>
           </div>
         </div>
-        <button class="cs2-btn cs2-btn-primary" style="margin-top:12px; padding:8px 16px;" onclick="saveServerConfig()">Ativar Servidor & Notificar Equipes</button>
+        <button class="cs2-btn cs2-btn-primary" style="margin-top:12px; padding:8px 16px;" onclick="saveSteamLobbyConfig()">Liberar Sala & Notificar Equipes</button>
       `;
     };
 
@@ -1106,21 +1108,24 @@ document.addEventListener('DOMContentLoaded', () => {
     openActiveTournamentLobby(camp.id);
   };
 
-  window.saveServerConfig = () => {
+  window.saveSteamLobbyConfig = () => {
     const camp = tournaments.find(t => t.id === selectedCampId);
     if (!camp) return;
-    camp.server.ip = document.getElementById('srv-ip').value;
-    camp.server.port = document.getElementById('srv-port').value;
-    camp.server.password = document.getElementById('srv-pass').value;
-    camp.server.active = true;
+    const invite = document.getElementById('steam-lobby-invite').value.trim();
+    const instructions = document.getElementById('steam-lobby-instructions').value.trim();
+    if (!invite) {
+      showToast("⚠️ Cole o link ou código da sala Steam.", "#ffd700");
+      return;
+    }
+    camp.steamLobby = { invite, instructions, active: true };
     saveData(STORAGE_KEY_CAMPS, tournaments);
-    showToast("✓ Servidor ativado e capitães notificados via WebSocket (Simulação)!", "#00ff88");
+    showToast("✓ Sala Steam liberada e capitães notificados!", "#00ff88");
     
     // Auto notify captains
     camp.registeredTeams.forEach(teamName => {
       const team = teams.find(t => t.name === teamName);
       if (team) {
-        addNotification(`[Capitão ${team.captain}] Servidor pronto: connect ${camp.server.ip}:${camp.server.port}; password ${camp.server.password}`);
+        addNotification(`[Capitão ${team.captain}] Sala privada Steam liberada para a sua equipe no campeonato ${camp.name}.`);
       }
     });
 
