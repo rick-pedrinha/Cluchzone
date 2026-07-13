@@ -37,6 +37,11 @@
 #team-chat-input::placeholder { color:#7b8b9c; } #team-chat-input:focus { border-color:#00e676; background:rgba(0,230,118,.06); box-shadow:0 0 0 3px rgba(0,230,118,.11); }
 #team-chat-send-btn { width:40px; height:40px; flex:0 0 40px; display:flex; align-items:center; justify-content:center; border:0; border-radius:11px; background:linear-gradient(135deg,#00e676,#00a86b); color:#042417; cursor:pointer; font-size:16px; box-shadow:0 5px 14px rgba(0,230,118,.25); transition:transform .2s,box-shadow .2s,filter .2s; }
 #team-chat-send-btn:hover { transform:translateY(-2px); filter:brightness(1.08); box-shadow:0 8px 18px rgba(0,230,118,.38); } #team-chat-send-btn:active { transform:translateY(0); }
+#tab-dm .chat-input-area { padding:12px; gap:9px; background:linear-gradient(180deg,rgba(5,11,20,.25),rgba(0,0,0,.18)); }
+#chat-input-dm { min-width:0; flex:1; height:40px; box-sizing:border-box; padding:0 13px; border:1px solid rgba(192,132,252,.3); border-radius:11px; background:rgba(255,255,255,.06); color:#f8fafc; outline:none; font:600 13px 'Rajdhani',sans-serif; letter-spacing:.15px; transition:border-color .2s,box-shadow .2s,background .2s; }
+#chat-input-dm::placeholder { color:#7b8b9c; } #chat-input-dm:focus { border-color:#c084fc; background:rgba(192,132,252,.07); box-shadow:0 0 0 3px rgba(192,132,252,.12); }
+#chat-send-dm-btn { width:40px; height:40px; flex:0 0 40px; display:flex; align-items:center; justify-content:center; border:0; border-radius:11px; background:linear-gradient(135deg,#c084fc,#7b2ff7); color:#fff; cursor:pointer; font-size:16px; box-shadow:0 5px 14px rgba(123,47,247,.28); transition:transform .2s,box-shadow .2s,filter .2s; }
+#chat-send-dm-btn:hover { transform:translateY(-2px); filter:brightness(1.1); box-shadow:0 8px 18px rgba(123,47,247,.4); } #chat-send-dm-btn:active { transform:translateY(0); }
 #chat-toggle-btn .chat-notif {
   position: absolute; top: -4px; right: -4px;
   width: 18px; height: 18px; border-radius: 50%;
