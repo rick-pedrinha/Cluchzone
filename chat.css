@@ -255,3 +255,39 @@
 @media (max-width: 500px) {
   #chat-panel { width: calc(100vw - 20px); right: 10px; bottom: 80px; }
 }
+
+/* ── CLUCH SOCIAL: friends and private messages ── */
+#chat-panel { height: 560px; }
+.chat-tab-content { min-height:0; flex:1; flex-direction:column; }
+.social-request-badge { display:inline-flex; min-width:14px; height:14px; align-items:center; justify-content:center; border-radius:8px; background:#ff2d7a; color:#fff; font-size:9px; }
+.social-home,.social-conversation { min-height:0; height:100%; flex:1; flex-direction:column; overflow:auto; }
+.social-search { display:flex; gap:7px; padding:11px 12px 6px; }
+.social-search input,.social-conversation input { min-width:0; flex:1; padding:9px 10px; border:1px solid rgba(255,255,255,.1); border-radius:8px; background:rgba(255,255,255,.05); color:#e2e8f0; outline:none; font:600 12px 'Rajdhani',sans-serif; }
+.social-search input:focus,.social-conversation input:focus { border-color:rgba(0,212,255,.55); }
+.social-search button { width:34px; border:0; border-radius:8px; background:rgba(0,212,255,.15); color:#00d4ff; font-size:20px; cursor:pointer; }
+.social-search button:disabled { opacity:.4; cursor:not-allowed; }
+.social-search-results { padding:0 12px; }
+.social-search-row,.social-request-row { display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid rgba(255,255,255,.05); font-size:12px; color:#fff; }
+.social-search-row strong { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.social-search-row button,.social-accept,.social-reject { border:1px solid rgba(0,212,255,.38); border-radius:6px; background:rgba(0,212,255,.1); color:#00d4ff; padding:5px 8px; font:700 10px 'Rajdhani',sans-serif; cursor:pointer; }
+.social-search-row button:disabled { color:#718096; border-color:rgba(255,255,255,.1); background:transparent; cursor:default; }
+.social-section { padding:10px 12px 0; }
+.social-section-title { display:flex; justify-content:space-between; color:#718096; font-size:10px; font-weight:700; letter-spacing:1px; }
+.social-section-title span { color:#00d4ff; }
+.social-request-row > span:nth-child(2) { flex:1; display:flex; flex-direction:column; }
+.social-request-row small { color:#718096; font-size:10px; }
+.social-request-row > div { display:flex; gap:4px; }
+.social-reject { border-color:rgba(255,45,122,.35); background:rgba(255,45,122,.08); color:#ff2d7a; }
+.social-user-avatar { width:30px; height:30px; flex:0 0 30px; overflow:hidden; display:flex; align-items:center; justify-content:center; border-radius:9px; background:linear-gradient(135deg,#7b2ff7,#00d4ff); color:#fff; font-size:12px; font-weight:800; position:relative; }
+.social-user-avatar img { width:100%; height:100%; object-fit:cover; }
+.social-friend-list { margin-top:5px; }
+.social-friend-row { display:flex; width:100%; align-items:center; gap:8px; padding:9px 0; border:0; border-bottom:1px solid rgba(255,255,255,.05); background:transparent; color:#fff; text-align:left; cursor:pointer; }
+.social-friend-row:hover { background:rgba(255,255,255,.035); }
+.social-friend-row > span:nth-child(2) { min-width:0; flex:1; display:flex; flex-direction:column; }
+.social-friend-row strong { font-size:12px; }.social-friend-row small { color:#718096; font-size:10px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }.social-friend-row time { color:#4a5568; font-size:9px; }
+.social-user-avatar i { width:8px; height:8px; position:absolute; right:-2px; bottom:-2px; border:2px solid #0a0d16; border-radius:50%; background:#00e676; }
+.social-empty,.social-login-note { margin:9px 0; color:#718096; font-size:11px; line-height:1.35; }.social-login-note { padding:8px 12px; color:#ffd700; background:rgba(255,215,0,.06); }
+.social-conversation-head { display:flex; align-items:center; gap:8px; padding:10px 12px; border-bottom:1px solid rgba(255,255,255,.06); }.social-conversation-head button { border:0; background:none; color:#00d4ff; cursor:pointer; font-size:20px; }.social-conversation-head > div:last-child { display:flex; flex-direction:column; }.social-conversation-head strong { font-size:12px; }.social-conversation-head small { color:#00e676; font-size:10px; }.social-conversation-head small i { display:inline-block; width:6px; height:6px; border-radius:50%; background:#00e676; }
+.social-messages { min-height:0; flex:1; overflow:auto; padding:10px 12px; display:flex; flex-direction:column; gap:8px; }
+.social-conversation .chat-input-area input { flex:1; }
+@media (max-width:500px) { #chat-panel { height:min(560px, calc(100vh - 100px)); } }

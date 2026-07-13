@@ -1,293 +1,358 @@
-/* ═══════════════════════════════════════════════════════════════
-   CLUCHZONE — CHAT WIDGET JS (shared)
-   Simulates real-time room chat + organizer DM
-   ═══════════════════════════════════════════════════════════════ */
-(function() {
-  /* ── CONFIG ── */
-  const ROOM_NAME = document.querySelector('meta[name="room-name"]')?.content || 'Lobby';
+(function () {
+  'use strict';
+
+  const ROOM_NAME = document.querySelector('meta[name="room-name"]')?.content || 'Lobby CLUCHZONE';
   const GAME_ICON = document.querySelector('meta[name="room-icon"]')?.content || '🎮';
-  const ORG_NAME  = document.querySelector('meta[name="org-name"]')?.content  || 'Organizador';
+  const ORG_NAME = document.querySelector('meta[name="org-name"]')?.content || 'Organizador';
+  const SOCIAL_KEY = 'cluchzone_social_network_v1';
+  const AUTH_KEY = 'cluchzone_auth';
 
-  /* ── MOCK MESSAGES ── */
-  const ROOM_MSGS = [
-    { nick:'xDROPx',    text:'Alguém sabe o servidor hoje?',    time: -8 },
-    { nick:'BattlePro', text:'SA-SP aparentemente',             time: -7 },
-    { nick:'SniperGod', text:'Que horas começa o check-in?',    time: -6 },
-    { nick:ORG_NAME,    text:'Check-in abre 30min antes 🎯',    time: -5, isOrg: true },
-    { nick:'GhostX',    text:'Participei semana passada, show!', time: -4 },
-    { nick:'ErangelK',  text:'Qual o mapa prioritário?',        time: -3 },
-    { nick:ORG_NAME,    text:'Erangel e Miramar nessa ordem ✅', time: -2, isOrg: true },
-    { nick:'DesertFox', text:'Boa sorte a todos! 🔥',           time: -1 },
-  ];
-  const DM_MSGS = [
-    { nick: ORG_NAME, text: `Olá! Sou o organizador do ${ROOM_NAME}. Como posso ajudar?`, time: -5, isOrg: true },
-    { nick: ORG_NAME, text: 'Qualquer dúvida sobre regras ou premiação, é só perguntar 👍', time: -4, isOrg: true },
-  ];
+  let social = { profiles: [], friendships: [], conversations: [] };
+  let currentUser = null;
+  let activeConversationId = null;
+  let activeTab = 'room';
+  let isOpen = false;
+  let serverSocialAvailable = null;
 
-  function timeAgo(minutesAgo) {
-    const d = new Date(Date.now() - minutesAgo * 60000);
-    return d.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
+  const escapeHtml = value => String(value || '').replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
+  const userKey = nick => String(nick || '').trim().toLowerCase();
+  const timeLabel = timestamp => new Date(timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  const relativeTime = timestamp => {
+    const minutes = Math.max(0, Math.floor((Date.now() - timestamp) / 60000));
+    if (minutes < 1) return 'agora';
+    if (minutes < 60) return `${minutes} min`;
+    if (minutes < 1440) return `${Math.floor(minutes / 60)} h`;
+    return `${Math.floor(minutes / 1440)} d`;
+  };
+
+  function getAuth() {
+    try { return JSON.parse(localStorage.getItem(AUTH_KEY) || 'null'); } catch (_) { return null; }
   }
-  function nowTime() { return new Date().toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' }); }
 
-  /* ── BUILD HTML ── */
+  function getProfileAvatar() {
+    try { return JSON.parse(localStorage.getItem('cluchzone_profile') || '{}').avatar || ''; } catch (_) { return ''; }
+  }
+
   function buildWidget() {
-    const html = `
-    <!-- CHAT TOGGLE -->
-    <button id="chat-toggle-btn" aria-label="Abrir chat" title="Chat da Sala">
-      💬
-      <div class="chat-notif" id="chat-notif">3</div>
-    </button>
-
-    <!-- CHAT PANEL -->
-    <div id="chat-panel" role="dialog" aria-label="Chat da sala">
-      <div class="chat-header">
-        <div class="chat-header-icon">${GAME_ICON}</div>
-        <div class="chat-header-info">
-          <div class="chat-header-title">${ROOM_NAME}</div>
-          <div class="chat-header-sub">
-            <span class="chat-online-dot"></span>
-            <span id="chat-online-count">24 online</span>
-          </div>
-        </div>
-        <button class="chat-close-btn" id="chat-close-btn">✕</button>
-      </div>
-
-      <div class="chat-tabs">
-        <button class="chat-tab active" data-tab="room">🏠 Sala</button>
-        <button class="chat-tab"        data-tab="dm">👑 Organizador</button>
-      </div>
-
-      <!-- ROOM TAB -->
-      <div id="tab-room" class="chat-tab-content">
-        <div class="organizer-alert" id="org-shortcut">
-          <div class="organizer-alert-icon">📩</div>
-          <div class="organizer-alert-text">
-            <div class="organizer-alert-title">FALAR COM ORGANIZADOR</div>
-            <div class="organizer-alert-sub">${ORG_NAME} · Online agora</div>
-          </div>
-          <div class="organizer-online"></div>
-        </div>
-
-        <div class="chat-messages" id="chat-messages-room"></div>
-
-        <div class="chat-input-area">
-          <input type="text" id="chat-input" placeholder="Mensagem..." maxlength="200" autocomplete="off"/>
-          <button id="chat-send-btn" aria-label="Enviar">➤</button>
-        </div>
-      </div>
-
-      <!-- DM TAB -->
-      <div id="tab-dm" class="chat-tab-content" style="display:none; display:flex; flex-direction:column; height:100%; flex:1;">
-        <div class="chat-dm-header">
-          <div class="chat-dm-avatar">👑</div>
-          <div class="chat-dm-name">${ORG_NAME}</div>
-          <div class="chat-dm-role">Organizador Verificado</div>
-          <div class="chat-dm-status">
-            <span style="width:6px;height:6px;border-radius:50%;background:#00e676;display:inline-block;"></span>
-            Online agora
-          </div>
-        </div>
-        <div class="chat-messages" id="chat-messages-dm" style="flex:1;"></div>
-        <div class="chat-input-area">
-          <input type="text" id="chat-input-dm" placeholder="Mensagem para o organizador..." maxlength="200" autocomplete="off"/>
-          <button id="chat-send-dm-btn" aria-label="Enviar">➤</button>
-        </div>
-      </div>
-    </div>`;
-
     const wrapper = document.createElement('div');
-    wrapper.innerHTML = html;
+    wrapper.id = 'cluch-social-widget';
+    wrapper.innerHTML = `
+      <button id="chat-toggle-btn" aria-label="Abrir bate-papo" title="Bate-papo e amigos">💬<span class="chat-notif" id="chat-notif">3</span></button>
+      <section id="chat-panel" role="dialog" aria-label="Bate-papo CLUCHZONE">
+        <header class="chat-header">
+          <div class="chat-header-icon">${GAME_ICON}</div>
+          <div class="chat-header-info"><strong class="chat-header-title">CLUCH SOCIAL</strong><span class="chat-header-sub"><i class="chat-online-dot"></i><span id="chat-online-count">Conectando...</span></span></div>
+          <button class="chat-close-btn" id="chat-close-btn" aria-label="Fechar">×</button>
+        </header>
+        <nav class="chat-tabs" aria-label="Seções do chat">
+          <button class="chat-tab active" data-tab="room">🏠 Sala</button>
+          <button class="chat-tab" data-tab="social">👥 Amigos <span class="social-request-badge" id="social-request-badge" hidden>0</span></button>
+          <button class="chat-tab" data-tab="dm">🏆 Org.</button>
+        </nav>
+        <div id="tab-room" class="chat-tab-content">
+          <button class="organizer-alert" id="org-shortcut" type="button"><span class="organizer-alert-icon">📨</span><span class="organizer-alert-text"><b class="organizer-alert-title">FALAR COM ORGANIZADOR</b><small class="organizer-alert-sub">${escapeHtml(ORG_NAME)} · Online agora</small></span><i class="organizer-online"></i></button>
+          <div class="chat-messages" id="chat-messages-room"></div>
+          <div class="chat-input-area"><input id="chat-input" maxlength="300" placeholder="Mensagem para a sala..." autocomplete="off"><button id="chat-send-btn" type="button" aria-label="Enviar">➤</button></div>
+        </div>
+        <div id="tab-social" class="chat-tab-content" style="display:none">
+          <div id="social-home" class="social-home">
+            <div class="social-search"><input id="social-search-input" maxlength="32" placeholder="Adicionar amigo pelo usuário"><button id="social-search-btn" type="button" aria-label="Buscar jogador">⌕</button></div>
+            <div id="social-search-results" class="social-search-results"></div>
+            <div id="social-login-note" class="social-login-note" hidden>Entre na sua conta para adicionar amigos e trocar mensagens.</div>
+            <div id="social-requests" class="social-section"></div>
+            <div class="social-section"><div class="social-section-title">MEUS AMIGOS <span id="social-friend-count">0</span></div><div id="social-friend-list" class="social-friend-list"></div></div>
+          </div>
+          <div id="social-conversation" class="social-conversation" style="display:none">
+            <div class="social-conversation-head"><button id="social-back-btn" type="button" aria-label="Voltar">←</button><div class="social-user-avatar" id="social-conversation-avatar"></div><div><strong id="social-conversation-name"></strong><small><i></i> Online</small></div></div>
+            <div id="social-messages" class="social-messages"></div>
+            <div class="chat-input-area"><input id="social-message-input" maxlength="500" placeholder="Escreva uma mensagem..." autocomplete="off"><button id="social-send-btn" type="button" aria-label="Enviar">➤</button></div>
+          </div>
+        </div>
+        <div id="tab-dm" class="chat-tab-content" style="display:none"><div class="chat-dm-header"><div class="chat-dm-avatar">🏆</div><strong class="chat-dm-name">${escapeHtml(ORG_NAME)}</strong><small class="chat-dm-role">Organizador verificado</small></div><div class="chat-messages" id="chat-messages-dm"></div><div class="chat-input-area"><input id="chat-input-dm" maxlength="300" placeholder="Mensagem para o organizador..." autocomplete="off"><button id="chat-send-dm-btn" type="button" aria-label="Enviar">➤</button></div></div>
+      </section>`;
     document.body.appendChild(wrapper);
   }
 
-  /* ── RENDER MESSAGES ── */
-  function renderMsg(container, msg, isMe = false) {
-    const el = document.createElement('div');
-    el.className = `chat-msg${isMe ? ' mine' : ''}`;
-
-    const initial = msg.nick.charAt(0).toUpperCase();
-    const orgClass = msg.isOrg ? ' org' : '';
-    const nickClass = msg.isOrg ? ' org-nick' : '';
-    const textClass = msg.isOrg ? ' org-text' : '';
-    const t = msg.time < 0 ? timeAgo(Math.abs(msg.time)) : nowTime();
-
-    el.innerHTML = `
-      <div class="chat-msg-avatar${orgClass}">${msg.isOrg ? '👑' : initial}</div>
-      <div class="chat-msg-body">
-        <div class="chat-msg-header">
-          <span class="chat-msg-nick${nickClass}">${msg.nick}</span>
-          <span class="chat-msg-time">${t}</span>
-        </div>
-        <div class="chat-msg-text${textClass}">${msg.text}</div>
-      </div>`;
-
-    container.appendChild(el);
-    container.scrollTop = container.scrollHeight;
+  function messageElement(message, mine) {
+    const el = document.createElement('article');
+    el.className = `chat-msg${mine ? ' mine' : ''}`;
+    const initial = String(message.nick || '?').charAt(0).toUpperCase();
+    el.innerHTML = `<div class="chat-msg-avatar">${escapeHtml(initial)}</div><div class="chat-msg-body"><div class="chat-msg-header"><b class="chat-msg-nick">${escapeHtml(message.nick)}</b><time class="chat-msg-time">${timeLabel(message.createdAt || Date.now())}</time></div><p class="chat-msg-text">${escapeHtml(message.text)}</p></div>`;
+    return el;
   }
 
-  function renderSystem(container, text) {
-    const el = document.createElement('div');
-    el.className = 'chat-system-msg';
-    el.textContent = text;
-    container.appendChild(el);
+  function appendRoomMessage(message, mine) {
+    const list = document.getElementById('chat-messages-room');
+    if (!list) return;
+    list.appendChild(messageElement(message, mine));
+    list.scrollTop = list.scrollHeight;
   }
 
-  /* ── INIT ── */
+  async function readServerSocial() {
+    try {
+      const response = await fetch(`/api/store/${encodeURIComponent(SOCIAL_KEY)}`, { cache: 'no-store' });
+      if (!response.ok) throw new Error('Social API indisponível');
+      const body = await response.json();
+      serverSocialAvailable = true;
+      return body.value || null;
+    } catch (_) {
+      serverSocialAvailable = false;
+      return null;
+    }
+  }
+
+  function saveSocial() {
+    localStorage.setItem(SOCIAL_KEY, JSON.stringify(social));
+    if (serverSocialAvailable !== false) {
+      fetch(`/api/store/${encodeURIComponent(SOCIAL_KEY)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ value: social })
+      }).then(response => { if (response.ok) serverSocialAvailable = true; }).catch(() => { serverSocialAvailable = false; });
+    }
+    return window.CluchAPI?.setStore(SOCIAL_KEY, social);
+  }
+
+  async function loadSocial() {
+    let stored = await readServerSocial();
+    if (!stored) {
+      try { stored = await window.CluchAPI?.getStore(SOCIAL_KEY, null); } catch (_) { stored = null; }
+    }
+    if (!stored) {
+      try { stored = JSON.parse(localStorage.getItem(SOCIAL_KEY) || 'null'); } catch (_) { stored = null; }
+    }
+    social = { profiles: [], friendships: [], conversations: [], ...(stored || {}) };
+    social.profiles = Array.isArray(social.profiles) ? social.profiles : [];
+    social.friendships = Array.isArray(social.friendships) ? social.friendships : [];
+    social.conversations = Array.isArray(social.conversations) ? social.conversations : [];
+    publishCurrentProfile();
+    renderSocial();
+    window.CluchAPI?.onStoreChange?.(SOCIAL_KEY, data => {
+      social = { profiles: [], friendships: [], conversations: [], ...(data || {}) };
+      renderSocial();
+    });
+    // Quando o servidor local está em uso, mantém os outros jogadores atualizados sem recarregar a página.
+    setInterval(async () => {
+      const remote = await readServerSocial();
+      if (!remote) return;
+      const next = { profiles: [], friendships: [], conversations: [], ...remote };
+      if (JSON.stringify(next) !== JSON.stringify(social)) {
+        social = next;
+        renderSocial();
+      }
+    }, 3000);
+  }
+
+  function publishCurrentProfile() {
+    if (!currentUser?.nick) return;
+    const id = userKey(currentUser.nick);
+    const localAvatar = getProfileAvatar();
+    // Evita enviar imagens grandes em Base64 para o documento compartilhado do chat.
+    const profile = { id, nick: currentUser.nick, avatar: localAvatar.length <= 12000 ? localAvatar : '', updatedAt: Date.now() };
+    const index = social.profiles.findIndex(item => item.id === id);
+    const changed = index < 0 || social.profiles[index].nick !== profile.nick || social.profiles[index].avatar !== profile.avatar;
+    if (changed) {
+      if (index < 0) social.profiles.push(profile); else social.profiles[index] = { ...social.profiles[index], ...profile };
+      saveSocial();
+    }
+  }
+
+  function profileById(id) { return social.profiles.find(profile => profile.id === id); }
+  function friendshipWith(id) {
+    if (!currentUser?.nick) return null;
+    const me = userKey(currentUser.nick);
+    return social.friendships.find(friendship => (friendship.from === me && friendship.to === id) || (friendship.from === id && friendship.to === me));
+  }
+
+  function avatarMarkup(profile) {
+    return profile?.avatar ? `<img src="${profile.avatar}" alt="">` : escapeHtml(profile?.nick?.charAt(0)?.toUpperCase() || '?');
+  }
+
+  function renderSocial() {
+    const loginNote = document.getElementById('social-login-note');
+    const search = document.getElementById('social-search-input');
+    if (!loginNote || !search) return;
+    const signedIn = Boolean(currentUser?.nick);
+    loginNote.hidden = signedIn;
+    search.disabled = !signedIn;
+    document.getElementById('social-search-btn').disabled = !signedIn;
+    renderSearchResults(search.value);
+    renderRequests();
+    renderFriends();
+    renderConversation();
+  }
+
+  function renderSearchResults(query) {
+    const container = document.getElementById('social-search-results');
+    if (!container) return;
+    const term = String(query || '').trim().toLowerCase();
+    container.innerHTML = '';
+    if (!term || !currentUser?.nick) return;
+    const matches = social.profiles.filter(profile => profile.id !== userKey(currentUser.nick) && profile.nick.toLowerCase().includes(term)).slice(0, 5);
+    if (!matches.length) {
+      container.innerHTML = '<p class="social-empty">Nenhum jogador encontrado. O usuário precisa entrar na CLUCHZONE ao menos uma vez.</p>';
+      return;
+    }
+    matches.forEach(profile => {
+      const relation = friendshipWith(profile.id);
+      const row = document.createElement('div');
+      row.className = 'social-search-row';
+      let action = 'Adicionar';
+      let disabled = false;
+      if (relation?.status === 'accepted') { action = 'Amigos'; disabled = true; }
+      if (relation?.status === 'pending' && relation.from === userKey(currentUser.nick)) { action = 'Enviado'; disabled = true; }
+      if (relation?.status === 'pending' && relation.to === userKey(currentUser.nick)) { action = 'Responder'; }
+      row.innerHTML = `<span class="social-user-avatar">${avatarMarkup(profile)}</span><strong>${escapeHtml(profile.nick)}</strong><button type="button" ${disabled ? 'disabled' : ''}>${action}</button>`;
+      row.querySelector('button').addEventListener('click', () => relation?.status === 'pending' && relation.to === userKey(currentUser.nick) ? acceptFriendship(relation.id) : requestFriendship(profile.id));
+      container.appendChild(row);
+    });
+  }
+
+  function renderRequests() {
+    const container = document.getElementById('social-requests');
+    const badge = document.getElementById('social-request-badge');
+    if (!container || !badge) return;
+    const me = userKey(currentUser?.nick);
+    const requests = social.friendships.filter(friendship => friendship.status === 'pending' && friendship.to === me);
+    badge.hidden = !requests.length;
+    badge.textContent = requests.length;
+    container.innerHTML = '';
+    if (!requests.length) return;
+    container.innerHTML = '<div class="social-section-title">PEDIDOS RECEBIDOS</div>';
+    requests.forEach(request => {
+      const profile = profileById(request.from);
+      const row = document.createElement('div');
+      row.className = 'social-request-row';
+      row.innerHTML = `<span class="social-user-avatar">${avatarMarkup(profile)}</span><span><strong>${escapeHtml(profile?.nick || request.from)}</strong><small>quer ser seu amigo</small></span><div><button class="social-accept" type="button">Aceitar</button><button class="social-reject" type="button">×</button></div>`;
+      row.querySelector('.social-accept').addEventListener('click', () => acceptFriendship(request.id));
+      row.querySelector('.social-reject').addEventListener('click', () => rejectFriendship(request.id));
+      container.appendChild(row);
+    });
+  }
+
+  function friendProfiles() {
+    if (!currentUser?.nick) return [];
+    const me = userKey(currentUser.nick);
+    return social.friendships.filter(friendship => friendship.status === 'accepted' && (friendship.from === me || friendship.to === me)).map(friendship => profileById(friendship.from === me ? friendship.to : friendship.from)).filter(Boolean);
+  }
+
+  function conversationFor(friendId, create) {
+    const me = userKey(currentUser?.nick);
+    const id = [me, friendId].sort().join('__');
+    let conversation = social.conversations.find(item => item.id === id);
+    if (!conversation && create) {
+      conversation = { id, participants: [me, friendId], messages: [], updatedAt: Date.now() };
+      social.conversations.push(conversation);
+    }
+    return conversation;
+  }
+
+  function renderFriends() {
+    const container = document.getElementById('social-friend-list');
+    const count = document.getElementById('social-friend-count');
+    if (!container || !count) return;
+    const friends = friendProfiles();
+    count.textContent = friends.length;
+    container.innerHTML = '';
+    if (!currentUser?.nick) return;
+    if (!friends.length) { container.innerHTML = '<p class="social-empty">Busque um usuário acima para começar sua rede.</p>'; return; }
+    friends.sort((a, b) => (conversationFor(b.id)?.updatedAt || 0) - (conversationFor(a.id)?.updatedAt || 0)).forEach(profile => {
+      const conversation = conversationFor(profile.id);
+      const last = conversation?.messages?.at(-1);
+      const row = document.createElement('button');
+      row.className = 'social-friend-row';
+      row.type = 'button';
+      row.innerHTML = `<span class="social-user-avatar">${avatarMarkup(profile)}<i></i></span><span><strong>${escapeHtml(profile.nick)}</strong><small>${escapeHtml(last ? last.text : 'Agora vocês são amigos!')}</small></span><time>${last ? relativeTime(last.createdAt) : ''}</time>`;
+      row.addEventListener('click', () => { activeConversationId = conversationFor(profile.id, true).id; renderSocial(); });
+      container.appendChild(row);
+    });
+  }
+
+  function renderConversation() {
+    const home = document.getElementById('social-home');
+    const pane = document.getElementById('social-conversation');
+    if (!home || !pane) return;
+    const conversation = social.conversations.find(item => item.id === activeConversationId);
+    if (!conversation || !currentUser?.nick) { home.style.display = 'flex'; pane.style.display = 'none'; return; }
+    const friendId = conversation.participants.find(id => id !== userKey(currentUser.nick));
+    const profile = profileById(friendId);
+    home.style.display = 'none'; pane.style.display = 'flex';
+    document.getElementById('social-conversation-name').textContent = profile?.nick || friendId;
+    document.getElementById('social-conversation-avatar').innerHTML = avatarMarkup(profile);
+    const list = document.getElementById('social-messages');
+    list.innerHTML = '';
+    conversation.messages.forEach(message => list.appendChild(messageElement(message, message.from === userKey(currentUser.nick))));
+    list.scrollTop = list.scrollHeight;
+  }
+
+  function requestFriendship(targetId) {
+    if (!currentUser?.nick || !targetId) return;
+    const me = userKey(currentUser.nick);
+    const existing = friendshipWith(targetId);
+    if (existing?.status === 'pending' && existing.to === me) return acceptFriendship(existing.id);
+    if (existing) return;
+    social.friendships.push({ id: `${me}_${targetId}_${Date.now()}`, from: me, to: targetId, status: 'pending', createdAt: Date.now() });
+    saveSocial(); renderSocial();
+  }
+
+  function acceptFriendship(id) { const request = social.friendships.find(item => item.id === id); if (request) { request.status = 'accepted'; request.updatedAt = Date.now(); saveSocial(); renderSocial(); } }
+  function rejectFriendship(id) { social.friendships = social.friendships.filter(item => item.id !== id); saveSocial(); renderSocial(); }
+
+  function sendPrivateMessage() {
+    const input = document.getElementById('social-message-input');
+    const conversation = social.conversations.find(item => item.id === activeConversationId);
+    const text = input?.value.trim();
+    if (!text || !conversation || !currentUser?.nick) return;
+    conversation.messages.push({ id: `${Date.now()}_${Math.random()}`, from: userKey(currentUser.nick), nick: currentUser.nick, text, createdAt: Date.now() });
+    conversation.messages = conversation.messages.slice(-200);
+    conversation.updatedAt = Date.now();
+    input.value = '';
+    saveSocial(); renderConversation();
+  }
+
+  function switchTab(tab) {
+    activeTab = tab;
+    document.querySelectorAll('.chat-tab').forEach(button => button.classList.toggle('active', button.dataset.tab === tab));
+    ['room', 'social', 'dm'].forEach(name => { const pane = document.getElementById(`tab-${name}`); pane.style.display = name === tab ? 'flex' : 'none'; });
+    if (tab === 'social') renderSocial();
+  }
+
   function init() {
     buildWidget();
-
-    const toggleBtn  = document.getElementById('chat-toggle-btn');
-    const panel      = document.getElementById('chat-panel');
-    const closeBtn   = document.getElementById('chat-close-btn');
-    const notif      = document.getElementById('chat-notif');
-    const tabs       = document.querySelectorAll('.chat-tab');
-    const tabRoom    = document.getElementById('tab-room');
-    const tabDm      = document.getElementById('tab-dm');
-    const roomMsgs   = document.getElementById('chat-messages-room');
-    const dmMsgs     = document.getElementById('chat-messages-dm');
-    const roomInput  = document.getElementById('chat-input');
-    const roomSend   = document.getElementById('chat-send-btn');
-    const dmInput    = document.getElementById('chat-input-dm');
-    const dmSend     = document.getElementById('chat-send-dm-btn');
-    const orgShort   = document.getElementById('org-shortcut');
-
-    let isOpen       = false;
-    let activeTab    = 'room';
-    let unread       = 3;
-
-    /* load initial messages */
-    renderSystem(roomMsgs, '─── Bem-vindo ao chat da sala ───');
-    ROOM_MSGS.forEach(m => renderMsg(roomMsgs, m));
-    DM_MSGS.forEach(m => renderMsg(dmMsgs, m));
-
-    /* open / close */
-    function openChat() {
-      isOpen = true;
-      panel.classList.add('open');
-      toggleBtn.innerHTML = '✕';
-      unread = 0;
-      if (notif) notif.remove();
-    }
-    function closeChat() {
-      isOpen = false;
-      panel.classList.remove('open');
-      toggleBtn.innerHTML = '💬';
-    }
-
-    toggleBtn.addEventListener('click', () => isOpen ? closeChat() : openChat());
-    closeBtn.addEventListener('click', closeChat);
-
-    /* tabs */
-    tabs.forEach(tab => {
-      tab.addEventListener('click', () => {
-        tabs.forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        activeTab = tab.dataset.tab;
-        tabRoom.style.display = activeTab === 'room' ? 'flex' : 'none';
-        tabDm.style.display   = activeTab === 'dm'   ? 'flex' : 'none';
-        if (activeTab === 'room') tabRoom.style.flexDirection = 'column';
-        if (activeTab === 'dm')  tabDm.style.flexDirection   = 'column';
-      });
-    });
-    // initial state
-    tabRoom.style.display = 'flex'; tabRoom.style.flexDirection = 'column';
-    tabDm.style.display   = 'none';
-
-    /* organizer shortcut → switch to DM tab */
-    if (orgShort) {
-      orgShort.addEventListener('click', () => {
-        tabs.forEach(t => t.classList.remove('active'));
-        document.querySelector('[data-tab="dm"]').classList.add('active');
-        activeTab = 'dm';
-        tabRoom.style.display = 'none';
-        tabDm.style.display   = 'flex'; tabDm.style.flexDirection = 'column';
-      });
-    }
-
-    /* send room message */
-    function sendRoom() {
-      const text = roomInput.value.trim();
-      if (!text) return;
-      renderMsg(roomMsgs, { nick: 'Você', text }, true);
-      roomInput.value = '';
-
-      // simulate reply after delay
-      const replies = [
-        'Boa sorte! 🔥', 'Vejo você na zona 👀', 'Vou te pegar no mapa 😏',
-        'GG! Que venha o melhor', 'Estou pronto para o drop ✈️'
-      ];
-      setTimeout(() => {
-        renderMsg(roomMsgs, {
-          nick: ['xDROPx','SniperGod','GhostX'][Math.floor(Math.random()*3)],
-          text: replies[Math.floor(Math.random() * replies.length)]
-        });
-      }, 1200 + Math.random() * 1400);
-    }
-    roomSend.addEventListener('click', sendRoom);
-    roomInput.addEventListener('keydown', e => e.key === 'Enter' && sendRoom());
-
-    /* send DM */
-    function sendDM() {
-      const text = dmInput.value.trim();
-      if (!text) return;
-      renderMsg(dmMsgs, { nick: 'Você', text }, true);
-      dmInput.value = '';
-
-      const orgReplies = [
-        `Claro! ${text.length > 10 ? 'Deixa eu verificar isso para você.' : 'Pode deixar!'}`,
-        'Entendido! Vou resolver isso agora mesmo 👍',
-        'Boa pergunta! A regra é: primeiro a confirmar, garante a vaga ✅',
-        'Sem problemas! Qualquer outra dúvida é só chamar 🎯',
-      ];
-      setTimeout(() => {
-        renderMsg(dmMsgs, {
-          nick: ORG_NAME, isOrg: true,
-          text: orgReplies[Math.floor(Math.random() * orgReplies.length)]
-        });
-      }, 1500 + Math.random() * 1000);
-    }
-    dmSend.addEventListener('click', sendDM);
-    dmInput.addEventListener('keydown', e => e.key === 'Enter' && sendDM());
-
-    /* simulate incoming messages periodically */
-    const autoMsgs = [
-      { nick:'AutoPlayer1', text:'Alguém formando duo?' },
-      { nick:'QuickScope',  text:'Pronto para o drop! 🪂' },
-      { nick:'IronSight',   text:'Que horas abre o lobby?' },
-      { nick:ORG_NAME, isOrg:true, text:'Lobby abre em 10 minutos pessoal! ✈️' },
+    currentUser = getAuth();
+    const roomMessages = [
+      { nick: 'Sistema', text: `Bem-vindo à sala ${ROOM_NAME}!`, createdAt: Date.now() - 180000 },
+      { nick: 'BattlePro', text: 'Alguém formando equipe para hoje?', createdAt: Date.now() - 90000 },
+      { nick: ORG_NAME, text: 'Boa sorte a todos! O check-in abre em breve.', createdAt: Date.now() - 30000 }
     ];
-    let autoIdx = 0;
-    setInterval(() => {
-      if (!isOpen || activeTab !== 'room') {
-        // show notification badge
-        const existing = document.getElementById('chat-notif');
-        if (!existing) {
-          const n = document.createElement('div');
-          n.className = 'chat-notif'; n.id = 'chat-notif'; n.textContent = '!';
-          toggleBtn.appendChild(n);
-        }
-      }
-      if (isOpen && activeTab === 'room') {
-        renderMsg(roomMsgs, autoMsgs[autoIdx % autoMsgs.length]);
-      }
-      autoIdx++;
-    }, 18000);
+    roomMessages.forEach(message => appendRoomMessage(message));
+    const dmList = document.getElementById('chat-messages-dm');
+    dmList.appendChild(messageElement({ nick: ORG_NAME, text: 'Olá! Como posso ajudar?', createdAt: Date.now() - 60000 }));
+    loadSocial();
 
-    /* update online count randomly */
-    const onlineEl = document.getElementById('chat-online-count');
-    if (onlineEl) {
-      setInterval(() => {
-        const n = Math.floor(Math.random() * 15) + 18;
-        onlineEl.textContent = `${n} online`;
-      }, 8000);
-    }
+    const panel = document.getElementById('chat-panel');
+    const toggle = document.getElementById('chat-toggle-btn');
+    const close = () => { isOpen = false; panel.classList.remove('open'); toggle.firstChild.nodeValue = '💬'; };
+    const open = () => { isOpen = true; panel.classList.add('open'); toggle.firstChild.nodeValue = '×'; document.getElementById('chat-notif')?.remove(); };
+    toggle.addEventListener('click', () => isOpen ? close() : open());
+    document.getElementById('chat-close-btn').addEventListener('click', close);
+    document.querySelectorAll('.chat-tab').forEach(button => button.addEventListener('click', () => switchTab(button.dataset.tab)));
+    document.getElementById('org-shortcut').addEventListener('click', () => switchTab('dm'));
+
+    const sendRoom = () => { const input = document.getElementById('chat-input'); const text = input.value.trim(); if (!text) return; appendRoomMessage({ nick: currentUser?.nick || 'Visitante', text, createdAt: Date.now() }, true); input.value = ''; };
+    document.getElementById('chat-send-btn').addEventListener('click', sendRoom);
+    document.getElementById('chat-input').addEventListener('keydown', event => { if (event.key === 'Enter') sendRoom(); });
+    const sendOrg = () => { const input = document.getElementById('chat-input-dm'); const text = input.value.trim(); if (!text) return; dmList.appendChild(messageElement({ nick: currentUser?.nick || 'Você', text, createdAt: Date.now() }, true)); input.value = ''; dmList.scrollTop = dmList.scrollHeight; };
+    document.getElementById('chat-send-dm-btn').addEventListener('click', sendOrg);
+    document.getElementById('chat-input-dm').addEventListener('keydown', event => { if (event.key === 'Enter') sendOrg(); });
+
+    const search = document.getElementById('social-search-input');
+    document.getElementById('social-search-btn').addEventListener('click', () => renderSearchResults(search.value));
+    search.addEventListener('input', () => renderSearchResults(search.value));
+    document.getElementById('social-back-btn').addEventListener('click', () => { activeConversationId = null; renderSocial(); });
+    document.getElementById('social-send-btn').addEventListener('click', sendPrivateMessage);
+    document.getElementById('social-message-input').addEventListener('keydown', event => { if (event.key === 'Enter') sendPrivateMessage(); });
   }
 
-  /* run after DOM ready */
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();

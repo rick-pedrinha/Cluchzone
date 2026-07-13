@@ -1,5 +1,30 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
+import { copyFileSync, readFileSync } from 'fs';
+
+const sharedChatAssets = {
+  js: resolve(__dirname, '..', 'chat.js'),
+  css: resolve(__dirname, '..', 'chat.css'),
+};
+
+// Mantém o widget social idêntico na versão estática e na versão Vite.
+const sharedChatPlugin = {
+  name: 'shared-cluch-chat',
+  configureServer(server: { middlewares: { use: (path: string, handler: (req: unknown, res: { setHeader: (name: string, value: string) => void; end: (body: Buffer) => void }) => void) => void } }) {
+    server.middlewares.use('/shared-chat.js', (_req, res) => {
+      res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+      res.end(readFileSync(sharedChatAssets.js));
+    });
+    server.middlewares.use('/shared-chat.css', (_req, res) => {
+      res.setHeader('Content-Type', 'text/css; charset=utf-8');
+      res.end(readFileSync(sharedChatAssets.css));
+    });
+  },
+  closeBundle() {
+    copyFileSync(sharedChatAssets.js, resolve(__dirname, 'dist', 'shared-chat.js'));
+    copyFileSync(sharedChatAssets.css, resolve(__dirname, 'dist', 'shared-chat.css'));
+  },
+};
 
 export default defineConfig({
   root: '.',
@@ -12,6 +37,7 @@ export default defineConfig({
       '@types': resolve(__dirname, 'src/types'),
     },
   },
+  plugins: [sharedChatPlugin],
   build: {
     outDir: 'dist',
     sourcemap: true,
