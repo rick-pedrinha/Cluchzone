@@ -88,8 +88,185 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (active) active.checked = Boolean(lobby.active);
   }
 
+  function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, char => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+    }[char]));
+  }
+
+  function getCampTeamNames() {
+    return [...new Set([
+      ...(camp.pendingApprovals || []),
+      ...(camp.registeredTeams || []),
+      ...(camp.rejectedTeams || [])
+    ])];
+  }
+
+  function getPaymentRoster(team) {
+    const members = [...(team?.members || [])];
+    if (team?.captain && !members.includes(team.captain)) members.unshift(team.captain);
+    if (team?.vice && !members.includes(team.vice)) members.push(team.vice);
+    const reserves = (team?.reserves || []).filter(player => !members.includes(player));
+    return [...members, ...reserves].map((player, index) => ({
+      player,
+      role: player === team?.captain ? 'Capitão' : player === team?.vice ? 'Vice-capitão' : members.includes(player) ? `Titular ${index + 1}` : 'Reserva'
+    }));
+  }
+
+  function getPlayerPaymentStatus(teamName, player) {
+    const playerPayments = camp.playerPixStatus?.[teamName] || {};
+    if (Object.prototype.hasOwnProperty.call(playerPayments, player)) return playerPayments[player];
+    return camp.pixStatus?.[teamName] || 'pendente';
+  }
+
+  function paymentMeta(status) {
+    if (status === 'pago') return { label: 'Pago', color: '#00ff88', background: 'rgba(0,255,136,.08)', border: 'rgba(0,255,136,.25)' };
+    if (status === 'enviado') return { label: 'Em análise', color: '#ffd700', background: 'rgba(255,215,0,.08)', border: 'rgba(255,215,0,.25)' };
+    return { label: 'Pendente', color: '#ff6b6b', background: 'rgba(255,51,51,.08)', border: 'rgba(255,51,51,.25)' };
+  }
+
+  function registrationLabel(teamName) {
+    if ((camp.registeredTeams || []).includes(teamName)) return 'Confirmada';
+    if ((camp.rejectedTeams || []).includes(teamName)) return 'Recusada';
+    return 'Aguardando aprovação';
+  }
+
+  function renderPayments() {
+    const list = document.getElementById('admin-payments-list');
+    if (!list) return;
+
+    const summary = { pago: 0, enviado: 0, pendente: 0 };
+    const reports = getCampTeamNames().map(name => {
+      const team = teams.find(item => item.name === name);
+      const players = getPaymentRoster(team).map(entry => ({ ...entry, status: getPlayerPaymentStatus(name, entry.player) }));
+      players.forEach(entry => { summary[entry.status] = (summary[entry.status] || 0) + 1; });
+      return { name, team, players };
+    });
+
+    setText('payment-count-paid', summary.pago);
+    setText('payment-count-sent', summary.enviado);
+    setText('payment-count-pending', summary.pendente);
+
+    if (!reports.length) {
+      list.innerHTML = `<div style="text-align:center;padding:42px 12px;border:1px dashed rgba(255,255,255,.1);border-radius:10px;color:#718096;">Nenhuma equipe inscrita neste campeonato ainda.</div>`;
+      return;
+    }
+
+    list.innerHTML = reports.map(({ name, team, players }) => {
+      const paid = players.filter(entry => entry.status === 'pago').length;
+      const rows = players.length ? players.map(({ player, role, status }) => {
+        const meta = paymentMeta(status);
+        return `<tr>
+          <td style="padding:10px 12px;color:#f1f5f9;font-weight:700;">${escapeHtml(player)}</td>
+          <td style="padding:10px 12px;color:#718096;">${escapeHtml(role)}</td>
+          <td style="padding:8px 12px;"><span style="display:inline-flex;padding:3px 7px;border-radius:999px;background:${meta.background};color:${meta.color};border:1px solid ${meta.border};font-size:10px;font-family:'Orbitron',sans-serif;font-weight:900;">${meta.label}</span></td>
+          <td style="padding:7px 12px;"><select class="admin-player-payment" data-team="${encodeURIComponent(name)}" data-player="${encodeURIComponent(player)}" style="width:100%;min-width:120px;background:#0b1220;color:#e2e8f0;border:1px solid rgba(255,255,255,.12);border-radius:5px;padding:6px;font-size:11px;"><option value="pendente" ${status === 'pendente' ? 'selected' : ''}>Pendente</option><option value="enviado" ${status === 'enviado' ? 'selected' : ''}>Em análise</option><option value="pago" ${status === 'pago' ? 'selected' : ''}>Pago</option></select></td>
+        </tr>`;
+      }).join('') : `<tr><td colspan="4" style="padding:14px;color:#718096;">A equipe ainda não possui jogadores cadastrados.</td></tr>`;
+
+      return `<article style="border:1px solid rgba(0,212,255,.16);border-radius:10px;overflow:hidden;background:linear-gradient(135deg,rgba(8,13,24,.96),rgba(10,18,30,.92));">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.06);">
+          <div><strong style="font-family:'Orbitron',sans-serif;font-size:13px;color:#fff;">${escapeHtml(name)}</strong><div style="font-size:10px;color:#718096;margin-top:3px;">Inscrição: ${registrationLabel(name)}</div></div>
+          <span style="font-family:'Orbitron',sans-serif;font-size:10px;color:#00ff88;">${paid}/${players.length} JOGADORES PAGOS</span>
+        </div>
+        <div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;min-width:560px;font-size:12px;"><thead><tr style="text-align:left;background:rgba(255,255,255,.02);color:#4f627d;font-family:'Orbitron',sans-serif;font-size:9px;"><th style="padding:9px 12px;">JOGADOR</th><th style="padding:9px 12px;">FUNÇÃO</th><th style="padding:9px 12px;">STATUS</th><th style="padding:9px 12px;">ATUALIZAR</th></tr></thead><tbody>${rows}</tbody></table></div>
+      </article>`;
+    }).join('');
+
+    list.querySelectorAll('.admin-player-payment').forEach(select => {
+      select.addEventListener('change', event => {
+        const target = event.currentTarget;
+        window.adminSetPlayerPixStatus(decodeURIComponent(target.dataset.team), decodeURIComponent(target.dataset.player), target.value);
+      });
+    });
+  }
+
+  function paymentReportLines() {
+    const lines = [`Campeonato: ${camp.name}`, `Gerado em: ${new Date().toLocaleString('pt-BR')}`, ''];
+    getCampTeamNames().forEach(name => {
+      const team = teams.find(item => item.name === name);
+      const roster = getPaymentRoster(team);
+      lines.push(`EQUIPE: ${name} | Inscrição: ${registrationLabel(name)}`);
+      if (!roster.length) lines.push('  Sem jogadores cadastrados.');
+      roster.forEach(({ player, role }) => {
+        lines.push(`  ${player} | ${role} | Pagamento: ${paymentMeta(getPlayerPaymentStatus(name, player)).label}`);
+      });
+      lines.push('');
+    });
+    return lines;
+  }
+
+  function pdfSafeText(value) {
+    return String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^\x20-\x7E]/g, '?').replace(/[\\()]/g, '\\$&');
+  }
+
+  function createPaymentsPdf(lines) {
+    const pageSize = 42;
+    const chunks = [];
+    for (let index = 0; index < lines.length; index += pageSize) chunks.push(lines.slice(index, index + pageSize));
+    if (!chunks.length) chunks.push([]);
+
+    const objects = {};
+    const pageEntries = chunks.map(() => ({ pageId: 0, contentId: 0 }));
+    let nextId = 4;
+    pageEntries.forEach(entry => { entry.pageId = nextId++; entry.contentId = nextId++; });
+    objects[1] = '<< /Type /Catalog /Pages 2 0 R >>';
+    objects[2] = `<< /Type /Pages /Kids [${pageEntries.map(entry => `${entry.pageId} 0 R`).join(' ')}] /Count ${pageEntries.length} >>`;
+    objects[3] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>';
+
+    pageEntries.forEach((entry, index) => {
+      const contentLines = ['BT', '/F1 16 Tf', '48 800 Td', '(CLUTCHZONE - RELATORIO DE PAGAMENTOS) Tj', '/F1 9 Tf', '0 -22 Td', `(Pagina ${index + 1} de ${pageEntries.length}) Tj`, '0 -18 Td'];
+      chunks[index].forEach(line => contentLines.push(`(${pdfSafeText(line)}) Tj`, '0 -14 Td'));
+      contentLines.push('ET');
+      const content = contentLines.join('\n');
+      objects[entry.contentId] = `<< /Length ${content.length} >>\nstream\n${content}\nendstream`;
+      objects[entry.pageId] = `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents ${entry.contentId} 0 R >>`;
+    });
+
+    let pdf = '%PDF-1.4\n% CLUTCHZONE\n';
+    const offsets = [0];
+    for (let id = 1; id < nextId; id += 1) {
+      offsets[id] = pdf.length;
+      pdf += `${id} 0 obj\n${objects[id]}\nendobj\n`;
+    }
+    const xref = pdf.length;
+    pdf += `xref\n0 ${nextId}\n0000000000 65535 f \n`;
+    for (let id = 1; id < nextId; id += 1) pdf += `${String(offsets[id]).padStart(10, '0')} 00000 n \n`;
+    pdf += `trailer\n<< /Size ${nextId} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
+    return new Blob([pdf], { type: 'application/pdf' });
+  }
+
+  window.adminSetPlayerPixStatus = (teamName, player, status) => {
+    if (!['pendente', 'enviado', 'pago'].includes(status)) return;
+    camp.playerPixStatus = camp.playerPixStatus || {};
+    camp.playerPixStatus[teamName] = camp.playerPixStatus[teamName] || {};
+    camp.playerPixStatus[teamName][player] = status;
+
+    const team = teams.find(item => item.name === teamName);
+    const roster = getPaymentRoster(team);
+    const allPaid = roster.length > 0 && roster.every(entry => getPlayerPaymentStatus(teamName, entry.player) === 'pago');
+    const hasPaymentInProgress = roster.some(entry => ['enviado', 'pago'].includes(getPlayerPaymentStatus(teamName, entry.player)));
+    camp.pixStatus = camp.pixStatus || {};
+    camp.pixStatus[teamName] = allPaid ? 'pago' : hasPaymentInProgress ? 'enviado' : 'pendente';
+    saveAndRefreshAll();
+    showToast(`Pagamento de ${player} atualizado para ${paymentMeta(status).label}.`, paymentMeta(status).color);
+  };
+
+  window.adminDownloadPaymentsPdf = () => {
+    const report = createPaymentsPdf(paymentReportLines());
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(report);
+    const slug = pdfSafeText(camp.name).replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').toLowerCase() || 'campeonato';
+    link.download = `clutchzone-pagamentos-${slug}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+    showToast('✓ Relatório PDF baixado com os dados das equipes.', '#00ff88');
+  };
+
   window.switchPanel = (panel) => {
-    const panels = ['teams', 'matches', 'solo', 'config'];
+    const panels = ['teams', 'matches', 'solo', 'payments', 'config'];
     panels.forEach(p => {
       const el = document.getElementById(`panel-${p}`);
       const btn = document.getElementById(`tab-btn-${p}`);
@@ -110,6 +287,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderTeams();
     renderMatches();
     renderSolo();
+    renderPayments();
     renderHeader();
     renderSteamLobbyConfig();
   }
@@ -873,6 +1051,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderTeams();
   renderMatches();
   renderSolo();
+  renderPayments();
   renderSteamLobbyConfig();
 
   // Switch to teams tab by default
@@ -889,6 +1068,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       renderTeams();
       renderMatches();
       renderSolo();
+      renderPayments();
       renderSteamLobbyConfig();
     });
 
@@ -898,6 +1078,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       renderTeams();
       renderMatches();
       renderSolo();
+      renderPayments();
     });
   }
 });
