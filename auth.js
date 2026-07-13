@@ -62,7 +62,21 @@
 
   /* ─── STATE ──────────────────────────────────────────────── */
   const STATE_KEY = 'cluchzone_auth';
+  const PROFILE_KEY = 'cluchzone_profile';
   let authState = JSON.parse(localStorage.getItem(STATE_KEY) || 'null');
+
+  function getDisplayName(data) {
+    try {
+      const profile = JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}');
+      return profile.displayName?.trim() || data.nick;
+    } catch (_) {
+      return data.nick;
+    }
+  }
+
+  function escapeHtml(value) {
+    return String(value || '').replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
+  }
 
   /* ─── BUILD MODAL ──────────────────────────────────────────── */
   function buildModal() {
@@ -275,7 +289,9 @@
     // remove old login/register buttons
     actions.querySelectorAll('.btn-nav-login, .btn-nav-register, .nav-user-wrapper').forEach(el => el.remove());
 
-    const initial = data.nick.charAt(0).toUpperCase();
+    const displayName = getDisplayName(data);
+    const safeDisplayName = escapeHtml(displayName);
+    const initial = displayName.charAt(0).toUpperCase();
     const provTag = `<span class="provider-tag ${data.provider}">${PROVIDERS[data.provider]?.name || 'Email'}</span>`;
 
     // Retrieve teams list to populate the active team dropdown
@@ -329,10 +345,10 @@
     const wrapper = document.createElement('div');
     wrapper.className = 'nav-user-wrapper';
     wrapper.innerHTML = `
-      <div class="nav-user-pill" title="${data.nick}">
+      <div class="nav-user-pill" title="${safeDisplayName}">
         <div class="nav-user-avatar">${initial}</div>
         <div>
-          <div class="nav-user-name">${data.nick}</div>
+          <div class="nav-user-name">${safeDisplayName}</div>
           <div class="nav-user-source">${provTag}</div>
         </div>
       </div>
@@ -466,6 +482,10 @@
     if (authState) {
       updateNavForUser(authState);
     }
+
+    window.addEventListener('cluchzone-profile-updated', () => {
+      if (authState) updateNavForUser(authState);
+    });
 
     // Expose globals
     window.openAuthModal   = openAuth;

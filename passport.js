@@ -280,6 +280,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const save = avatar => {
         profileState = { displayName, avatar: avatar ?? profileState.avatar ?? '' };
         localStorage.setItem(STORAGE_KEY_PROFILE, JSON.stringify(profileState));
+        window.dispatchEvent(new Event('cluchzone-profile-updated'));
         renderProfileHeader();
         close();
       };
