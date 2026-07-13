@@ -72,8 +72,11 @@
     border: 4px solid #0a0d16;
     overflow: hidden; flex-shrink: 0;
     box-shadow: 0 8px 32px rgba(0,0,0,.8), 0 0 0 1px rgba(0,212,255,.2);
-    position: relative; background: #1a2030;
+    position: relative; background: #1a2030; cursor:pointer;
   }
+  .avatar-wrap:hover { box-shadow:0 8px 32px rgba(0,0,0,.8),0 0 0 2px rgba(0,212,255,.65); }
+  .avatar-wrap::after { content:'Alterar foto'; position:absolute; inset:0 0 20px; display:flex; align-items:center; justify-content:center; background:rgba(3,8,16,.7); color:#fff; font-size:11px; font-weight:700; opacity:0; transition:opacity .2s; }
+  .avatar-wrap:hover::after,.avatar-wrap:focus-visible::after { opacity:1; }
   .avatar-wrap img { width:100%; height:100%; object-fit:cover; display:block; }
   .avatar-level {
     position: absolute; bottom: -1px; left: 0; right: 0;
@@ -300,11 +303,12 @@
 <div class="passport-profile-section">
   <div class="passport-profile">
     <!-- Avatar photo -->
-    <div class="avatar-wrap">
+    <div class="avatar-wrap" id="pass-avatar-upload-trigger" role="button" tabindex="0" aria-label="Alterar foto de perfil">
       <img id="pass-avatar-img" src="images/passport_avatar.jpg" alt="Avatar" onerror="this.style.display='none';document.getElementById('pass-avatar-txt').style.display='flex';" />
       <div id="pass-avatar-txt" style="display:none; width:100%; height:100%; align-items:center; justify-content:center; font-size:42px; background:linear-gradient(135deg,#7b2ff7,#00d4ff); color:#fff;">👤</div>
       <div class="avatar-level" id="pass-level-badge">LVL 42</div>
     </div>
+    <input id="pass-avatar-quick-input" type="file" accept="image/png,image/jpeg,image/webp" hidden />
     <!-- Profile info -->
     <div class="profile-info">
       <div class="profile-nick" id="pass-nick-text">

@@ -220,7 +220,36 @@ document.addEventListener('DOMContentLoaded', () => {
     const nameInput = document.getElementById('pass-profile-name-input');
     const avatarInput = document.getElementById('pass-profile-avatar-input');
     const cancelButton = document.getElementById('pass-profile-cancel');
+    const quickAvatarTrigger = document.getElementById('pass-avatar-upload-trigger');
+    const quickAvatarInput = document.getElementById('pass-avatar-quick-input');
     if (!openButton || !modal || !form || !nameInput || !avatarInput) return;
+
+    const saveQuickAvatar = file => {
+      if (!file) return;
+      if (file.size > 2 * 1024 * 1024) {
+        alert('Escolha uma imagem de até 2 MB.');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = event => {
+        profileState = { ...profileState, avatar: event.target.result };
+        localStorage.setItem(STORAGE_KEY_PROFILE, JSON.stringify(profileState));
+        renderProfileHeader();
+      };
+      reader.readAsDataURL(file);
+    };
+
+    quickAvatarTrigger?.addEventListener('click', () => quickAvatarInput?.click());
+    quickAvatarTrigger?.addEventListener('keydown', event => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        quickAvatarInput?.click();
+      }
+    });
+    quickAvatarInput?.addEventListener('change', () => {
+      saveQuickAvatar(quickAvatarInput.files?.[0]);
+      quickAvatarInput.value = '';
+    });
 
     openButton.addEventListener('click', () => {
       nameInput.value = profileState.displayName || authState.nick || '';
