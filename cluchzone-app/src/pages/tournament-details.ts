@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const tdPrize = document.getElementById('td-prize');
   const tdFormat = document.getElementById('td-format');
   const tdRegion = document.getElementById('td-region');
+  const tdOrganizer = document.getElementById('td-organizer');
   const tdDate = document.getElementById('td-date');
   const tdSlots = document.getElementById('td-slots');
   const adminPanelContainer = document.getElementById('admin-panel-container');
@@ -62,6 +63,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (tdPrize) tdPrize.textContent = tournament.prize;
     if (tdFormat) tdFormat.textContent = `${tournament.format} - ${tournament.elimination || 'Eliminatória Simples'}`;
     if (tdRegion) tdRegion.textContent = tournament.region;
+    if (tdOrganizer) {
+      let displayName = '';
+      try { displayName = JSON.parse(localStorage.getItem('cluchzone_profile') || '{}').displayName?.trim() || ''; } catch (_) { displayName = ''; }
+      const isCurrentOrganizer = String(currentUser.nick || '').trim().toLowerCase() === String(tournament.organizer || '').trim().toLowerCase();
+      tdOrganizer.textContent = isCurrentOrganizer && displayName ? displayName : tournament.organizer;
+    }
     if (tdSlots) tdSlots.textContent = `${tournament.registeredTeams.length}/${tournament.maxTeams}`;
 
     if (tdDate && tournament.date) {

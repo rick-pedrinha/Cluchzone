@@ -559,7 +559,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Show dynamic header info
     document.getElementById('active-camp-title').textContent = camp.name;
-    document.getElementById('active-camp-org').textContent = camp.organizer;
+    let profile = {};
+    try { profile = JSON.parse(localStorage.getItem('cluchzone_profile') || '{}'); } catch (_) { profile = {}; }
+    const isCurrentOrganizer = String(currentUser?.nick || '').trim().toLowerCase() === String(camp.organizer || '').trim().toLowerCase();
+    document.getElementById('active-camp-org').textContent = isCurrentOrganizer && profile.displayName?.trim() ? profile.displayName.trim() : camp.organizer;
     document.getElementById('active-camp-prize').textContent = camp.prize;
     document.getElementById('active-camp-slots').textContent = `${camp.registeredTeams.length}/${camp.maxTeams} equipes`;
     document.getElementById('active-camp-format').textContent = camp.format;

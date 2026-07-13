@@ -39,6 +39,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   const teamLogo = name => teamByName(name)?.logo || 'CS';
   const teamCaptain = name => teamByName(name)?.captain || 'Aguardando capitão';
 
+  function displayOrganizerName() {
+    const organizer = camp.organizer || '-';
+    try {
+      const profile = JSON.parse(localStorage.getItem('cluchzone_profile') || '{}');
+      const isCurrentUser = String(currentUser?.nick || '').trim().toLowerCase() === String(organizer).trim().toLowerCase();
+      return isCurrentUser && profile.displayName?.trim() ? profile.displayName.trim() : organizer;
+    } catch (_) {
+      return organizer;
+    }
+  }
+
   function setText(id, value) {
     const node = document.getElementById(id);
     if (node) node.textContent = value;
@@ -55,7 +66,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     setText('td-slots', `${(camp.registeredTeams || []).length}/${camp.maxTeams || 0}`);
     setText('td-format', `${camp.format || '-'}${camp.elimination ? ` - ${camp.elimination}` : ''}`);
     setText('td-region', camp.region || '-');
-    setText('td-organizer', camp.organizer || '-');
+    setText('td-organizer', displayOrganizerName());
     setText('td-rules', camp.rules || 'Regras padrão CLUTCHZONE.');
     setText('td-server', camp.server?.active ? `connect ${camp.server.ip}:${camp.server.port}; password ${camp.server.password}` : 'Aguardando liberação do organizador.');
   }
