@@ -431,6 +431,18 @@ body.csgo-theme {
   border-color: #fff;
 }
 
+.btn-view-team {
+  margin-top: 16px;
+  background: linear-gradient(135deg, #00b8d9, #0077a8);
+  color: #fff;
+  border: 1px solid rgba(0, 212, 255, 0.5);
+}
+
+.btn-view-team:hover {
+  box-shadow: 0 0 18px rgba(0, 212, 255, 0.35);
+  transform: translateY(-1px);
+}
+
 /* ── BRACKET AREA (eSports Style) ── */
 .bracket-wrapper {
   overflow-x: auto;

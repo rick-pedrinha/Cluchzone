@@ -12,10 +12,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const STORAGE_KEY_AUTH = 'cluchzone_auth';
   const STORAGE_KEY_CONN = 'cluchzone_connections';
   const STORAGE_KEY_PREMIUM = 'cluchzone_premium';
+  const STORAGE_KEY_PROFILE = 'cluchzone_profile';
 
   // 1. Recover auth state
   let authState = JSON.parse(localStorage.getItem(STORAGE_KEY_AUTH) || 'null');
   let isPremium = localStorage.getItem(STORAGE_KEY_PREMIUM) === 'true';
+  let profileState = JSON.parse(localStorage.getItem(STORAGE_KEY_PROFILE) || '{}');
 
   // If not logged in, block content and show platforms login requirement
   if (!authState) {
@@ -120,16 +122,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // nick & source
     if (nickText) {
-      nickText.innerHTML = `${authState.nick} <span class="premium-star" id="pass-premium-star" style="display: ${isPremium ? 'inline-flex' : 'none'};">👑 PREMIUM</span>`;
+      const displayName = profileState.displayName || authState.nick;
+      const safeDisplayName = displayName.replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
+      nickText.innerHTML = `${safeDisplayName} <span class="premium-star" id="pass-premium-star" style="display: ${isPremium ? 'inline-flex' : 'none'};">👑 PREMIUM</span>`;
     }
 
     if (handleText) {
-      handleText.textContent = `@${authState.nick.toLowerCase()}  ·  Membro desde Jan 2024  ·  Provedor principal: ${authState.provider.toUpperCase()}`;
+      handleText.textContent = `@${(profileState.displayName || authState.nick).toLowerCase()}  ·  Membro desde Jan 2024  ·  Provedor principal: ${authState.provider.toUpperCase()}`;
     }
 
     // Set avatar based on primary provider
     if (avatarImg && avatarText) {
-      if (authState.provider === 'steam') {
+      if (profileState.avatar) {
+        avatarImg.src = profileState.avatar;
+        avatarImg.style.display = 'block';
+        avatarText.style.display = 'none';
+      } else if (authState.provider === 'steam') {
         avatarImg.style.display = 'none';
         avatarText.textContent = '🎮';
         avatarText.style.display = 'flex';
@@ -197,6 +205,61 @@ document.addEventListener('DOMContentLoaded', () => {
     if (countWins) countWins.textContent = totalWins;
     if (rankTitle) rankTitle.textContent = rank;
     if (revenueCount) revenueCount.textContent = earnings;
+  }
+
+  function renderAvatarPreview(source) {
+    const preview = document.getElementById('pass-profile-avatar-preview');
+    if (!preview) return;
+    preview.innerHTML = source ? `<img src="${source}" alt="Prévia da foto de perfil">` : '👤';
+  }
+
+  function setupProfileEditor() {
+    const openButton = document.getElementById('pass-edit-profile-btn');
+    const modal = document.getElementById('pass-edit-profile-modal');
+    const form = document.getElementById('pass-edit-profile-form');
+    const nameInput = document.getElementById('pass-profile-name-input');
+    const avatarInput = document.getElementById('pass-profile-avatar-input');
+    const cancelButton = document.getElementById('pass-profile-cancel');
+    if (!openButton || !modal || !form || !nameInput || !avatarInput) return;
+
+    openButton.addEventListener('click', () => {
+      nameInput.value = profileState.displayName || authState.nick || '';
+      avatarInput.value = '';
+      renderAvatarPreview(profileState.avatar);
+      modal.classList.add('open');
+      nameInput.focus();
+    });
+    const close = () => modal.classList.remove('open');
+    cancelButton?.addEventListener('click', close);
+    modal.addEventListener('click', event => { if (event.target === modal) close(); });
+    avatarInput.addEventListener('change', () => {
+      const file = avatarInput.files?.[0];
+      if (!file) return;
+      if (file.size > 2 * 1024 * 1024) {
+        alert('Escolha uma imagem de até 2 MB.');
+        avatarInput.value = '';
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = event => renderAvatarPreview(event.target.result);
+      reader.readAsDataURL(file);
+    });
+    form.addEventListener('submit', event => {
+      event.preventDefault();
+      const displayName = nameInput.value.trim();
+      if (!displayName) return;
+      const save = avatar => {
+        profileState = { displayName, avatar: avatar ?? profileState.avatar ?? '' };
+        localStorage.setItem(STORAGE_KEY_PROFILE, JSON.stringify(profileState));
+        renderProfileHeader();
+        close();
+      };
+      const file = avatarInput.files?.[0];
+      if (!file) return save();
+      const reader = new FileReader();
+      reader.onload = event => save(event.target.result);
+      reader.readAsDataURL(file);
+    });
   }
 
   /* ─── RENDER PLATFORM INTEGRATIONS (CONNECTIONS TAB) ─── */
@@ -384,6 +447,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Init
   renderProfileHeader();
+  setupProfileEditor();
   renderGameStatsPane();
 
 });

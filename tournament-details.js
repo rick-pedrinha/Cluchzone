@@ -178,23 +178,29 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   async function joinTournament() {
-    const userTeam = teams.find(team => team.captain === currentUser.nick || team.members?.includes(currentUser.nick));
-    const teamName = userTeam?.name || `${currentUser.nick || 'Jogador'} Team`;
+    const selectableTeams = teams.filter(team => team.captain === currentUser.nick || team.vice === currentUser.nick || team.members?.includes(currentUser.nick));
+    const selector = document.getElementById('td-team-selector');
+    const select = document.getElementById('td-team-select');
+    if (!selectableTeams.length) {
+      showToast('Crie ou entre em uma equipe antes de se inscrever.', '#ffd700');
+      return;
+    }
+    select.innerHTML = '<option value="">Selecione a equipe</option>';
+    selectableTeams.forEach(team => {
+      const option = document.createElement('option');
+      option.value = team.name;
+      option.textContent = `${team.name}${team.tag ? ` [${team.tag}]` : ''}`;
+      select.appendChild(option);
+    });
+    selector.style.display = 'block';
+  }
 
-    if (!userTeam) {
-      teams.push({
-        logo: 'CS',
-        banner: 'images/cs2_bg.jpg',
-        name: teamName,
-        captain: currentUser.nick || 'Jogador_Convidado',
-        vice: '',
-        members: [currentUser.nick || 'Jogador_Convidado'],
-        reserves: [],
-        stats: '0-0',
-        history: [],
-        ranking: teams.length + 1,
-        points: 0
-      });
+  async function confirmTeamRegistration() {
+    const select = document.getElementById('td-team-select');
+    const teamName = select?.value;
+    if (!teamName) {
+      showToast('Selecione a equipe correta para continuar.', '#ffd700');
+      return;
     }
 
     if ((camp.registeredTeams || []).includes(teamName) || (camp.pendingApprovals || []).includes(teamName)) {
@@ -205,9 +211,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     camp.pendingApprovals = camp.pendingApprovals || [];
     camp.pendingApprovals.push(teamName);
 
-    await window.CluchAPI?.setStore(TEAM_KEY, teams);
     await window.CluchAPI?.setStore(CAMP_KEY, tournaments);
-    localStorage.setItem(TEAM_KEY, JSON.stringify(teams));
     localStorage.setItem(CAMP_KEY, JSON.stringify(tournaments));
 
     allCampTeamNames.push(teamName);
@@ -216,6 +220,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderHeader();
     renderTeams();
     renderBracket();
+    document.getElementById('td-team-selector').style.display = 'none';
   }
 
   function renderSoloQueue() {
@@ -277,7 +282,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.CluchAPI?.setStore(CAMP_KEY, tournaments);
     renderTeams();
     renderBracket();
-    renderAdminPanel();
+    // Admin panel moved
     checkAndRenderPixPayment();
   }
 
@@ -427,165 +432,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     return card;
   }
 
-  function renderAdminPanel() {
-    const panel = document.getElementById('td-admin-panel');
-    const publicBlock = document.getElementById('td-public-teams-block');
-    if (!panel) return;
-
-    // Admin sees panel, not the public block
-    panel.style.display = 'block';
-    if (publicBlock) publicBlock.style.display = 'none';
-
-    const pending  = camp.pendingApprovals || [];
-    const approved = camp.registeredTeams  || [];
-    const rejected = camp.rejectedTeams    || [];
-
-    const pendBadge = document.getElementById('admin-pending-badge');
-    const apprBadge = document.getElementById('admin-approved-badge');
-    if (pendBadge) pendBadge.textContent = pending.length;
-    if (apprBadge) apprBadge.textContent = approved.length;
-
-    // ── PENDING ──
-    const pendList = document.getElementById('admin-pending-list');
-    if (pendList) {
-      pendList.innerHTML = '';
-      if (!pending.length) {
-        pendList.innerHTML = `<div style="text-align:center;padding:28px 10px;color:#4a5568;">
-          <div style="font-size:28px;margin-bottom:8px;">✅</div>
-          <div style="font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;">Nenhuma pendente</div>
-        </div>`;
-      } else {
-        pending.forEach(name => {
-          const isPixPaid = (camp.pixStatus?.[name] || 'pendente') === 'pago';
-          const actionHtml = `
-            <div style="display:flex;flex-direction:column;gap:6px;padding:10px 12px;border-top:1px solid rgba(255,255,255,0.05);">
-              <button onclick="adminApprove('${name}')" ${isPixPaid ? '' : 'disabled style="opacity:0.4; cursor:not-allowed;"'} style="
-                flex:1;font-family:'Orbitron',sans-serif;font-size:9px;font-weight:900;
-                padding:7px 6px;border-radius:6px;cursor:pointer;border:1px solid #00ff88;
-                background:rgba(0,255,136,0.08);color:#00ff88;transition:background 0.2s;
-              " onmouseover="if(!this.disabled) this.style.background='rgba(0,255,136,0.2)'" onmouseout="if(!this.disabled) this.style.background='rgba(0,255,136,0.08)'">✓ APROVAR</button>
-              ${isPixPaid ? '' : '<div style="font-size:9px;color:#ff3333;text-align:center;font-weight:700;margin-top:2px;font-family:\'Orbitron\',sans-serif;letter-spacing:0.5px;">Aprovação bloqueada: Pix pendente</div>'}
-              <button onclick="adminReject('${name}')" style="
-                flex:1;font-family:'Orbitron',sans-serif;font-size:9px;font-weight:900;
-                padding:7px 6px;border-radius:6px;cursor:pointer;border:1px solid #ff3333;
-                background:rgba(255,51,51,0.06);color:#ff3333;transition:background 0.2s;
-              " onmouseover="this.style.background='rgba(255,51,51,0.18)'" onmouseout="this.style.background='rgba(255,51,51,0.06)'">✕ REJEITAR</button>
-            </div>`;
-          pendList.appendChild(buildAdminCard({
-            name,
-            accentColor: '#ffd700',
-            borderColor: 'rgba(255,215,0,0.2)',
-            statusLabel: 'PENDENTE',
-            statusColor: 'rgba(255,215,0,0.12)',
-            actions: actionHtml
-          }));
-        });
-      }
-    }
-
-    // ── APPROVED ──
-    const apprList = document.getElementById('admin-approved-list');
-    if (apprList) {
-      apprList.innerHTML = '';
-      if (!approved.length) {
-        apprList.innerHTML = `<div style="text-align:center;padding:28px 10px;color:#4a5568;font-size:11px;">Nenhuma equipe aprovada ainda.</div>`;
-      } else {
-        approved.forEach(name => {
-          apprList.appendChild(buildAdminCard({
-            name,
-            accentColor: '#00ff88',
-            borderColor: 'rgba(0,255,136,0.18)',
-            statusLabel: 'CONFIRMADA',
-            statusColor: 'rgba(0,255,136,0.1)',
-            actions: ''
-          }));
-        });
-      }
-    }
-
-    // ── REJECTED ──
-    const rejList = document.getElementById('admin-rejected-list');
-    if (rejList) {
-      rejList.innerHTML = '';
-      if (!rejected.length) {
-        rejList.innerHTML = `<div style="text-align:center;padding:28px 10px;color:#4a5568;font-size:11px;">Nenhuma equipe rejeitada.</div>`;
-      } else {
-        rejected.forEach(name => {
-          const actionHtml = `
-            <div style="padding:10px 12px;border-top:1px solid rgba(255,255,255,0.05);">
-              <button onclick="adminRestore('${name}')" style="
-                width:100%;font-family:'Orbitron',sans-serif;font-size:9px;font-weight:900;
-                padding:7px;border-radius:6px;cursor:pointer;border:1px solid #718096;
-                background:rgba(255,255,255,0.03);color:#a0aec0;transition:background 0.2s;
-              " onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'">↩ RESTAURAR</button>
-            </div>`;
-          rejList.appendChild(buildAdminCard({
-            name,
-            accentColor: '#718096',
-            borderColor: 'rgba(255,51,51,0.12)',
-            statusLabel: 'REJEITADA',
-            statusColor: 'rgba(255,51,51,0.08)',
-            actions: actionHtml
-          }));
-        });
-      }
-    }
-  }
-
-  window.adminToggleMembers = (safeId) => {
-    const el = document.getElementById(`members-${safeId}`);
-    const arrow = document.getElementById(`arrow-${safeId}`);
-    if (!el) return;
-    const open = el.style.display === 'none';
-    el.style.display = open ? 'block' : 'none';
-    if (arrow) arrow.style.transform = open ? 'rotate(180deg)' : '';
-  };
-
-  window.adminApprove = (name) => {
-    camp.pendingApprovals = (camp.pendingApprovals || []).filter(t => t !== name);
-    camp.registeredTeams = camp.registeredTeams || [];
-    if (!camp.registeredTeams.includes(name)) camp.registeredTeams.push(name);
-    showToast(`✓ ${name} aprovada no campeonato!`, '#00ff88');
-    addNotification(`Equipe ${name} foi aprovada e confirmada no campeonato ${camp.name}!`);
-    saveAndRefreshAll();
-    allCampTeamNames.length = 0;
-    [...new Set([...(camp.registeredTeams || []), ...(camp.pendingApprovals || [])])].forEach(n => allCampTeamNames.push(n));
-  };
-
-  window.adminReject = (name) => {
-    camp.pendingApprovals = (camp.pendingApprovals || []).filter(t => t !== name);
-    camp.rejectedTeams = camp.rejectedTeams || [];
-    if (!camp.rejectedTeams.includes(name)) camp.rejectedTeams.push(name);
-    showToast(`✕ ${name} foi rejeitada.`, '#ff3333');
-    addNotification(`Inscrição da equipe ${name} foi recusada pelo organizador.`);
-    saveAndRefreshAll();
-    allCampTeamNames.length = 0;
-    [...new Set([...(camp.registeredTeams || []), ...(camp.pendingApprovals || [])])].forEach(n => allCampTeamNames.push(n));
-  };
-
-  window.adminRestore = (name) => {
-    camp.rejectedTeams = (camp.rejectedTeams || []).filter(t => t !== name);
-    camp.pendingApprovals = camp.pendingApprovals || [];
-    if (!camp.pendingApprovals.includes(name)) camp.pendingApprovals.push(name);
-    showToast(`↩ ${name} movida de volta para Pendentes.`, '#ffd700');
-    saveAndRefreshAll();
-    allCampTeamNames.length = 0;
-    [...new Set([...(camp.registeredTeams || []), ...(camp.pendingApprovals || [])])].forEach(n => allCampTeamNames.push(n));
-  };
-
-  window.adminSwitchTab = (tab) => {
-    ['pending','approved','rejected'].forEach(t => {
-      const content = document.getElementById(`admin-content-${t}`);
-      const tabBtn = document.getElementById(`admin-tab-${t}`);
-      if (content) content.style.display = t === tab ? 'block' : 'none';
-      if (tabBtn) {
-        const colors = { pending: '#ffd700', approved: '#00ff88', rejected: '#ff3333' };
-        tabBtn.style.color = t === tab ? colors[t] : '#718096';
-        tabBtn.style.borderBottom = t === tab ? `2px solid ${colors[t]}` : '2px solid transparent';
-      }
-    });
-  };
-
   // ── Pix Helper Functions ──
   window.copyPixKey = () => {
     const key = document.getElementById('pix-key-val')?.textContent || "45.922.015/0001-90";
@@ -610,27 +456,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }, 1500);
   };
 
-  window.adminConfirmPix = (teamName) => {
-    camp.pixStatus = camp.pixStatus || {};
-    camp.pixStatus[teamName] = 'pago';
-    saveAndRefreshAll();
-    showToast(`✓ Pagamento Pix de ${teamName} autorizado!`, '#00ff88');
-    addNotification(`O pagamento Pix da sua equipe ${teamName} foi confirmado pela organização.`);
-  };
-
-  window.adminRejectPix = (teamName) => {
-    camp.pixStatus = camp.pixStatus || {};
-    camp.pixStatus[teamName] = 'pendente';
-    saveAndRefreshAll();
-    showToast(`✕ Pagamento Pix de ${teamName} recusado.`, '#ff3333');
-    addNotification(`O comprovante Pix da equipe ${teamName} foi recusado. Envie novamente.`);
-  };
-
-  window.adminViewSimulatedReceipt = (teamName) => {
-    const safeId = teamName.replace(/[^a-z0-9]/gi, '_');
-    showToast(`Visualizando comprovante de ${teamName}...`, '#00d4ff');
-    alert(`[CLUCHZONE PIX ENGINE]\nComprovante do Time: ${teamName}\nArquivo: comprovante_pix_${safeId}.png\nValor: R$ 50,00\nAutenticação: MOCK-PIX-VAL-84920492-OK`);
-  };
 
   function checkAndRenderPixPayment() {
     const paymentContainer = document.getElementById('td-payment-container');
@@ -836,9 +661,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   };
 
   const btnJoinTeam = document.getElementById('td-join-team-btn');
+  const btnConfirmTeam = document.getElementById('td-confirm-team-btn');
   const btnJoinSolo = document.getElementById('td-join-solo-btn');
 
   if (btnJoinTeam) btnJoinTeam.addEventListener('click', joinTournament);
+  if (btnConfirmTeam) btnConfirmTeam.addEventListener('click', confirmTeamRegistration);
   if (btnJoinSolo) btnJoinSolo.addEventListener('click', joinSoloQueue);
 
   document.addEventListener('mousemove', event => {
@@ -852,7 +679,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderTeams();
   renderBracket();
   renderSoloQueue();
-  renderAdminPanel();
+  // Admin panel moved
   checkAndRenderPixPayment();
 
   // ── Real-time Firebase listeners ──
@@ -874,7 +701,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       renderTeams();
       renderBracket();
       renderSoloQueue();
-      renderAdminPanel();
+      // Admin panel moved
       checkAndRenderPixPayment();
     });
 
@@ -882,7 +709,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (!Array.isArray(freshTeams)) return;
       teams = freshTeams;
       renderTeams();
-      renderAdminPanel();
+      // Admin panel moved
       checkAndRenderPixPayment();
     });
   }

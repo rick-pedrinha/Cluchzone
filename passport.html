@@ -104,6 +104,19 @@
     box-shadow: 0 0 12px rgba(255,215,0,.2);
   }
   .profile-handle { font-size: 13px; color: #4a5568; margin-top: 4px; }
+  .profile-edit-btn { margin-top:12px; padding:7px 12px; border:1px solid rgba(0,212,255,.42); border-radius:7px; background:rgba(0,212,255,.08); color:#00d4ff; font:700 12px 'Rajdhani',sans-serif; cursor:pointer; }
+  .profile-edit-btn:hover { background:rgba(0,212,255,.18); }
+  .profile-edit-modal { position:fixed; inset:0; z-index:5001; display:none; align-items:center; justify-content:center; padding:20px; background:rgba(4,7,13,.78); backdrop-filter:blur(8px); }
+  .profile-edit-modal.open { display:flex; }
+  .profile-edit-card { width:min(430px,100%); background:#0d111c; border:1px solid rgba(0,212,255,.28); border-radius:14px; padding:24px; box-shadow:0 20px 60px rgba(0,0,0,.6); }
+  .profile-edit-card label { display:block; margin:15px 0 6px; color:#a0aec0; font-size:12px; font-weight:700; letter-spacing:.6px; }
+  .profile-edit-card input { width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid rgba(255,255,255,.12); border-radius:7px; background:#07090d; color:#fff; font:600 14px 'Rajdhani',sans-serif; }
+  .profile-edit-preview { width:72px; height:72px; margin-top:10px; display:flex; align-items:center; justify-content:center; overflow:hidden; border:1px solid rgba(0,212,255,.35); border-radius:12px; background:#172030; font-size:28px; }
+  .profile-edit-preview img { width:100%; height:100%; object-fit:cover; }
+  .profile-edit-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:22px; }
+  .profile-edit-actions button { padding:9px 14px; border-radius:7px; font:700 13px 'Rajdhani',sans-serif; cursor:pointer; }
+  .profile-edit-cancel { background:transparent; color:#a0aec0; border:1px solid rgba(255,255,255,.14); }
+  .profile-edit-save { background:linear-gradient(135deg,#00d4ff,#7b2ff7); color:#fff; border:0; }
   .profile-tags { display:flex;gap:8px;margin-top:10px;flex-wrap:wrap; }
   .profile-tag {
     padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700;
@@ -299,6 +312,7 @@
         <span class="premium-star" id="pass-premium-star">👑 PREMIUM</span>
       </div>
       <div class="profile-handle" id="pass-handle-text">@xdropx &nbsp;·&nbsp; Membro desde Jan 2024 &nbsp;·&nbsp; Brasil — SP</div>
+      <button class="profile-edit-btn" id="pass-edit-profile-btn" type="button">Editar perfil</button>
       <div class="profile-tags" id="pass-badge-row">
         <span class="profile-tag tag-rank">💎 Diamond II</span>
         <span class="profile-tag tag-tours">⚔️ 47 Campeonatos</span>
@@ -318,6 +332,19 @@
     <div class="pstat"><div class="pstat-num" id="strip-wins-count">12</div><div class="pstat-lbl">Vitórias</div></div>
     <div class="pstat"><div class="pstat-num" id="strip-revenue-count">R$2.4k</div><div class="pstat-lbl">Ganhos</div></div>
   </div>
+</div>
+
+<div class="profile-edit-modal" id="pass-edit-profile-modal" role="dialog" aria-modal="true" aria-labelledby="pass-edit-profile-title">
+  <form class="profile-edit-card" id="pass-edit-profile-form">
+    <h2 id="pass-edit-profile-title" style="margin:0; font:900 17px 'Orbitron',sans-serif; color:#fff;">EDITAR PERFIL</h2>
+    <label for="pass-profile-name-input">NOME DE EXIBIÇÃO</label>
+    <input id="pass-profile-name-input" maxlength="32" required autocomplete="nickname" />
+    <label for="pass-profile-avatar-input">FOTO DE PERFIL</label>
+    <input id="pass-profile-avatar-input" type="file" accept="image/png,image/jpeg,image/webp" />
+    <div class="profile-edit-preview" id="pass-profile-avatar-preview">👤</div>
+    <small style="display:block; margin-top:7px; color:#718096;">PNG, JPG ou WebP de até 2 MB.</small>
+    <div class="profile-edit-actions"><button class="profile-edit-cancel" id="pass-profile-cancel" type="button">Cancelar</button><button class="profile-edit-save" type="submit">Salvar alterações</button></div>
+  </form>
 </div>
 
 <!-- TABS -->

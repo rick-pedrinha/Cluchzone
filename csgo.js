@@ -6,12 +6,8 @@
 
 'use strict';
 
-// Cache buster for mock data (July 2026 update)
-if (!localStorage.getItem('cluchzone_cleared_mocks_v2')) {
-    localStorage.removeItem('cluchzone_cs2_teams');
-    localStorage.removeItem('cluchzone_cs2_camps');
-    localStorage.setItem('cluchzone_cleared_mocks_v2', 'true');
-}
+// Mantém os dados reais já cadastrados no navegador.
+// Não remova equipes ou campeonatos automaticamente ao abrir a página.
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -149,6 +145,55 @@ document.addEventListener('DOMContentLoaded', () => {
   const statRegisteredTeams = document.getElementById('stat-registered-teams');
   const statPlayersOnline = document.getElementById('stat-players-online');
   const statPrizeMonth = document.getElementById('stat-prize-month');
+
+  const feeInput = document.getElementById('cs2-form-fee');
+  const platformFeeInput = document.getElementById('cs2-form-platform-fee');
+  const maxTeamsInput = document.getElementById('cs2-form-max-teams');
+  const prizeInput = document.getElementById('cs2-form-prize');
+  const grossRevenueOutput = document.getElementById('cs2-gross-revenue');
+  const platformFeeOutput = document.getElementById('cs2-platform-fee');
+  const platformRateLabel = document.getElementById('cs2-platform-rate-label');
+  const netPrizeOutput = document.getElementById('cs2-net-prize');
+  const distributionInputs = ['p1', 'p2', 'p3'].map(place => ({
+    input: document.getElementById(`cs2-form-${place}`),
+    value: document.getElementById(`cs2-form-${place}-value`)
+  }));
+  const PLAYERS_PER_TEAM = 5;
+
+  function formatCurrency(value) {
+    return `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  }
+
+  function updatePrizeDistribution() {
+    const prize = Math.max(Number(prizeInput?.value) || 0, 0);
+    distributionInputs.forEach(({ input, value }) => {
+      if (!input || !value) return;
+      const percentage = Math.max(Number(input.value) || 0, 0);
+      value.textContent = formatCurrency(prize * percentage / 100);
+    });
+  }
+
+  function updateAutomaticPrize() {
+    if (!feeInput || !maxTeamsInput || !prizeInput) return;
+    const fee = Math.max(Number(feeInput.value) || 0, 0);
+    const maxTeams = Math.max(Number(maxTeamsInput.value) || 0, 0);
+    const platformRate = Math.min(Math.max(Number(platformFeeInput?.value) || 0, 0), 100);
+    const grossRevenue = fee * maxTeams * PLAYERS_PER_TEAM;
+    const platformFee = grossRevenue * platformRate / 100;
+    const prize = grossRevenue - platformFee;
+    prizeInput.value = prize.toFixed(2);
+    if (grossRevenueOutput) grossRevenueOutput.textContent = formatCurrency(grossRevenue);
+    if (platformFeeOutput) platformFeeOutput.textContent = formatCurrency(platformFee);
+    if (platformRateLabel) platformRateLabel.textContent = platformRate.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+    if (netPrizeOutput) netPrizeOutput.textContent = formatCurrency(prize);
+    updatePrizeDistribution();
+  }
+
+  feeInput?.addEventListener('input', updateAutomaticPrize);
+  platformFeeInput?.addEventListener('input', updateAutomaticPrize);
+  maxTeamsInput?.addEventListener('change', updateAutomaticPrize);
+  distributionInputs.forEach(({ input }) => input?.addEventListener('input', updatePrizeDistribution));
+  updateAutomaticPrize();
 
   // Custom Cursor Glow follow mouse
   document.addEventListener('mousemove', (e) => {
@@ -386,15 +431,31 @@ document.addEventListener('DOMContentLoaded', () => {
               <span class="cs2-meta-val" style="color: var(--cs-cyan, #00d4ff); font-weight: 700;">${formatDateString(camp.date)}</span>
             </div>
           </div>
-          <button class="btn-card-action ${isReg ? 'btn-participar' : 'btn-ver-chaves'}" data-camp-id="${camp.id}">
+          <button class="btn-card-action ${isReg ? 'btn-participar' : 'btn-ver-chaves'}" data-camp-id="${camp.id}" style="margin-bottom: ${checkOrganizerPermission() ? '8px' : '0'};">
             ${isReg ? 'Participar / Detalhes' : 'Visualizar Chaves'}
           </button>
+          ${checkOrganizerPermission() ? `
+          <button class="btn-manage-camp" data-camp-id="${camp.id}" style="
+            width: 100%; font-family: 'Orbitron', sans-serif; font-size: 11px; font-weight: 900;
+            color: #00d4ff; background: rgba(0,212,255,0.05); border: 1px solid rgba(0,212,255,0.3);
+            padding: 12px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s; outline: none;
+          " onmouseover="this.style.background='rgba(0,212,255,0.15)'" onmouseout="this.style.background='rgba(0,212,255,0.05)'">
+            ⚙️ GERENCIAR CAMPEONATO
+          </button>
+          ` : ''}
         </div>
       `;
 
       card.querySelector('.btn-card-action').addEventListener('click', () => {
         window.location.href = `tournament-details.html?id=${encodeURIComponent(camp.id)}`;
       });
+      
+      if (checkOrganizerPermission()) {
+        card.querySelector('.btn-manage-camp').addEventListener('click', () => {
+          window.location.href = `organizer-panel.html?id=${encodeURIComponent(camp.id)}`;
+        });
+      }
 
       toursListContainer.appendChild(card);
     });
@@ -443,6 +504,11 @@ document.addEventListener('DOMContentLoaded', () => {
         banner: document.getElementById('cs2-form-banner').value || 'images/cs2_open_pro.jpg',
         status: "Registros Abertos",
         prize: `R$ ${parseFloat(document.getElementById('cs2-form-prize').value).toLocaleString('pt-BR')}`,
+        feePerPlayer: Number(feeInput?.value) || 0,
+        playersPerTeam: PLAYERS_PER_TEAM,
+        platformFeeRate: Math.min(Math.max(Number(platformFeeInput?.value) || 0, 0), 100),
+        grossRevenue: (Number(feeInput?.value) || 0) * Number(maxTeamsInput?.value || 0) * PLAYERS_PER_TEAM,
+        platformFee: (Number(feeInput?.value) || 0) * Number(maxTeamsInput?.value || 0) * PLAYERS_PER_TEAM * Math.min(Math.max(Number(platformFeeInput?.value) || 0, 0), 100) / 100,
         p1: parseInt(document.getElementById('cs2-form-p1').value) || 60,
         p2: parseInt(document.getElementById('cs2-form-p2').value) || 30,
         p3: parseInt(document.getElementById('cs2-form-p3').value) || 10,
@@ -539,7 +605,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function updateJoinButtonStates(camp) {
-    const userTeams = teams.filter(t => t.captain === currentUser.nick || t.vice === currentUser.nick);
+    const userTeams = teams.filter(t => t.captain === currentUser.nick || t.vice === currentUser.nick || t.members?.includes(currentUser.nick));
     const btnParticipate = document.getElementById('btn-participate-active');
     const btnLeave = document.getElementById('btn-leave-active');
     const btnToggleCreate = document.getElementById('btn-toggle-create-team-view');
@@ -573,7 +639,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btnToggleCreate.style.display = 'inline-block';
         
         // Populate selectToRegister
-        selectToRegister.innerHTML = '';
+        selectToRegister.innerHTML = '<option value="">Selecione a equipe</option>';
         userTeams.forEach(t => {
           const opt = document.createElement('option');
           opt.value = t.name;
@@ -846,7 +912,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const camp = tournaments.find(t => t.id === selectedCampId);
       if (!camp) return;
 
-      const userTeams = teams.filter(t => t.captain === currentUser.nick || t.vice === currentUser.nick);
+      const userTeams = teams.filter(t => t.captain === currentUser.nick || t.vice === currentUser.nick || t.members?.includes(currentUser.nick));
       const registeredUserTeam = userTeams.find(t => camp.registeredTeams.includes(t.name) || camp.pendingApprovals.includes(t.name));
       if (!registeredUserTeam) return;
 
@@ -1327,8 +1393,12 @@ document.addEventListener('DOMContentLoaded', () => {
           <div style="border-top:1px solid var(--cs-border); padding-top:12px; font-size:12px; color:#718096; text-align:left;">
             <strong>Roster Principal:</strong> ${t.members.join(', ')}
           </div>
+          <button class="btn-card-action btn-view-team" type="button">👥 Ver equipe</button>
         </div>
       `;
+      card.querySelector('.btn-view-team').addEventListener('click', () => {
+        window.location.href = `my-teams.html?teamName=${encodeURIComponent(t.name)}`;
+      });
       teamsListGrid.appendChild(card);
     });
   }
@@ -1458,6 +1528,7 @@ document.addEventListener('DOMContentLoaded', () => {
     await syncInitialData();
     updateHeroCounters();
     renderNotifications();
+    renderTeams();
 
     setTimeout(() => {
       renderTournaments();

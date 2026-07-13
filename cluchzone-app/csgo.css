@@ -431,6 +431,46 @@ body.csgo-theme {
   border-color: #fff;
 }
 
+.team-card-logo {
+  font-size: 36px;
+  margin: -40px auto 0;
+  width: 64px;
+  height: 64px;
+  border: 2px solid var(--cs-border);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #07090e;
+}
+
+.team-card-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.team-card-roster {
+  border-top: 1px solid var(--cs-border);
+  padding-top: 12px;
+  font-size: 12px;
+  color: #718096;
+  text-align: left;
+}
+
+.btn-view-team {
+  margin-top: 16px;
+  background: linear-gradient(135deg, #00b8d9, #0077a8);
+  color: #fff;
+  border: 1px solid rgba(0, 212, 255, 0.5);
+}
+
+.btn-view-team:hover {
+  box-shadow: 0 0 18px rgba(0, 212, 255, 0.35);
+  transform: translateY(-1px);
+}
+
 /* ── BRACKET AREA (eSports Style) ── */
 .bracket-wrapper {
   overflow-x: auto;

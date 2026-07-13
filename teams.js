@@ -6,6 +6,8 @@
 
 'use strict';
 
+// Mantém os dados reais já cadastrados no navegador.
+// Não remova equipes ou campeonatos automaticamente ao abrir a página.
 function initTeams() {
 
   const STORAGE_KEY_TEAMS = 'cluchzone_cs2_teams';
