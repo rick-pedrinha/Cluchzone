@@ -131,3 +131,5 @@ Para cookies entre GitHub Pages e outro domínio, o backend usa `SameSite=None; 
 ## Segurança e limitações
 
 Consulte `SECURITY.md`. O fluxo de autenticação está pronto para múltiplas instâncias. Equipes novas, chat privado de equipe e marketplace já usam modelos transacionais e autorização por recurso. Partes legadas de campeonatos, convites antigos, chat geral e pagamentos ainda usam documentos agregados ou não estão implementadas; a rota de compatibilidade preserva dados existentes, mas esses fluxos devem ser migrados antes de uso financeiro ou competitivo em produção.
+
+Brawl Stars: Em desenvolvimento...
