@@ -119,11 +119,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       
       const currentUser = authService.init();
 
-      if (!list.length) {
-        toursListContainer.innerHTML = '<div class="directory-empty"><strong>Nenhum campeonato publicado</strong><span>Os próximos torneios de CS2 aparecerão aqui.</span></div>';
-        return;
-      }
-
       list.forEach(camp => {
         const card = document.createElement('div');
         card.className = 'cs2-card';
@@ -193,11 +188,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const teams = await teamService.loadAll();
     teamsListGrid.innerHTML = '';
-
-    if (!teams.length) {
-      teamsListGrid.innerHTML = '<div class="directory-empty"><strong>Nenhuma equipe cadastrada</strong><span>As equipes da comunidade aparecerão aqui.</span></div>';
-      return;
-    }
 
     teams.forEach(team => {
       const card = document.createElement('div');

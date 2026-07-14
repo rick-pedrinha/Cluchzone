@@ -420,11 +420,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!toursListContainer) return;
     toursListContainer.innerHTML = '';
 
-    if (!tournaments.length) {
-      toursListContainer.innerHTML = '<div class="directory-empty"><strong>Nenhum campeonato publicado</strong><span>Os próximos torneios de CS2 aparecerão aqui.</span></div>';
-      return;
-    }
-
     tournaments.forEach(camp => {
       const card = document.createElement('div');
       card.className = 'cs2-card';
@@ -1406,11 +1401,6 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderTeams() {
     if (!teamsListGrid) return;
     teamsListGrid.innerHTML = '';
-
-    if (!teams.length) {
-      teamsListGrid.innerHTML = '<div class="directory-empty"><strong>Nenhuma equipe cadastrada</strong><span>As equipes da comunidade aparecerão aqui.</span></div>';
-      return;
-    }
 
     teams.forEach(t => {
       const card = document.createElement('div');
