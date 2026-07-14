@@ -1,0 +1,146 @@
+.game-signature-kit {
+  --signature-accent: #ff6718;
+  --signature-accent-rgb: 255, 103, 24;
+  position: relative;
+  z-index: 3;
+  width: 100%;
+  padding: 16px;
+  color: #f5f7fa;
+  border: 1px solid rgba(var(--signature-accent-rgb), .34);
+  background: linear-gradient(135deg, rgba(var(--signature-accent-rgb), .13), rgba(5, 9, 14, .88) 54%);
+  box-shadow: inset 3px 0 var(--signature-accent), 0 14px 34px rgba(0, 0, 0, .22);
+  overflow: hidden;
+}
+
+.game-signature-kit::after {
+  content: attr(data-signature-game);
+  position: absolute;
+  right: -5px;
+  bottom: -18px;
+  color: rgba(255, 255, 255, .035);
+  font: 900 60px/1 'Orbitron', sans-serif;
+  letter-spacing: -4px;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.game-signature-head {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 7px;
+}
+
+.game-signature-heading { display: grid; gap: 3px; }
+.game-signature-heading small { color: var(--signature-accent); font: 800 10px 'Orbitron', sans-serif; letter-spacing: 1.4px; }
+.game-signature-heading strong { color: #f8fafc; font: 900 14px 'Orbitron', sans-serif; letter-spacing: .8px; }
+.game-signature-note { position: relative; z-index: 2; margin: 0 0 13px !important; color: #9aa8ba !important; font: 600 13px/1.4 'Rajdhani', sans-serif !important; }
+
+.game-signature-action {
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid rgba(var(--signature-accent-rgb), .46);
+  background: rgba(var(--signature-accent-rgb), .1);
+  color: #fff;
+  font: 800 9px 'Orbitron', sans-serif;
+  letter-spacing: .7px;
+  cursor: pointer;
+}
+.game-signature-action:hover { background: var(--signature-accent); color: #05080c; }
+
+.game-signature-slots {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.game-signature-slot {
+  min-width: 0;
+  min-height: 76px;
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  border: 1px solid rgba(255, 255, 255, .08);
+  background: rgba(3, 7, 12, .74);
+  transition: border-color .2s ease, transform .2s ease, background .2s ease;
+}
+.game-signature-slot:hover { transform: translateY(-2px); border-color: rgba(var(--signature-accent-rgb), .55); background: rgba(8, 13, 20, .94); }
+
+.game-signature-visual {
+  position: relative;
+  width: 54px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  color: var(--signature-accent);
+  background: radial-gradient(circle, rgba(var(--signature-accent-rgb), .16), transparent 68%);
+}
+.game-signature-slot-copy { min-width: 0; display: grid; gap: 4px; }
+.game-signature-slot-copy strong { overflow: hidden; color: #e9eef5; font: 800 10px 'Orbitron', sans-serif; text-overflow: ellipsis; white-space: nowrap; }
+.game-signature-slot-copy small { overflow: hidden; color: #8a98aa; font-size: 11px; line-height: 1.2; text-overflow: ellipsis; white-space: nowrap; }
+
+.game-signature-slot.has-steam-item { position: relative; grid-template-columns: 64px minmax(0, 1fr); border-bottom: 2px solid var(--signature-rarity); }
+.game-signature-slot.has-steam-item .game-signature-visual { width: 64px; }
+.game-signature-slot.has-steam-item img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 5px 8px rgba(0,0,0,.6)); }
+.game-signature-kit.is-loading .game-signature-slots { opacity: .6; }
+
+/* CS2 weapon silhouettes: readable even before Steam inventory resolves. */
+.game-signature-kit.is-cs2 { --signature-accent: #ff6417; --signature-accent-rgb: 255, 100, 23; margin: 12px 0; backdrop-filter: blur(12px); }
+.game-signature-kit.is-cs2 .game-signature-visual::before,
+.game-signature-kit.is-cs2 .game-signature-visual::after { content: ''; position: absolute; background: currentColor; filter: drop-shadow(0 0 5px rgba(var(--signature-accent-rgb), .28)); }
+.game-signature-kit.is-cs2 [data-kind="rifle"] .game-signature-visual::before { width: 47px; height: 7px; left: 4px; top: 15px; clip-path: polygon(0 30%, 18% 0, 65% 0, 70% 28%, 100% 28%, 100% 55%, 68% 55%, 58% 100%, 48% 100%, 51% 55%, 0 70%); }
+.game-signature-kit.is-cs2 [data-kind="rifle"] .game-signature-visual::after { width: 15px; height: 18px; left: 24px; top: 19px; clip-path: polygon(0 0, 100% 0, 72% 100%, 27% 100%); transform: rotate(-12deg); }
+.game-signature-kit.is-cs2 [data-kind="pistol"] .game-signature-visual::before { width: 40px; height: 9px; left: 7px; top: 12px; clip-path: polygon(0 15%, 80% 15%, 100% 0, 100% 56%, 64% 74%, 0 70%); }
+.game-signature-kit.is-cs2 [data-kind="pistol"] .game-signature-visual::after { width: 13px; height: 23px; left: 25px; top: 18px; clip-path: polygon(0 0, 100% 0, 76% 100%, 18% 100%); transform: rotate(-7deg); }
+.game-signature-kit.is-cs2 [data-kind="he"] .game-signature-visual::before,
+.game-signature-kit.is-cs2 [data-kind="smoke"] .game-signature-visual::before { width: 23px; height: 29px; top: 10px; border-radius: 45% 45% 38% 38%; background: repeating-linear-gradient(90deg, currentColor 0 4px, #333b31 4px 7px); }
+.game-signature-kit.is-cs2 [data-kind="smoke"] .game-signature-visual::before { border-radius: 4px 4px 9px 9px; background: linear-gradient(90deg, #64706b, currentColor 48%, #333b38); }
+.game-signature-kit.is-cs2 [data-kind="he"] .game-signature-visual::after,
+.game-signature-kit.is-cs2 [data-kind="smoke"] .game-signature-visual::after { width: 15px; height: 8px; top: 5px; border: 2px solid currentColor; border-bottom: 0; background: transparent; }
+
+/* PUBG: worn metal, loot crate and survival equipment. */
+.game-signature-kit.is-pubg { --signature-accent: #e49a36; --signature-accent-rgb: 228, 154, 54; width: min(760px, calc(100% - 32px)); margin: 24px auto 0; text-align: left; border-radius: 3px; }
+.game-signature-kit.is-pubg [data-kind="crate"] .game-signature-visual::before { content:''; width:38px; height:28px; border:2px solid currentColor; background: repeating-linear-gradient(135deg, rgba(var(--signature-accent-rgb),.4) 0 5px, transparent 5px 10px); box-shadow: inset 0 0 0 4px rgba(0,0,0,.35); }
+.game-signature-kit.is-pubg [data-kind="helmet"] .game-signature-visual::before { content:''; width:34px; height:26px; border-radius: 50% 50% 32% 32%; border:3px solid currentColor; border-bottom-width:7px; background:#1a211d; }
+.game-signature-kit.is-pubg [data-kind="smoke"] .game-signature-visual::before { content:''; width:20px; height:31px; border:2px solid currentColor; border-radius:4px; background:linear-gradient(#6f786f,#29312c); }
+.game-signature-kit.is-pubg [data-kind="boost"] .game-signature-visual::before { content:''; width:17px; height:32px; border:2px solid currentColor; border-radius:4px 4px 8px 8px; background:linear-gradient(90deg,#3f5366,#74b7e7,#314657); transform:rotate(8deg); }
+
+/* Brawl: bigger shapes and playful response while preserving touch targets. */
+.game-signature-kit.is-brawl { --signature-accent: #ffd21f; --signature-accent-rgb: 255, 210, 31; width: min(760px, calc(100% - 32px)); margin: 24px auto 0; border: 3px solid #ffd21f; border-radius: 18px; background: linear-gradient(135deg, rgba(108, 31, 188, .94), rgba(28, 10, 55, .94)); box-shadow: 0 9px 0 #18062f, 0 18px 38px rgba(0,0,0,.3); text-align:left; }
+.game-signature-kit.is-brawl .game-signature-slot { border-radius: 12px; background: rgba(29, 8, 58, .8); }
+.game-signature-kit.is-brawl .game-signature-action { border-radius: 14px; background:#ffd21f; color:#24103c; }
+.game-signature-kit.is-brawl .game-signature-visual::before { content:''; width:27px; height:27px; background:currentColor; filter:drop-shadow(0 4px 0 rgba(0,0,0,.35)); }
+.game-signature-kit.is-brawl [data-kind="gem"] .game-signature-visual::before { background:#18e7e1; transform:rotate(45deg); clip-path:polygon(50% 0,100% 35%,82% 100%,18% 100%,0 35%); }
+.game-signature-kit.is-brawl [data-kind="super"] .game-signature-visual::before { clip-path:polygon(50% 0,61% 34%,98% 35%,68% 56%,79% 94%,50% 72%,21% 94%,32% 56%,2% 35%,39% 34%); }
+.game-signature-kit.is-brawl [data-kind="cube"] .game-signature-visual::before { background:#79ef36; transform:rotate(12deg); border-radius:5px; box-shadow:inset 0 0 0 5px rgba(0,0,0,.18),0 4px 0 rgba(0,0,0,.35); }
+.game-signature-kit.is-brawl [data-kind="team"] .game-signature-visual::before { width:36px; height:24px; border-radius:14px 14px 8px 8px; background:linear-gradient(90deg,#238bff 0 48%,#ff3e48 52%); }
+
+@media (max-width: 1180px) {
+  .game-signature-slot { grid-template-columns: 42px minmax(0, 1fr); }
+  .game-signature-visual { width:42px; }
+  .game-signature-slot.has-steam-item { grid-template-columns:48px minmax(0,1fr); }
+  .game-signature-slot.has-steam-item .game-signature-visual { width:48px; }
+}
+
+@media (max-width: 720px) {
+  .game-signature-slots { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .game-signature-kit.is-pubg,.game-signature-kit.is-brawl { width:100%; }
+}
+
+@media (max-width: 420px) {
+  .game-signature-head { align-items:flex-start; flex-direction:column; }
+  .game-signature-action { width:100%; }
+  .game-signature-slot-copy small { display:none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-signature-slot,.game-signature-action { transition:none; }
+  .game-signature-action { scroll-behavior:auto; }
+}
