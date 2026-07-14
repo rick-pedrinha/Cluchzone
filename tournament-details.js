@@ -230,10 +230,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     const selectableTeams = teams.filter(team => team.captain === currentUser.nick || team.vice === currentUser.nick || team.members?.includes(currentUser.nick));
     const selector = document.getElementById('td-team-selector');
     const select = document.getElementById('td-team-select');
+    if (!selector || !select) return;
+
     if (!selectableTeams.length) {
-      showToast('Crie ou entre em uma equipe antes de se inscrever.', '#ffd700');
+      const returnTo = encodeURIComponent(`tournament-details.html?id=${camp.id}`);
+      selector.innerHTML = `
+        <div style="display:grid; gap:9px; text-align:center; padding:4px 2px;">
+          <span style="font-size:20px;">🛡️</span>
+          <strong style="font:900 12px 'Orbitron',sans-serif; color:#fff;">VOCÊ AINDA NÃO TEM UMA EQUIPE</strong>
+          <span style="font-size:13px; line-height:1.45; color:#aab6c8;">Crie sua equipe para poder concluir a inscrição neste campeonato.</span>
+          <a class="cs2-btn cs2-btn-primary" href="team-create.html?returnTo=${returnTo}" style="display:flex; justify-content:center; align-items:center; min-height:40px; margin-top:3px; background:linear-gradient(135deg,#00d4ff,#6d4aff); border-color:#00d4ff; color:#fff; text-decoration:none;">＋ Criar nova equipe</a>
+        </div>`;
+      selector.style.display = 'block';
       return;
     }
+
     select.innerHTML = '<option value="">Selecione a equipe</option>';
     selectableTeams.forEach(team => {
       const option = document.createElement('option');
@@ -710,11 +721,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   };
 
   const btnJoinTeam = document.getElementById('td-join-team-btn');
-  const btnConfirmTeam = document.getElementById('td-confirm-team-btn');
   const btnJoinSolo = document.getElementById('td-join-solo-btn');
 
   if (btnJoinTeam) btnJoinTeam.addEventListener('click', joinTournament);
-  if (btnConfirmTeam) btnConfirmTeam.addEventListener('click', confirmTeamRegistration);
+  document.addEventListener('click', event => {
+    if (event.target?.id === 'td-confirm-team-btn') confirmTeamRegistration();
+  });
   if (btnJoinSolo) btnJoinSolo.addEventListener('click', joinSoloQueue);
 
   document.addEventListener('mousemove', event => {
