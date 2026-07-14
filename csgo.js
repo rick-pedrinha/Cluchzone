@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const STORAGE_KEY_PLAYERS = 'cluchzone_cs2_players';
   const STORAGE_KEY_FEED = 'cluchzone_cs2_feed';
   const STORAGE_KEY_NOTIFS = 'cluchzone_cs2_notifs';
+  const REMOVED_DEMO_TOURNAMENT_KEY = 'clutchzone_removed_demo_deagle_master_v1';
   const EVENT_BANNERS = {
     'copa deagle master': 'images/cs2_copa_deagle_master.jpg',
     'dust ii shootout tournament': 'images/cs2_dust2_shootout.jpg',
@@ -108,7 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 5. Mock Data for Feed
   const defaultFeed = [
-    { id: 1, user: "Imperial Esports", action: "Equipe Campeã", target: "Copa Deagle Master", time: "2 dias atrás", likes: 24, likedByMe: false, comments: [{ user: "Zywoo_Step", text: "GG WP! Mereceram demais." }] },
+    { id: 1, user: "Imperial Esports", action: "Destaque da comunidade", target: "Temporada CLUTCHZONE", time: "2 dias atrás", likes: 24, likedByMe: false, comments: [{ user: "Zywoo_Step", text: "GG WP! Mereceram demais." }] },
     { id: 2, user: "SnipeKing_BR", action: "Novo MVP do Torneio", target: "Dust II Shootout", time: "5 dias atrás", likes: 42, likedByMe: true, comments: [] },
     { id: 3, user: "Legacy Team", action: "Nova Equipe Cadastrada", target: "CLUTCHZONE Arena", time: "1 semana atrás", likes: 12, likedByMe: false, comments: [] }
   ];
@@ -117,7 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 6. Mock Data for Notifications
   const defaultNotifs = [
-    { id: 1, text: "Inscrição confirmada na Copa Deagle Master!", time: "10m atrás", read: false },
+    { id: 1, text: "Bem-vindo à CLUTCHZONE! Explore os campeonatos disponíveis.", time: "10m atrás", read: false },
     { id: 2, text: "O Servidor do confronto Imperial vs RED Canids está disponível.", time: "1h atrás", read: true }
   ];
 
@@ -288,6 +289,33 @@ document.addEventListener('DOMContentLoaded', () => {
     window.CluchAPI?.setStore(key, val);
   }
 
+  // Remove, apenas uma vez, o campeonato de demonstração descartado.
+  // A marca evita apagar por engano um torneio futuro com o mesmo nome.
+  function removeDiscardedDemoTournament() {
+    if (localStorage.getItem(REMOVED_DEMO_TOURNAMENT_KEY)) return;
+
+    const isDiscarded = item => String(item?.name || '').trim().toLowerCase() === 'copa deagle master';
+    const remainingTournaments = tournaments.filter(item => !isDiscarded(item));
+    if (remainingTournaments.length !== tournaments.length) {
+      tournaments = remainingTournaments;
+      saveData(STORAGE_KEY_CAMPS, tournaments);
+    }
+
+    const mentionsDiscarded = item => String(item?.target || item?.text || '').toLowerCase().includes('copa deagle master');
+    const remainingFeed = feedItems.filter(item => !mentionsDiscarded(item));
+    const remainingNotifications = notifications.filter(item => !mentionsDiscarded(item));
+    if (remainingFeed.length !== feedItems.length) {
+      feedItems = remainingFeed;
+      saveData(STORAGE_KEY_FEED, feedItems);
+    }
+    if (remainingNotifications.length !== notifications.length) {
+      notifications = remainingNotifications;
+      saveData(STORAGE_KEY_NOTIFS, notifications);
+    }
+
+    localStorage.setItem(REMOVED_DEMO_TOURNAMENT_KEY, 'true');
+  }
+
   function resolveEventBanner(camp) {
     const normalizedName = String(camp?.name || '').trim().toLowerCase();
     if (EVENT_BANNERS[normalizedName]) return EVENT_BANNERS[normalizedName];
@@ -305,6 +333,8 @@ document.addEventListener('DOMContentLoaded', () => {
     players = await CluchAPI.getStore(STORAGE_KEY_PLAYERS, players);
     feedItems = await CluchAPI.getStore(STORAGE_KEY_FEED, feedItems);
     notifications = await CluchAPI.getStore(STORAGE_KEY_NOTIFS, notifications);
+
+    removeDiscardedDemoTournament();
 
     if (!localStorage.getItem(STORAGE_KEY_CAMPS)) saveData(STORAGE_KEY_CAMPS, tournaments);
     if (!localStorage.getItem(STORAGE_KEY_TEAMS)) saveData(STORAGE_KEY_TEAMS, teams);
