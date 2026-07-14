@@ -114,9 +114,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!value) return 'Não informado';
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return 'Não informado';
-    return new Intl.DateTimeFormat('pt-BR', includeTime
-      ? { dateStyle: 'medium', timeStyle: 'short' }
-      : { month: 'short', year: 'numeric' }).format(date);
+    const preferences = window.ClutchGlobal?.getPreferences();
+    return new Intl.DateTimeFormat(preferences?.preferredLocale || navigator.language, includeTime
+      ? { dateStyle: 'medium', timeStyle: 'short', timeZone: preferences?.timeZone }
+      : { month: 'short', year: 'numeric', timeZone: preferences?.timeZone }).format(date);
   }
 
   function renderSteamInformation() {

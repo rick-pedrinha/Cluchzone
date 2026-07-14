@@ -9,7 +9,8 @@
   const glyphs = { SPONSORSHIP: 'SPN', STREAMER_SERVICE: 'LIVE', PRODUCT: 'GEAR' };
   let selectedListing = null;
 
-  const money = cents => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(cents || 0) / 100);
+  const money = (cents, currencyCode = 'BRL') => window.ClutchGlobal?.formatCurrency(cents, currencyCode)
+    || new Intl.NumberFormat(navigator.language, { style: 'currency', currency: currencyCode }).format(Number(cents || 0) / 100);
   const byId = id => document.getElementById(id);
 
   function setError(target, message) {
@@ -83,7 +84,7 @@
     const price = document.createElement('div');
     price.className = 'listing-price';
     const priceValue = document.createElement('strong');
-    priceValue.textContent = listing.priceCents ? money(listing.priceCents) : 'Sob proposta';
+    priceValue.textContent = listing.priceCents ? money(listing.priceCents, listing.currencyCode) : 'Sob proposta';
     const priceNote = document.createElement('small');
     priceNote.textContent = listing.kind === 'PRODUCT' ? 'por unidade' : 'valor base';
     price.append(priceValue, priceNote);
@@ -126,7 +127,7 @@
   function refreshOrderTotal() {
     if (!selectedListing) return;
     const quantity = Math.max(1, Number(byId('order-quantity').value || 1));
-    byId('order-total').value = selectedListing.priceCents ? money(selectedListing.priceCents * quantity) : 'A definir com o vendedor';
+    byId('order-total').value = selectedListing.priceCents ? money(selectedListing.priceCents * quantity, selectedListing.currencyCode) : 'A definir com o vendedor';
   }
 
   async function openOrder(listing) {

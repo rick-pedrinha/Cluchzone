@@ -90,6 +90,21 @@ window.CluchAPI = (() => {
     return payload?.message || null;
   }
 
+  async function getGlobalCatalog() {
+    const payload = await request('/api/global/catalog');
+    return payload || null;
+  }
+
+  async function getGlobalPreferences() {
+    const payload = await request('/api/global/preferences');
+    return payload?.preferences || null;
+  }
+
+  async function saveGlobalPreferences(input) {
+    const payload = await request('/api/global/preferences', { method: 'PUT', body: JSON.stringify(input) });
+    return payload?.preferences || null;
+  }
+
   async function getMarketplaceListings(filters = {}) {
     const query = new URLSearchParams();
     if (filters.kind) query.set('kind', filters.kind);
@@ -172,6 +187,9 @@ window.CluchAPI = (() => {
     createTeam,
     getTeamMessages,
     sendTeamMessage,
+    getGlobalCatalog,
+    getGlobalPreferences,
+    saveGlobalPreferences,
     getMarketplaceListings,
     createMarketplaceOrder,
     getSellerDashboard,
