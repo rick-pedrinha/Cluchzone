@@ -14,6 +14,7 @@ export type PublicUser = {
   lastLogoffAt: Date | null;
   role: 'PLAYER' | 'ORGANIZER' | 'ADMIN';
   status: 'ACTIVE' | 'SUSPENDED' | 'BANNED';
+  showcaseVisible: boolean;
   lastLoginAt: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -38,4 +39,7 @@ export type SteamProfileInput = Pick<
 export interface UserRepository {
   upsertFromSteam(profile: SteamProfileInput): Promise<PublicUser>;
   findById(id: string): Promise<PublicUser | null>;
+  findActiveBySteamIds(steamIds: string[]): Promise<PublicUser[]>;
+  findActiveByDisplayName(displayName: string): Promise<PublicUser | null>;
+  updateShowcaseVisibility(id: string, visible: boolean): Promise<PublicUser | null>;
 }

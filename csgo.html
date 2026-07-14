@@ -29,9 +29,13 @@
   <!-- NAVBAR -->
   <nav id="navbar" class="csgo-nav">
     <div class="nav-inner">
-      <a href="index.html" class="nav-logo">CLUTCHZONE</a>
+      <a href="index.html" class="nav-logo cs2-brand" aria-label="CLUTCHZONE — voltar ao hub">
+        <span class="cs2-brand-mark">CZ</span>
+        <span class="cs2-brand-copy"><strong>CLUTCHZONE</strong><small>CS2 COMPETITIVE</small></span>
+      </a>
       <ul class="nav-links">
         <li><a href="index.html#games" class="nav-link">Jogos</a></li>
+        <li><a href="marketplace.html" class="nav-link">Marketplace</a></li>
         <li><a href="pubg.html" class="nav-link">PUBG</a></li>
         <li><a href="csgo.html" class="nav-link active">CS2</a></li>
         <li><a href="brawlstars.html" class="nav-link">Brawl Stars</a></li>
@@ -43,7 +47,7 @@
           🔔
           <div class="notif-count-bubble" id="notif-count">2</div>
         </div>
-        <a href="index.html" class="btn-login-back">VOLTAR AO HUB</a>
+        <a href="index.html" class="btn-login-back" aria-label="Voltar ao hub"><span aria-hidden="true">←</span> HUB</a>
       </div>
     </div>
   </nav>
@@ -56,20 +60,47 @@
     </div>
   </div>
 
-  <!-- HERO PREMIUM CS2 BANNER -->
+  <!-- CS2 COMPETITIVE MATCH CENTER -->
   <header class="cs2-hero">
     <div class="banner-glow"></div>
-    <div class="cs2-hero-content">
-      <span class="cs2-hero-tag">CS2 COMPETITIVE HUB</span>
-      <h1>PRONTO PARA O CONFRONTO</h1>
-      <p>Entre em torneios profissionais de Counter-Strike 2. Monte seu time ou inscreva-se em lobbys competitivos individuais controlados pelo nosso sistema automatizado.</p>
-      
-      <div class="cs2-hero-buttons">
-        <button class="cs2-btn cs2-btn-primary" id="btn-explore-tours">Explorar Campeonatos</button>
-        <button class="cs2-btn cs2-btn-secondary" id="btn-create-tour-hero">Criar Campeonato</button>
-        <a href="team-create.html" class="cs2-btn cs2-btn-secondary" style="border-color: var(--tm-cyan); color: var(--tm-cyan);">🛡️ Criar Equipe</a>
-        <a href="my-teams.html" class="cs2-btn cs2-btn-secondary">👥 Minhas Equipes</a>
-      </div>
+    <div class="cs2-hero-grid">
+      <section class="cs2-hero-content">
+        <div class="cs2-hero-eyebrow">
+          <span><i aria-hidden="true"></i> MATCH CENTER</span>
+          <span>REGIÃO SA · CS2</span>
+        </div>
+        <span class="cs2-hero-tag">ARENA COMPETITIVA CLUTCHZONE</span>
+        <h1>JOGUE COMO UM TIME.<em>VENÇA COMO UM.</em></h1>
+        <p>Monte seu roster, encontre o campeonato certo e acompanhe cada etapa do confronto em uma central feita para competição.</p>
+
+        <div class="cs2-hero-buttons">
+          <button class="cs2-btn cs2-btn-primary" id="btn-explore-tours"><span aria-hidden="true">▶</span> Buscar partida</button>
+          <a href="team-create.html" class="cs2-btn cs2-btn-secondary cs2-btn-ct"><span aria-hidden="true">+</span> Criar equipe</a>
+        </div>
+        <div class="cs2-quick-actions">
+          <button type="button" id="btn-create-tour-hero">Criar campeonato</button>
+          <a href="my-teams.html">Gerenciar minhas equipes <span aria-hidden="true">→</span></a>
+        </div>
+        <div class="cs2-session-card" id="cs2-session-card" data-state="loading">
+          <span class="cs2-session-icon" aria-hidden="true">S</span>
+          <span><small>SESSÃO STEAM</small><strong id="cs2-session-name">Sincronizando identidade...</strong></span>
+          <i aria-hidden="true"></i>
+        </div>
+      </section>
+
+      <aside class="cs2-match-visual" aria-label="Fluxo de uma partida competitiva">
+        <div class="cs2-visual-topline"><span>PROTOCOLO DE PARTIDA</span><strong>READY</strong></div>
+        <div class="cs2-versus-card">
+          <div class="cs2-side cs2-side-tr"><span>TR</span><small>SEU TIME</small></div>
+          <div class="cs2-versus-center"><small>FORMATO</small><strong>MD1 / MD3</strong><span>VS</span></div>
+          <div class="cs2-side cs2-side-ct"><span>CT</span><small>ADVERSÁRIO</small></div>
+        </div>
+        <div class="cs2-match-flow">
+          <div><span>01</span><strong>CHECK-IN</strong><small>Equipe confirmada</small></div>
+          <div><span>02</span><strong>VETO</strong><small>Escolha de mapas</small></div>
+          <div><span>03</span><strong>LOBBY</strong><small>Partida pronta</small></div>
+        </div>
+      </aside>
     </div>
 
     <!-- STATS STRIP -->

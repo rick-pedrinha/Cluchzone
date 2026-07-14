@@ -11,7 +11,19 @@ import type { AppConfig } from './config/env.js';
 import { logger as defaultLogger } from './config/logger.js';
 import { AppError } from './errors/app-error.js';
 import { errorHandler, notFound } from './middleware/error.middleware.js';
+import { createSteamFriendsRouter } from './friends/steam-friends.router.js';
+import type { SteamFriendsService } from './friends/steam-friends.service.js';
+import { createCs2InventoryRouter } from './inventory/cs2-inventory.router.js';
+import type { SteamGameInventoryService } from './inventory/cs2-inventory.service.js';
+import { createPlayerShowcaseRouter } from './inventory/player-showcase.router.js';
+import { createMatchRouter } from './matches/match.router.js';
+import type { MatchRepository } from './matches/match.types.js';
+import { createMarketplaceRouter } from './marketplace/marketplace.router.js';
+import type { MarketplaceRepository } from './marketplace/marketplace.types.js';
+import { createSellerRouter } from './marketplace/seller.router.js';
 import { createStateRouter } from './state/state.router.js';
+import { createTeamRouter } from './teams/team.router.js';
+import type { TeamRepository } from './teams/team.types.js';
 import type { StateRepository } from './state/state.repository.js';
 import type { UserRepository } from './users/user.types.js';
 
@@ -19,10 +31,23 @@ export type AppDependencies = {
   config: AppConfig;
   users: UserRepository;
   steam: SteamAuthService;
+  steamFriends: SteamFriendsService;
+  inventory?: SteamGameInventoryService;
   sessionStore: session.Store;
   rateLimitStore?: Store;
+  friendsRateLimitStore?: Store;
+  inventoryRateLimitStore?: Store;
+  showcaseRateLimitStore?: Store;
+  matchesRateLimitStore?: Store;
+  marketplaceRateLimitStore?: Store;
+  sellerRateLimitStore?: Store;
+  teamsRateLimitStore?: Store;
   logger?: Logger;
   states?: StateRepository;
+  matches?: MatchRepository;
+  marketplace?: MarketplaceRepository;
+  teams?: TeamRepository;
+  readiness?: () => Promise<void>;
 };
 
 export function createApp(deps: AppDependencies): Express {
@@ -58,7 +83,9 @@ export function createApp(deps: AppDependencies): Express {
     },
   }));
 
-  app.use('/auth', rateLimit({
+  // Limit only the Steam handshake. Session status is read on every page and
+  // must remain available while an authenticated user navigates the app.
+  app.use('/auth/steam', rateLimit({
     windowMs: 15 * 60 * 1000,
     limit: 100,
     standardHeaders: 'draft-8',
@@ -67,9 +94,91 @@ export function createApp(deps: AppDependencies): Express {
     handler: (_req, _res, next) => next(new AppError(429, 'RATE_LIMITED', 'Too many requests.')),
   }));
 
+  app.use('/api/friends', rateLimit({
+    windowMs: 15 * 60 * 1000,
+    limit: 30,
+    standardHeaders: 'draft-8',
+    legacyHeaders: false,
+    ...(deps.friendsRateLimitStore ? { store: deps.friendsRateLimitStore } : {}),
+    handler: (_req, _res, next) => next(new AppError(429, 'RATE_LIMITED', 'Too many requests.')),
+  }));
+
   app.get('/health', (_req, res) => res.status(200).json({ ok: true, service: 'clutchzone-backend' }));
+  app.get('/ready', async (_req, res) => {
+    try {
+      await deps.readiness?.();
+      res.status(200).json({ ok: true, service: 'clutchzone-backend' });
+    } catch {
+      res.status(503).json({ ok: false, service: 'clutchzone-backend' });
+    }
+  });
   app.use('/auth', createAuthRouter(config, deps.users, deps.steam));
+  app.use('/api/friends', createSteamFriendsRouter(deps.users, deps.steamFriends));
+  if (deps.inventory) {
+    app.use('/api/players', rateLimit({
+      windowMs: 15 * 60 * 1000,
+      limit: 60,
+      standardHeaders: 'draft-8',
+      legacyHeaders: false,
+      ...(deps.showcaseRateLimitStore ? { store: deps.showcaseRateLimitStore } : {}),
+      handler: (_req, _res, next) => next(new AppError(429, 'RATE_LIMITED', 'Too many requests.')),
+    }));
+    app.use('/api/players', createPlayerShowcaseRouter(deps.users, deps.inventory));
+  }
+  if (deps.states && deps.inventory) {
+    app.use('/api/tournaments', rateLimit({
+      windowMs: 15 * 60 * 1000,
+      limit: 60,
+      standardHeaders: 'draft-8',
+      legacyHeaders: false,
+      ...(deps.inventoryRateLimitStore ? { store: deps.inventoryRateLimitStore } : {}),
+      handler: (_req, _res, next) => next(new AppError(429, 'RATE_LIMITED', 'Too many requests.')),
+    }));
+    app.use('/api/tournaments', createCs2InventoryRouter(deps.users, deps.states, deps.inventory));
+  }
   if (deps.states) app.use('/api/store', createStateRouter(deps.states));
+  if (deps.teams) {
+    app.use('/api/teams', rateLimit({
+      windowMs: 15 * 60 * 1000,
+      limit: 180,
+      standardHeaders: 'draft-8',
+      legacyHeaders: false,
+      ...(deps.teamsRateLimitStore ? { store: deps.teamsRateLimitStore } : {}),
+      handler: (_req, _res, next) => next(new AppError(429, 'RATE_LIMITED', 'Too many requests.')),
+    }));
+    app.use('/api/teams', createTeamRouter(deps.teams));
+  }
+  if (deps.marketplace) {
+    app.use('/api/marketplace', rateLimit({
+      windowMs: 15 * 60 * 1000,
+      limit: 120,
+      standardHeaders: 'draft-8',
+      legacyHeaders: false,
+      ...(deps.marketplaceRateLimitStore ? { store: deps.marketplaceRateLimitStore } : {}),
+      handler: (_req, _res, next) => next(new AppError(429, 'RATE_LIMITED', 'Too many requests.')),
+    }));
+    app.use('/api/seller', rateLimit({
+      windowMs: 15 * 60 * 1000,
+      limit: 120,
+      standardHeaders: 'draft-8',
+      legacyHeaders: false,
+      ...(deps.sellerRateLimitStore ? { store: deps.sellerRateLimitStore } : {}),
+      handler: (_req, _res, next) => next(new AppError(429, 'RATE_LIMITED', 'Too many requests.')),
+    }));
+    app.use('/api/marketplace', createMarketplaceRouter(deps.marketplace));
+    app.use('/api/seller', createSellerRouter(deps.marketplace));
+  }
+  if (deps.matches) {
+    app.use('/api/matches', rateLimit({
+      windowMs: 15 * 60 * 1000,
+      limit: 120,
+      standardHeaders: 'draft-8',
+      legacyHeaders: false,
+      ...(deps.matchesRateLimitStore ? { store: deps.matchesRateLimitStore } : {}),
+      handler: (_req, _res, next) => next(new AppError(429, 'RATE_LIMITED', 'Too many requests.')),
+    }));
+    app.use('/api/matches', createMatchRouter(deps.users, deps.matches));
+  }
   app.use(notFound);
   app.use(errorHandler);
   return app;

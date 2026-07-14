@@ -5,10 +5,12 @@ type RateRow = { count: number; reset_at: Date };
 
 export class PrismaRateLimitStore implements Store {
   localKeys = false;
-  prefix = 'rl:';
+  prefix: string;
   private windowMs = 60_000;
 
-  constructor(private readonly prisma: PrismaClient) {}
+  constructor(private readonly prisma: PrismaClient, prefix = 'rl:') {
+    this.prefix = prefix;
+  }
 
   init(options: { windowMs: number }): void {
     this.windowMs = options.windowMs;

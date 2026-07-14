@@ -252,6 +252,53 @@
 }
 
 /* ── NAV USER LOGGED IN ── */
+.btn-nav-login,
+.btn-nav-session-error,
+.btn-nav-session-sync {
+  min-height: 36px;
+  padding: 7px 14px;
+  color: #dce5ee;
+  background: rgba(255, 255, 255, .035);
+  border: 1px solid rgba(255, 255, 255, .12);
+  border-radius: 8px;
+  cursor: pointer;
+  font: 700 12px 'Rajdhani', sans-serif;
+  transition: border-color .2s, color .2s, background .2s;
+}
+.btn-nav-login:hover {
+  color: #66c0f4;
+  background: rgba(102, 192, 244, .07);
+  border-color: rgba(102, 192, 244, .45);
+}
+.btn-nav-session-error {
+  color: #f5bd67;
+  border-color: rgba(245, 189, 103, .3);
+}
+.btn-nav-session-error:hover {
+  background: rgba(245, 189, 103, .08);
+  border-color: rgba(245, 189, 103, .55);
+}
+.btn-nav-session-sync {
+  position: relative;
+  padding-left: 31px;
+  color: #b9c8d6;
+  border-color: rgba(102, 192, 244, .24);
+  cursor: progress;
+}
+.btn-nav-session-sync::before {
+  content: '';
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  width: 9px;
+  height: 9px;
+  margin-top: -6px;
+  border: 2px solid rgba(102, 192, 244, .25);
+  border-top-color: #66c0f4;
+  border-radius: 50%;
+  animation: clutch-session-spin .8s linear infinite;
+}
+@keyframes clutch-session-spin { to { transform: rotate(360deg); } }
 .nav-user-pill {
   display: flex; align-items: center; gap: 8px;
   padding: 4px 12px 4px 6px;

@@ -1,6 +1,6 @@
 {
   "name": "cluchzone",
-  "version": "1.0.0",
+  "version": "2026.7.14-1",
   "private": true,
   "description": "Frontend estático CLUTCHZONE; autenticação e dados privados ficam no backend separado.",
   "scripts": {

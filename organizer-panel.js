@@ -320,6 +320,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const members = team?.members || [];
     const reserves = team?.reserves || [];
     const safeId = name.replace(/[^a-z0-9]/gi, '_');
+    const inventoryEnabled = (camp.registeredTeams || []).includes(name);
 
     const pixStatus = camp.pixStatus?.[name] || 'pendente';
     let pixBadge = '';
@@ -345,6 +346,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             <div style="font-size:12px;font-weight:700;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${m}</div>
             <div style="font-size:10px;color:${roleColor};">${role}</div>
           </div>
+          ${inventoryEnabled ? `<button class="cs2-inventory-trigger" type="button" data-cs2-tournament-id="${encodeURIComponent(camp.id)}" data-cs2-inventory-player="${encodeURIComponent(m)}">ARSENAL</button>` : ''}
         </div>`;
     }).join('');
 
@@ -356,6 +358,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             ${r.substring(0,2).toUpperCase()}
           </div>
           <div style="font-size:11px;color:#4a5568;">${r}</div>
+          ${inventoryEnabled ? `<button class="cs2-inventory-trigger" type="button" data-cs2-tournament-id="${encodeURIComponent(camp.id)}" data-cs2-inventory-player="${encodeURIComponent(r)}">ARSENAL</button>` : ''}
         </div>`).join('')}` : '';
 
     const receiptInspectorHtml = pixStatus === 'enviado' ? `

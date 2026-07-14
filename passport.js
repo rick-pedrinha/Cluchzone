@@ -141,6 +141,164 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
+  function renderSteamGameShowcases() {
+    if (!authState.uid || document.getElementById('steam-game-showcases')) return;
+    const anchor = document.getElementById('steam-passport-card')
+      || document.querySelector('.connected-games')?.closest('.pp-card');
+    if (!anchor) return;
+
+    const section = document.createElement('section');
+    section.className = 'pp-card steam-showcase-panel';
+    section.id = 'steam-game-showcases';
+    section.innerHTML = `
+      <div class="steam-showcase-heading">
+        <div>
+          <h3>VITRINES PÚBLICAS DE JOGOS</h3>
+          <p>Os quatro itens públicos mais valiosos aparecem pelo preço atual do Mercado Steam. Grafites e adesivos não ocupam o lugar de skins; jogos sem quatro itens caros não são exibidos.</p>
+        </div>
+        <span class="steam-showcase-controls">
+          <span class="steam-showcase-verified"><i></i> STEAM VERIFIED</span>
+          <button class="steam-showcase-visibility" id="steam-showcase-visibility" type="button" disabled aria-pressed="false"><span aria-hidden="true">◉</span> Verificando privacidade</button>
+        </span>
+      </div>
+      <div class="steam-showcase-private-note" data-showcase-private-note hidden><span aria-hidden="true">◉</span><div><strong>VITRINE OCULTA</strong><small>Seus itens não aparecem para outros jogadores.</small></div></div>
+      <div class="steam-showcase-grid">
+        <button class="steam-showcase-card is-cs2" type="button" data-game-mark="CS2" data-showcase-key="cs2">
+          <span class="steam-showcase-card-top"><span class="steam-showcase-game-icon">CS2</span><span class="steam-showcase-status" data-showcase-status><i></i> CARREGANDO STEAM</span></span>
+          <span class="steam-showcase-copy"><strong>Counter-Strike 2</strong><span>Skins, armas, facas, luvas e colecionáveis</span></span>
+          <span class="steam-showcase-preview" data-showcase-preview aria-label="Carregando destaques de Counter-Strike 2"><i></i><i></i><i></i><i></i></span>
+          <span class="steam-showcase-footer"><span data-showcase-summary>Sincronizando inventário…</span><span class="steam-showcase-open">VER COLEÇÃO COMPLETA →</span></span>
+        </button>
+        <button class="steam-showcase-card is-pubg" type="button" data-game-mark="PUBG" data-showcase-key="pubg">
+          <span class="steam-showcase-card-top"><span class="steam-showcase-game-icon">PUBG</span><span class="steam-showcase-status" data-showcase-status><i></i> CARREGANDO STEAM</span></span>
+          <span class="steam-showcase-copy"><strong>PUBG: Battlegrounds</strong><span>Armas, trajes, caixas e itens públicos</span></span>
+          <span class="steam-showcase-preview" data-showcase-preview aria-label="Carregando destaques de PUBG"><i></i><i></i><i></i><i></i></span>
+          <span class="steam-showcase-footer"><span data-showcase-summary>Sincronizando inventário…</span><span class="steam-showcase-open">VER COLEÇÃO COMPLETA →</span></span>
+        </button>
+      </div>`;
+
+    const playerName = authState.displayName || authState.nick || 'Jogador';
+    section.querySelectorAll('[data-showcase-key]').forEach(button => {
+      button.dataset.steamShowcaseUser = encodeURIComponent(authState.uid);
+      button.dataset.steamShowcasePlayer = encodeURIComponent(playerName);
+      button.dataset.steamShowcaseGame = encodeURIComponent(button.dataset.showcaseKey);
+    });
+    anchor.insertAdjacentElement('afterend', section);
+    initializeShowcaseVisibility(section, authState.uid);
+  }
+
+  async function initializeShowcaseVisibility(section, userId) {
+    const toggle = section.querySelector('#steam-showcase-visibility');
+    let visible = true;
+    try {
+      const preference = await window.ClutchInventory?.getShowcaseVisibility();
+      visible = preference?.visible !== false;
+    } catch (_) {
+      toggle.hidden = true;
+    }
+    applyShowcaseVisibility(section, visible);
+    if (visible) hydrateShowcaseCards(section, userId);
+    toggle.disabled = false;
+    toggle.addEventListener('click', async () => {
+      const nextVisible = !visible;
+      toggle.disabled = true;
+      try {
+        const result = await window.ClutchInventory.setShowcaseVisibility(nextVisible);
+        visible = result.visible !== false;
+        applyShowcaseVisibility(section, visible);
+        if (visible) hydrateShowcaseCards(section, userId);
+      } catch (_) {
+        applyShowcaseVisibility(section, visible);
+        toggle.title = 'Não foi possível alterar a privacidade agora. Tente novamente.';
+      } finally {
+        toggle.disabled = false;
+      }
+    });
+  }
+
+  function applyShowcaseVisibility(section, visible) {
+    const toggle = section.querySelector('#steam-showcase-visibility');
+    const grid = section.querySelector('.steam-showcase-grid');
+    const note = section.querySelector('[data-showcase-private-note]');
+    section.hidden = false;
+    section.classList.toggle('is-owner-hidden', !visible);
+    grid.hidden = !visible;
+    note.hidden = visible;
+    toggle.setAttribute('aria-pressed', String(!visible));
+    toggle.innerHTML = visible
+      ? '<span aria-hidden="true">◉</span> Ocultar vitrine'
+      : '<span aria-hidden="true">◎</span> Mostrar vitrine';
+  }
+
+  function hydrateShowcaseCards(section, userId) {
+    section.querySelectorAll('[data-showcase-key]').forEach(button => {
+      button.hidden = false;
+      if (!button.classList.contains('is-loaded')) hydrateSteamShowcase(button, userId, button.dataset.showcaseKey);
+    });
+  }
+
+  async function hydrateSteamShowcase(button, userId, game) {
+    const preview = button.querySelector('[data-showcase-preview]');
+    const status = button.querySelector('[data-showcase-status]');
+    const summary = button.querySelector('[data-showcase-summary]');
+    try {
+      const payload = await window.ClutchInventory?.preloadProfile({ userId, game });
+      if (!payload) throw Object.assign(new Error('Inventory loader unavailable'), { code: 'BACKEND_UNAVAILABLE' });
+      const highlights = payload.showcaseVisible !== false && payload.showcaseAvailable === true && Array.isArray(payload.highlights) && payload.highlights.length === 4
+        ? payload.highlights
+        : [];
+      preview.replaceChildren();
+      if (highlights.length !== 4) {
+        resolveSteamShowcase(button, false);
+        return;
+      }
+      highlights.forEach(item => {
+        const tile = document.createElement('span');
+        tile.className = 'steam-showcase-item';
+        const rarityColor = /^#[a-f0-9]{6}$/i.test(String(item.rarityColor || '')) ? item.rarityColor : '#5b6b84';
+        tile.style.setProperty('--showcase-rarity', rarityColor);
+        if (typeof item.imageUrl === 'string' && /^https:\/\/community\.fastly\.steamstatic\.com\//.test(item.imageUrl)) {
+          const image = document.createElement('img');
+          image.src = item.imageUrl;
+          image.alt = item.name || 'Item Steam';
+          image.loading = 'lazy';
+          tile.appendChild(image);
+        } else {
+          const fallback = document.createElement('b');
+          fallback.textContent = String(payload.game?.shortName || game).toUpperCase();
+          tile.appendChild(fallback);
+        }
+        const price = document.createElement('em');
+        price.className = 'steam-showcase-price';
+        price.textContent = item.marketPrice?.formatted || '';
+        const name = document.createElement('small');
+        name.textContent = item.name || 'Item Steam';
+        tile.append(price, name);
+        preview.appendChild(tile);
+      });
+      const total = Number(payload.inventory?.total || 0);
+      status.lastChild.textContent = ' PREÇO VERIFICADO';
+      summary.textContent = `${total.toLocaleString('pt-BR')} item${total === 1 ? '' : 's'} · 4 mais valiosos`;
+      preview.setAttribute('aria-label', 'Quatro itens públicos mais valiosos do inventário');
+      button.classList.add('is-loaded');
+      resolveSteamShowcase(button, true);
+    } catch (error) {
+      resolveSteamShowcase(button, false);
+    }
+  }
+
+  function resolveSteamShowcase(button, visible) {
+    button.hidden = !visible;
+    button.dataset.showcaseResolved = 'true';
+    const section = button.closest('.steam-showcase-panel');
+    if (!section) return;
+    const cards = [...section.querySelectorAll('[data-showcase-key]')];
+    if (cards.every(card => card.dataset.showcaseResolved === 'true')) {
+      section.hidden = !section.classList.contains('is-owner-hidden') && !cards.some(card => !card.hidden);
+      section.querySelector('.steam-showcase-grid')?.classList.toggle('has-single-showcase', cards.filter(card => !card.hidden).length === 1);
+    }
+  }
+
   /* ─── RENDER MULTIPLATFORM DATA ─── */
   function renderProfileHeader() {
     const avatarImg = document.getElementById('pass-avatar-img');
@@ -580,6 +738,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   renderProfileHeader();
+  renderSteamGameShowcases();
   setupProfileEditor();
   renderGameStatsPane();
 

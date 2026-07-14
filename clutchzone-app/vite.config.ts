@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig, type ViteDevServer } from 'vite';
 import { resolve } from 'path';
 import { copyFileSync, readFileSync } from 'fs';
 
@@ -8,16 +8,37 @@ const sharedChatAssets = {
 };
 const sharedLegacyAssets = {
   'api.js': resolve(__dirname, '..', 'api.js'),
+  'config.js': resolve(__dirname, '..', 'config.js'),
   'auth.js': resolve(__dirname, '..', 'auth.js'),
+  'auth.css': resolve(__dirname, '..', 'auth.css'),
   'premium.js': resolve(__dirname, '..', 'premium.js'),
+  'main.js': resolve(__dirname, '..', 'main.js'),
+  'teams.js': resolve(__dirname, '..', 'teams.js'),
   'organizer-panel.js': resolve(__dirname, '..', 'organizer-panel.js'),
   'style.css': resolve(__dirname, '..', 'style.css'),
+  'inventory.js': resolve(__dirname, '..', 'inventory.js'),
+  'inventory.css': resolve(__dirname, '..', 'inventory.css'),
+  'passport.js': resolve(__dirname, '..', 'passport.js'),
+  'marketplace.css': resolve(__dirname, '..', 'marketplace.css'),
+  'marketplace.js': resolve(__dirname, '..', 'marketplace.js'),
+  'seller-erp.js': resolve(__dirname, '..', 'seller-erp.js'),
 };
 
 // Mantém o widget social idêntico na versão estática e na versão Vite.
 const sharedChatPlugin = {
   name: 'shared-clutch-chat',
-  configureServer(server: { middlewares: { use: (path: string, handler: (req: unknown, res: { setHeader: (name: string, value: string) => void; end: (body: Buffer) => void }) => void) => void } }) {
+  configureServer(server: ViteDevServer) {
+    server.middlewares.use((req, res, next) => {
+      const acceptsHtml = String(req.headers.accept || '').includes('text/html');
+      if (!acceptsHtml) {
+        next();
+        return;
+      }
+      res.statusCode = 307;
+      res.setHeader('Location', `http://localhost:3000${req.url || '/'}`);
+      res.setHeader('Cache-Control', 'no-store');
+      res.end();
+    });
     server.middlewares.use('/shared-chat.js', (_req, res) => {
       res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
       res.end(readFileSync(sharedChatAssets.js));
@@ -66,6 +87,8 @@ export default defineConfig({
         'team-create': resolve(__dirname, 'team-create.html'),
         passport: resolve(__dirname, 'passport.html'),
         'organizer-panel': resolve(__dirname, 'organizer-panel.html'),
+        marketplace: resolve(__dirname, 'marketplace.html'),
+        'seller-erp': resolve(__dirname, 'seller-erp.html'),
       },
       output: {
         manualChunks(id) {
@@ -82,7 +105,15 @@ export default defineConfig({
     open: false,
     proxy: {
       '/api': {
-        target: 'http://localhost:3000',
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+      },
+      '/auth': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+      },
+      '/health': {
+        target: 'http://localhost:3001',
         changeOrigin: true,
       },
     },

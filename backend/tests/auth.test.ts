@@ -6,6 +6,7 @@ import { createApp } from '../src/app.js';
 import { extractVerifiedSteamId, type SteamAuthService } from '../src/auth/steam-openid.service.js';
 import type { AppConfig } from '../src/config/env.js';
 import { AppError } from '../src/errors/app-error.js';
+import type { SteamFriendProfile, SteamFriendsService } from '../src/friends/steam-friends.service.js';
 import type { PublicUser, SteamProfileInput, UserRepository } from '../src/users/user.types.js';
 
 const config: AppConfig = {
@@ -44,7 +45,7 @@ class MemoryUsers implements UserRepository {
     const now = new Date();
     const user: PublicUser = current
       ? { ...current, ...input, lastLoginAt: now, updatedAt: now }
-      : { ...input, id: `user-${this.bySteamId.size + 1}`, role: 'PLAYER', status: 'ACTIVE', lastLoginAt: now, createdAt: now, updatedAt: now };
+      : { ...input, id: `user-${this.bySteamId.size + 1}`, role: 'PLAYER', status: 'ACTIVE', showcaseVisible: true, lastLoginAt: now, createdAt: now, updatedAt: now };
     this.bySteamId.set(input.steamId64, user);
     this.byId.set(user.id, user);
     return user;
@@ -52,6 +53,23 @@ class MemoryUsers implements UserRepository {
 
   async findById(id: string): Promise<PublicUser | null> {
     return this.byId.get(id) ?? null;
+  }
+
+  async findActiveBySteamIds(steamIds: string[]): Promise<PublicUser[]> {
+    return steamIds.map(steamId => this.bySteamId.get(steamId)).filter((user): user is PublicUser => user?.status === 'ACTIVE');
+  }
+
+  async findActiveByDisplayName(displayName: string): Promise<PublicUser | null> {
+    return [...this.byId.values()].find(user => user.status === 'ACTIVE' && user.displayName.toLowerCase() === displayName.toLowerCase()) ?? null;
+  }
+
+  async updateShowcaseVisibility(id: string, visible: boolean): Promise<PublicUser | null> {
+    const user = this.byId.get(id);
+    if (!user || user.status !== 'ACTIVE') return null;
+    const updated = { ...user, showcaseVisible: visible, updatedAt: new Date() };
+    this.byId.set(id, updated);
+    this.bySteamId.set(updated.steamId64, updated);
+    return updated;
   }
 }
 
@@ -64,11 +82,22 @@ class FakeSteam implements SteamAuthService {
   }
 }
 
-function app(users = new MemoryUsers(), steam = new FakeSteam()) {
+class FakeSteamFriends implements SteamFriendsService {
+  requestedSteamId: string | null = null;
+  constructor(private readonly result: SteamFriendProfile[] | Error = []) {}
+  async listFriends(steamId64: string): Promise<SteamFriendProfile[]> {
+    this.requestedSteamId = steamId64;
+    if (this.result instanceof Error) throw this.result;
+    return this.result;
+  }
+}
+
+function app(users = new MemoryUsers(), steam = new FakeSteam(), steamFriends = new FakeSteamFriends()) {
   return createApp({
     config,
     users,
     steam,
+    steamFriends,
     sessionStore: new session.MemoryStore(),
     logger: pino({ level: 'silent' }),
   });
@@ -116,6 +145,18 @@ describe('Steam authentication', () => {
     expect(users.bySteamId.size).toBe(1);
   });
 
+  it('keeps the Steam session authenticated while the user navigates between frontend pages', async () => {
+    const agent = request.agent(app());
+    await agent.get('/auth/steam/callback?openid.mode=id_res');
+
+    const homeSession = await agent.get('/auth/me').set('Referer', 'http://frontend.test/');
+    const arenaSession = await agent.get('/auth/me').set('Referer', 'http://frontend.test/csgo.html');
+
+    expect(homeSession.status).toBe(200);
+    expect(arenaSession.status).toBe(200);
+    expect(arenaSession.body.user.steamId64).toBe(homeSession.body.user.steamId64);
+  });
+
   it('blocks open redirects', async () => {
     const agent = request.agent(app());
     await agent.get('/auth/steam?returnTo=//evil.test/steal');
@@ -149,10 +190,18 @@ describe('security middleware', () => {
 
   it('rate limits repeated authentication requests', async () => {
     const target = app();
-    let response = await request(target).get('/auth/me');
-    for (let index = 1; index <= 100; index += 1) response = await request(target).get('/auth/me');
+    let response = await request(target).get('/auth/steam');
+    for (let index = 1; index <= 100; index += 1) response = await request(target).get('/auth/steam');
     expect(response.status).toBe(429);
     expect(response.body.error.code).toBe('RATE_LIMITED');
+  });
+
+  it('does not rate limit session checks used while navigating between pages', async () => {
+    const target = app();
+    let response = await request(target).get('/auth/me');
+    for (let index = 1; index <= 120; index += 1) response = await request(target).get('/auth/me');
+    expect(response.status).toBe(401);
+    expect(response.body.error.code).toBe('AUTHENTICATION_REQUIRED');
   });
 
   it('does not expose unexpected error details', async () => {
@@ -171,6 +220,12 @@ describe('security middleware', () => {
     expect(response.body).toEqual({ ok: true, service: 'clutchzone-backend' });
   });
 
+  it('returns readiness without exposing dependency details', async () => {
+    const response = await request(app()).get('/ready');
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ ok: true, service: 'clutchzone-backend' });
+  });
+
   it('keeps unknown routes behind the global 404 handler', async () => {
     const response = await request(app()).get('/route-that-does-not-exist');
     expect(response.status).toBe(404);
@@ -185,5 +240,35 @@ describe('user uniqueness', () => {
     const response = await request(app(users)).get('/auth/steam/callback?openid.mode=id_res');
     expect(response.status).toBe(409);
     expect(response.body.error.code).toBe('STEAM_ID_CONFLICT');
+  });
+});
+
+describe('Steam friends integration', () => {
+  it('requires a backend session', async () => {
+    const response = await request(app()).get('/api/friends/steam');
+    expect(response.status).toBe(401);
+    expect(response.body.error.code).toBe('AUTHENTICATION_REQUIRED');
+  });
+
+  it('uses the SteamID from the authenticated database user and identifies Clutchzone members', async () => {
+    const users = new MemoryUsers();
+    const steamFriends = new FakeSteamFriends([{
+      steamId64: '76561198000000001',
+      displayName: 'Steam Friend',
+      avatarUrl: 'https://avatars.steamstatic.com/friend.jpg',
+      profileUrl: 'https://steamcommunity.com/profiles/76561198000000001/',
+      personaState: 1,
+      friendSince: new Date('2020-01-01T00:00:00.000Z'),
+    }]);
+    await users.upsertFromSteam({ ...profile, steamId64: '76561198000000001', displayName: 'Clutch Friend' });
+    const agent = request.agent(app(users, new FakeSteam(), steamFriends));
+    await agent.get('/auth/steam/callback?openid.mode=id_res');
+    const response = await agent.get('/api/friends/steam?steamId64=76561198999999999');
+    expect(response.status).toBe(200);
+    expect(steamFriends.requestedSteamId).toBe(profile.steamId64);
+    expect(response.body.friends[0]).toMatchObject({
+      steamId64: '76561198000000001',
+      clutchzoneUser: { displayName: 'Clutch Friend' },
+    });
   });
 });

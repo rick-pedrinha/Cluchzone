@@ -1,10 +1,39 @@
 'use strict';
 
 (function () {
+  if (window.ClutchAuth?.ready) return;
+
   const configuredUrl = String(window.CLUCHZONE_BACKEND_URL || document.querySelector('meta[name="clutchzone-backend-url"]')?.content || '').trim();
   const isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
   const backendUrl = (configuredUrl || (isLocal ? 'http://localhost:3001' : '')).replace(/\/$/, '');
   let currentUser = null;
+  let authState = 'loading';
+  let recoveryTimer = null;
+  let recoveryAttempt = 0;
+  let refreshPromise = null;
+
+  const wait = milliseconds => new Promise(resolve => window.setTimeout(resolve, milliseconds));
+
+  function dispatchAuthChanged() {
+    window.dispatchEvent(new CustomEvent('clutchzone-auth-changed', { detail: currentUser }));
+  }
+
+  function clearRecovery() {
+    if (recoveryTimer) window.clearTimeout(recoveryTimer);
+    recoveryTimer = null;
+    recoveryAttempt = 0;
+  }
+
+  function scheduleRecovery() {
+    if (recoveryTimer || document.visibilityState === 'hidden') return;
+    const delay = Math.min(30000, 2000 * (2 ** recoveryAttempt));
+    recoveryAttempt += 1;
+    recoveryTimer = window.setTimeout(async () => {
+      recoveryTimer = null;
+      await refresh();
+      if (authState === 'unavailable') scheduleRecovery();
+    }, delay);
+  }
 
   function normalizeUser(user) {
     return {
@@ -27,6 +56,7 @@
       provider: 'steam',
       role: String(user.role || 'PLAYER').toLowerCase(),
       status: user.status,
+      showcaseVisible: user.showcaseVisible !== false,
       premium: false,
       games: ['CS2', 'PUBG'],
       createdAt: user.createdAt,
@@ -43,18 +73,43 @@
     });
     if (response.status === 204) return null;
     const payload = await response.json().catch(() => null);
-    if (!response.ok) throw new Error(payload?.error?.message || 'Falha na autenticação.');
+    if (!response.ok) {
+      const error = new Error(payload?.error?.message || 'Falha na autenticação.');
+      error.status = response.status;
+      throw error;
+    }
     return payload;
   }
 
   async function loadUser() {
-    try {
-      const payload = await api('/auth/me');
-      currentUser = normalizeUser(payload.user);
-    } catch (_) {
-      currentUser = null;
+    const retryDelays = [0, 250, 800, 1600];
+    let lastError = null;
+    for (const delay of retryDelays) {
+      if (delay) await wait(delay);
+      try {
+        const payload = await api('/auth/me');
+        currentUser = normalizeUser(payload.user);
+        authState = 'authenticated';
+        clearRecovery();
+        dispatchAuthChanged();
+        return currentUser;
+      } catch (error) {
+        lastError = error;
+        if (error?.status === 401) {
+          currentUser = null;
+          authState = 'anonymous';
+          clearRecovery();
+          dispatchAuthChanged();
+          return null;
+        }
+        const transient = !error?.status || error.status === 429 || error.status >= 500;
+        if (!transient) break;
+      }
     }
-    window.dispatchEvent(new CustomEvent('clutchzone-auth-changed', { detail: currentUser }));
+    console.warn('[ClutchAuth] A sessão será sincronizada novamente em segundo plano.', lastError?.message || lastError);
+    authState = currentUser ? 'authenticated' : 'unavailable';
+    scheduleRecovery();
+    dispatchAuthChanged();
     return currentUser;
   }
 
@@ -138,13 +193,21 @@
   function renderNavigation() {
     const actions = document.querySelector('.nav-actions');
     if (!actions) return;
-    actions.querySelectorAll('.btn-nav-login, .btn-nav-register, .btn-login, .btn-register, .nav-user-wrapper').forEach(element => element.remove());
+    actions.querySelectorAll('.btn-nav-login, .btn-nav-register, .btn-login, .btn-register, .btn-nav-session-error, .btn-nav-session-sync, .nav-user-wrapper').forEach(element => element.remove());
     if (!currentUser) {
       const button = document.createElement('button');
       button.type = 'button';
-      button.className = 'btn-nav-login';
-      button.textContent = 'Entrar com Steam';
-      button.addEventListener('click', openModal);
+      if (authState === 'unavailable' || authState === 'loading') {
+        button.className = 'btn-nav-session-sync';
+        button.textContent = 'Sincronizando Steam…';
+        button.title = 'A sessão será restaurada automaticamente assim que o backend responder.';
+        button.disabled = true;
+        button.setAttribute('aria-live', 'polite');
+      } else {
+        button.className = 'btn-nav-login';
+        button.textContent = 'Entrar com Steam';
+        button.addEventListener('click', openModal);
+      }
       actions.appendChild(button);
       return;
     }
@@ -183,10 +246,35 @@
     actions.appendChild(wrapper);
   }
 
+  async function refresh() {
+    if (refreshPromise) return refreshPromise;
+    if (!currentUser) authState = 'loading';
+    refreshPromise = loadUser().then(user => {
+      renderNavigation();
+      return user;
+    }).finally(() => { refreshPromise = null; });
+    return refreshPromise;
+  }
+
   const ready = loadUser();
-  window.ClutchAuth = { ready, getUser: () => currentUser, login, logout, open: openModal, backendUrl };
+  window.ClutchAuth = {
+    ready,
+    getUser: () => currentUser,
+    getState: () => authState,
+    refresh,
+    login,
+    logout,
+    open: openModal,
+    backendUrl,
+  };
   window.openAuthModal = openModal;
   window.logoutUser = logout;
+
+  window.addEventListener('online', () => { void refresh(); });
+  window.addEventListener('pageshow', event => { if (event.persisted) void refresh(); });
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && authState === 'unavailable') void refresh();
+  });
 
   document.addEventListener('DOMContentLoaded', async () => {
     buildModal();

@@ -26,8 +26,22 @@ document.addEventListener('DOMContentLoaded', async () => {
   };
 
   // 1. Recover current user session
-  let currentUser = window.ClutchAuth?.getUser() || null;
+  const authenticatedUser = window.ClutchAuth?.getUser() || null;
+  let currentUser = authenticatedUser;
   let isPremiumUser = localStorage.getItem('cluchzone_premium') === 'true';
+
+  const sessionCard = document.getElementById('cs2-session-card');
+  const sessionName = document.getElementById('cs2-session-name');
+  if (authenticatedUser) {
+    sessionCard?.setAttribute('data-state', 'authenticated');
+    if (sessionName) sessionName.textContent = `${authenticatedUser.displayName || authenticatedUser.nick} · conectado`;
+  } else if (window.ClutchAuth?.getState?.() === 'unavailable') {
+    sessionCard?.setAttribute('data-state', 'loading');
+    if (sessionName) sessionName.textContent = 'Backend indisponível · sessão preservada';
+  } else {
+    sessionCard?.setAttribute('data-state', 'anonymous');
+    if (sessionName) sessionName.textContent = 'Entre uma vez para sincronizar sua conta';
+  }
 
   // Fallback guest session if not logged in — no permissions
   if (!currentUser) {

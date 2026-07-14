@@ -19,17 +19,15 @@ function initTeams() {
     : 'my-teams.html';
 
   // 1. Get logged-in user
-  let currentUser = window.ClutchAuth?.getUser() || null;
+  const currentUser = window.ClutchAuth?.getUser() || null;
   if (!currentUser) {
-    currentUser = { nick: "Jogador_Convidado", provider: "email", games: ["CS2"] };
+    window.ClutchAuth?.login?.();
+    return;
   }
 
   // 2. Load data from localStorage
   let teams = JSON.parse(localStorage.getItem(STORAGE_KEY_TEAMS)) || [];
-  let invites = JSON.parse(localStorage.getItem(STORAGE_KEY_INVITES)) || [
-    // Pre-filled sample invite for guest user
-    { id: 1, teamName: "MIBR Classic", captain: "Apex_Lead", invitee: currentUser.nick, status: "pending" }
-  ];
+  let invites = JSON.parse(localStorage.getItem(STORAGE_KEY_INVITES)) || [];
   let notifications = JSON.parse(localStorage.getItem(STORAGE_KEY_NOTIFS)) || [];
 
   // Sync data to localStorage and Firebase Firestore
@@ -148,7 +146,7 @@ function initTeams() {
     const captainNameInput = document.getElementById('tm-captain-name');
     if (captainNameInput) captainNameInput.value = currentUser.nick;
 
-    teamCreateForm.addEventListener('submit', (e) => {
+    teamCreateForm.addEventListener('submit', async (e) => {
       e.preventDefault();
 
       const name = document.getElementById('tm-name').value;
@@ -170,22 +168,47 @@ function initTeams() {
         return;
       }
 
-      if (teams.some(t => t.name.toLowerCase() === name.toLowerCase())) {
+      const existingLocalTeam = teams.find(t => t.name.toLowerCase() === name.toLowerCase());
+      const alreadySynced = existingLocalTeam && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(existingLocalTeam.id || ''));
+      if (alreadySynced) {
         showToast("⚠️ Este nome de equipe já está cadastrado!", "#ffd700");
         return;
       }
 
+      const requestedMembers = [
+        ...(viceCap ? [{ displayName: viceCap, role: 'VICE_CAPTAIN' }] : []),
+        ...titMembers.map(displayName => ({ displayName, role: 'PLAYER' })),
+        ...resMembers.map(displayName => ({ displayName, role: 'RESERVE' })),
+      ];
+      let serverTeam;
+      try {
+        serverTeam = await window.CluchAPI?.createTeam?.({
+          name,
+          tag,
+          description: desc || null,
+          region,
+          members: requestedMembers,
+        });
+        if (!serverTeam) throw new Error('O backend não confirmou a criação da equipe.');
+      } catch (error) {
+        showToast(`Não foi possível criar a equipe: ${error.message}`, '#ff5d5d');
+        return;
+      }
+
+      const captain = serverTeam.members.find(member => member.role === 'CAPTAIN')?.displayName || currentUser.nick;
+      const vice = serverTeam.members.find(member => member.role === 'VICE_CAPTAIN')?.displayName || '';
       const newTeam = {
+        id: serverTeam.id,
         logo: logoBase64 ? `<img src="${logoBase64}"/>` : "🛡️",
         banner: bannerBase64 || 'https://images.alphacoders.com/605/605592.jpg',
         name: name,
         tag: tag,
         description: desc,
         region: region,
-        captain: currentUser.nick,
-        vice: viceCap,
-        members: [currentUser.nick, viceCap, ...titMembers],
-        reserves: resMembers,
+        captain,
+        vice,
+        members: serverTeam.members.filter(member => member.role !== 'RESERVE').map(member => member.displayName),
+        reserves: serverTeam.members.filter(member => member.role === 'RESERVE').map(member => member.displayName),
         socials: { discord, steam, insta, site },
         stats: "0-0",
         winrate: "0%",
@@ -196,7 +219,7 @@ function initTeams() {
         medals: ["🛡️ Recém Cadastrado"]
       };
 
-      teams.push(newTeam);
+      teams = [...teams.filter(team => team.id !== newTeam.id && team.name.toLowerCase() !== newTeam.name.toLowerCase()), newTeam];
       syncStorage(STORAGE_KEY_TEAMS, teams);
 
       addNotification(`A equipe ${name} [${tag}] foi criada oficialmente!`);

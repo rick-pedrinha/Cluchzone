@@ -7,9 +7,14 @@ import { createApp } from './app.js';
 import { SteamOpenIdService } from './auth/steam-openid.service.js';
 import { loadConfig } from './config/env.js';
 import { logger } from './config/logger.js';
+import { SteamWebApiFriendsService } from './friends/steam-friends.service.js';
+import { SteamCommunityCs2InventoryService } from './inventory/cs2-inventory.service.js';
+import { PrismaMatchRepository } from './matches/prisma-match.repository.js';
+import { PrismaMarketplaceRepository } from './marketplace/prisma-marketplace.repository.js';
 import { PrismaRateLimitStore } from './middleware/prisma-rate-limit.store.js';
 import { PrismaUserRepository } from './users/prisma-user.repository.js';
 import { PrismaStateRepository } from './state/state.repository.js';
+import { PrismaTeamRepository } from './teams/prisma-team.repository.js';
 
 loadDotEnv({ quiet: true });
 
@@ -26,10 +31,23 @@ async function main(): Promise<void> {
     config,
     users: new PrismaUserRepository(prisma),
     steam,
+    steamFriends: new SteamWebApiFriendsService(config.steamApiKey),
+    inventory: new SteamCommunityCs2InventoryService(),
     sessionStore,
     rateLimitStore: new PrismaRateLimitStore(prisma),
+    friendsRateLimitStore: new PrismaRateLimitStore(prisma, 'steam-friends:'),
+    inventoryRateLimitStore: new PrismaRateLimitStore(prisma, 'cs2-inventory:'),
+    showcaseRateLimitStore: new PrismaRateLimitStore(prisma, 'player-showcase:'),
+    matchesRateLimitStore: new PrismaRateLimitStore(prisma, 'matches:'),
+    marketplaceRateLimitStore: new PrismaRateLimitStore(prisma, 'marketplace:'),
+    sellerRateLimitStore: new PrismaRateLimitStore(prisma, 'seller:'),
+    teamsRateLimitStore: new PrismaRateLimitStore(prisma, 'teams:'),
     logger,
     states: new PrismaStateRepository(prisma),
+    matches: new PrismaMatchRepository(prisma),
+    marketplace: new PrismaMarketplaceRepository(prisma),
+    teams: new PrismaTeamRepository(prisma),
+    readiness: async () => { await prisma.$queryRaw`SELECT 1`; },
   });
   const server = app.listen(config.port, () => logger.info({ port: config.port }, 'server started'));
 

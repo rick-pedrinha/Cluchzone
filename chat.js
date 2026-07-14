@@ -6,7 +6,6 @@
   const ORG_NAME = document.querySelector('meta[name="org-name"]')?.content || 'Organizador';
   const SOCIAL_KEY = 'cluchzone_social_network_v1';
   const AUTH_KEY = 'cluchzone_auth';
-  const TEAM_KEY = 'cluchzone_cs2_teams';
   const HIDDEN_TEAM_CHATS_KEY = 'cluchzone_hidden_team_chats';
 
   let social = { profiles: [], friendships: [], conversations: [], teamChats: [] };
@@ -14,10 +13,13 @@
   let activeConversationId = null;
   let activeTeamName = null;
   let userTeams = [];
+  const teamMessagesById = new Map();
   let hiddenTeamChats = new Set();
   let activeTab = 'room';
   let isOpen = false;
   let serverSocialAvailable = null;
+  let steamFriends = [];
+  let steamFriendsStatus = 'idle';
 
   const escapeHtml = value => String(value || '').replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
   const userKey = nick => String(nick || '').trim().toLowerCase();
@@ -49,11 +51,20 @@
   }
 
   function buildWidget() {
+    const competitiveMode = document.body.classList.contains('csgo-theme');
+    const toggleTitle = competitiveMode ? 'COMMS' : 'Bate-papo';
+    const toggleSubtitle = competitiveMode ? 'Esquadrão online' : 'Comunidade ao vivo';
     const wrapper = document.createElement('div');
     wrapper.id = 'clutch-social-widget';
     wrapper.innerHTML = `
       <div id="team-chat-buttons" aria-label="Chats das minhas equipes"></div>
-      <button id="chat-toggle-btn" aria-label="Abrir bate-papo com a comunidade" title="Bate-papo com a comunidade"><span class="chat-toggle-icon">💬</span><span class="chat-toggle-copy"><strong>Bate-papo</strong><small>Comunidade ao vivo</small></span><span class="chat-notif" id="chat-notif">3</span></button>
+      <button id="chat-toggle-btn" aria-label="Abrir comunicações ClutchZone" title="Abrir comunicações">
+        <span class="c4-wires" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="chat-toggle-icon" aria-hidden="true"><i class="c4-led"></i>●</span>
+        <span class="c4-display"><span class="chat-toggle-copy"><strong>${toggleTitle}</strong><small>${toggleSubtitle}</small></span></span>
+        <span class="c4-keypad" aria-hidden="true">${'<i></i>'.repeat(9)}</span>
+        <span class="chat-notif" id="chat-notif">3</span>
+      </button>
       <section id="chat-panel" role="dialog" aria-label="Bate-papo CLUTCHZONE">
         <header class="chat-header">
           <div class="chat-header-icon">${GAME_ICON}</div>
@@ -63,7 +74,7 @@
         <nav class="chat-tabs" aria-label="Seções do chat">
           <button class="chat-tab active" data-tab="room">🏠 Sala</button>
           <button class="chat-tab" data-tab="social">👥 Amigos <span class="social-request-badge" id="social-request-badge" hidden>0</span></button>
-          <button class="chat-tab" id="team-chat-tab" data-tab="team" style="display:none">🛡 Equipes</button>
+          <button class="chat-tab" id="team-chat-tab" data-tab="team">▥ Equipe</button>
           <button class="chat-tab" data-tab="dm">🏆 Org.</button>
         </nav>
         <div id="tab-room" class="chat-tab-content">
@@ -85,7 +96,7 @@
             <div class="chat-input-area"><input id="social-message-input" maxlength="500" placeholder="Escreva uma mensagem..." autocomplete="off"><button id="social-send-btn" type="button" aria-label="Enviar">➤</button></div>
           </div>
         </div>
-        <div id="tab-team" class="chat-tab-content" style="display:none"><div class="team-chat-picker" id="team-chat-picker" aria-label="Escolha uma equipe"></div><div class="team-chat-head"><button id="team-chat-change-btn" type="button" title="Próxima equipe">🛡</button><div><strong id="team-chat-name">Chat da equipe</strong><small id="team-chat-members">Equipe privada</small></div></div><div class="chat-messages" id="team-chat-messages"></div><div class="chat-input-area"><input id="team-chat-input" maxlength="500" placeholder="Mensagem para a equipe..." autocomplete="off"><button id="team-chat-send-btn" type="button" aria-label="Enviar">➤</button></div></div>
+        <div id="tab-team" class="chat-tab-content" style="display:none"><div class="team-chat-picker" id="team-chat-picker" aria-label="Escolha uma equipe"></div><div class="team-chat-head"><button id="team-chat-change-btn" type="button" title="Próxima equipe">▦</button><div><strong id="team-chat-name">Canal da equipe</strong><small id="team-chat-members">Criptografado · somente roster</small></div></div><div class="chat-messages" id="team-chat-messages"></div><div class="chat-input-area"><input id="team-chat-input" maxlength="500" placeholder="Mensagem tática para a equipe..." autocomplete="off"><button id="team-chat-send-btn" type="button" aria-label="Enviar">➤</button></div></div>
         <div id="tab-dm" class="chat-tab-content" style="display:none"><div class="chat-dm-header"><div class="chat-dm-avatar">🏆</div><strong class="chat-dm-name">${escapeHtml(ORG_NAME)}</strong><small class="chat-dm-role">Organizador verificado</small></div><div class="chat-messages" id="chat-messages-dm"></div><div class="chat-input-area"><input id="chat-input-dm" maxlength="300" placeholder="Mensagem para o organizador..." autocomplete="off"><button id="chat-send-dm-btn" type="button" aria-label="Enviar">➤</button></div></div>
       </section>`;
     document.body.appendChild(wrapper);
@@ -162,25 +173,32 @@
     }, 3000);
   }
 
-  async function loadUserTeams() {
-    if (!currentUser?.nick) return;
-    let teams = null;
-    try { teams = await window.CluchAPI?.getStore(TEAM_KEY, null); } catch (_) { teams = null; }
-    if (!Array.isArray(teams)) {
-      try { teams = JSON.parse(localStorage.getItem(TEAM_KEY) || '[]'); } catch (_) { teams = []; }
+  async function loadSteamFriends() {
+    if (!currentUser?.steamId64 || !window.CluchAPI?.getSteamFriends) return;
+    steamFriendsStatus = 'loading';
+    renderSocial();
+    try {
+      steamFriends = await window.CluchAPI.getSteamFriends();
+      steamFriendsStatus = 'ready';
+    } catch (error) {
+      steamFriends = [];
+      steamFriendsStatus = error?.code === 'STEAM_FRIENDS_PRIVATE' ? 'private' : 'error';
     }
-    const me = userKey(currentUser.nick);
-    userTeams = teams.filter(team => userKey(team.captain) === me || userKey(team.vice) === me || team.members?.some(member => userKey(member) === me));
-    renderTeamButtons();
-    if (!activeTeamName && userTeams.length) activeTeamName = userTeams[0].name;
-    renderTeamChat();
-    window.CluchAPI?.onStoreChange?.(TEAM_KEY, freshTeams => {
-      if (!Array.isArray(freshTeams)) return;
-      userTeams = freshTeams.filter(team => userKey(team.captain) === me || userKey(team.vice) === me || team.members?.some(member => userKey(member) === me));
-      if (!userTeams.some(team => team.name === activeTeamName)) activeTeamName = userTeams[0]?.name || null;
+    renderSocial();
+  }
+
+  async function loadUserTeams() {
+    if (!currentUser?.uid || !window.CluchAPI?.getMyTeams) {
+      userTeams = [];
       renderTeamButtons();
       renderTeamChat();
-    });
+      return;
+    }
+    try { userTeams = await window.CluchAPI.getMyTeams(); } catch (_) { userTeams = []; }
+    renderTeamButtons();
+    if (!activeTeamName && userTeams.length) activeTeamName = userTeams[0].name;
+    if (!userTeams.some(team => team.name === activeTeamName)) activeTeamName = userTeams[0]?.name || null;
+    renderTeamChat();
   }
 
   function renderTeamButtons() {
@@ -192,7 +210,7 @@
       button.className = 'team-chat-float-btn';
       button.setAttribute('role', 'button');
       button.tabIndex = 0;
-      button.innerHTML = `<span>🛡</span><span><strong>${escapeHtml(team.name)}</strong><small>Chat do time</small></span><button class="team-chat-dismiss" type="button" aria-label="Ocultar chat de ${escapeHtml(team.name)}" title="Ocultar atalho">×</button>`;
+      button.innerHTML = `<span>▦</span><span><strong>${escapeHtml(team.name)}</strong><small>${team.members?.length || 0} no canal privado</small></span><button class="team-chat-dismiss" type="button" aria-label="Ocultar chat de ${escapeHtml(team.name)}" title="Ocultar atalho">×</button>`;
       button.addEventListener('click', () => {
         activeTeamName = team.name;
         isOpen = true;
@@ -212,11 +230,11 @@
   function publishCurrentProfile() {
     if (!currentUser?.nick) return;
     const id = userKey(currentUser.nick);
-    const localAvatar = getProfileAvatar();
+    const localAvatar = currentUser.avatar || getProfileAvatar();
     // Evita enviar imagens grandes em Base64 para o documento compartilhado do chat.
-    const profile = { id, nick: currentUser.nick, avatar: localAvatar.length <= 12000 ? localAvatar : '', updatedAt: Date.now() };
+    const profile = { id, nick: currentUser.nick, avatar: localAvatar.length <= 12000 ? localAvatar : '', steamId64: currentUser.steamId64 || null, updatedAt: Date.now() };
     const index = social.profiles.findIndex(item => item.id === id);
-    const changed = index < 0 || social.profiles[index].nick !== profile.nick || social.profiles[index].avatar !== profile.avatar;
+    const changed = index < 0 || social.profiles[index].nick !== profile.nick || social.profiles[index].avatar !== profile.avatar || social.profiles[index].steamId64 !== profile.steamId64;
     if (changed) {
       if (index < 0) social.profiles.push(profile); else social.profiles[index] = { ...social.profiles[index], ...profile };
       saveSocial();
@@ -318,10 +336,15 @@
     const count = document.getElementById('social-friend-count');
     if (!container || !count) return;
     const friends = friendProfiles();
-    count.textContent = friends.length;
+    const localSteamIds = new Set(friends.map(profile => profile.steamId64).filter(Boolean));
+    const visibleSteamFriends = steamFriends.filter(friend => {
+      if (localSteamIds.has(friend.steamId64)) return false;
+      const registeredName = friend.clutchzoneUser?.displayName;
+      return !registeredName || !friends.some(profile => userKey(profile.nick) === userKey(registeredName));
+    });
+    count.textContent = friends.length + visibleSteamFriends.length;
     container.innerHTML = '';
     if (!currentUser?.nick) return;
-    if (!friends.length) { container.innerHTML = '<p class="social-empty">Busque um usuário acima para começar sua rede.</p>'; return; }
     friends.sort((a, b) => (conversationFor(b.id)?.updatedAt || 0) - (conversationFor(a.id)?.updatedAt || 0)).forEach(profile => {
       const conversation = conversationFor(profile.id);
       const last = conversation?.messages?.at(-1);
@@ -332,6 +355,31 @@
       row.addEventListener('click', () => { activeConversationId = conversationFor(profile.id, true).id; renderSocial(); });
       container.appendChild(row);
     });
+    visibleSteamFriends
+      .sort((a, b) => Number(b.personaState > 0) - Number(a.personaState > 0) || a.displayName.localeCompare(b.displayName))
+      .forEach(friend => {
+        const online = Number(friend.personaState) > 0;
+        const row = document.createElement('a');
+        row.className = 'social-friend-row steam-friend-row';
+        row.href = friend.profileUrl;
+        row.target = '_blank';
+        row.rel = 'noopener noreferrer';
+        const friendProfile = { nick: friend.displayName, avatar: friend.avatarUrl };
+        const membership = friend.clutchzoneUser ? ' · CLUTCHZONE' : '';
+        row.innerHTML = `<span class="social-user-avatar">${avatarMarkup(friendProfile)}<i class="${online ? '' : 'offline'}"></i></span><span><strong>${escapeHtml(friend.displayName)} <em class="steam-source-badge">STEAM</em></strong><small>${online ? 'Online' : 'Offline'}${membership}</small></span><time aria-hidden="true">↗</time>`;
+        container.appendChild(row);
+      });
+    if (!friends.length && !visibleSteamFriends.length && steamFriendsStatus === 'ready') {
+      container.innerHTML = '<p class="social-empty">Nenhum amigo encontrado no Clutchzone ou na Steam.</p>';
+    } else if (steamFriendsStatus === 'loading') {
+      container.insertAdjacentHTML('beforeend', '<p class="social-empty steam-friends-note">Sincronizando amigos da Steam...</p>');
+    } else if (steamFriendsStatus === 'private') {
+      container.insertAdjacentHTML('beforeend', '<p class="social-empty steam-friends-note">Sua lista de amigos Steam está privada. Altere a privacidade do perfil para sincronizá-la.</p>');
+    } else if (steamFriendsStatus === 'error') {
+      container.insertAdjacentHTML('beforeend', '<p class="social-empty steam-friends-note">Não foi possível sincronizar a Steam agora.</p>');
+    } else if (!friends.length && steamFriendsStatus === 'idle') {
+      container.innerHTML = '<p class="social-empty">Busque um usuário acima para começar sua rede.</p>';
+    }
   }
 
   function renderConversation() {
@@ -378,30 +426,58 @@
 
   function activeTeam() { return userTeams.find(team => team.name === activeTeamName) || null; }
 
-  function teamChatFor(team, create) {
-    if (!team) return null;
-    const id = `team_${userKey(team.name)}`;
-    let chat = social.teamChats.find(item => item.id === id);
-    if (!chat && create) {
-      chat = { id, teamName: team.name, messages: [], updatedAt: Date.now() };
-      social.teamChats.push(chat);
+  function paintTeamMessages(team) {
+    const list = document.getElementById('team-chat-messages');
+    if (!list) return;
+    list.innerHTML = '';
+    if (!team) {
+      const empty = document.createElement('div');
+      empty.className = 'chat-system-msg team-chat-empty';
+      empty.innerHTML = currentUser
+        ? 'Você ainda não participa de uma equipe registrada no servidor.<br><a href="team-create.html">Criar equipe competitiva →</a>'
+        : 'Entre com a Steam para acessar o canal privado da sua equipe.';
+      list.appendChild(empty);
+      return;
     }
-    return chat;
+    const messages = teamMessagesById.get(team.id) || [];
+    if (!messages.length) {
+      const welcome = document.createElement('div');
+      welcome.className = 'chat-system-msg';
+      welcome.textContent = `Canal privado de ${team.name}. Somente membros validados conseguem ler ou enviar mensagens.`;
+      list.appendChild(welcome);
+    }
+    messages.forEach(message => list.appendChild(messageElement({
+      nick: message.displayName,
+      text: message.text,
+      createdAt: new Date(message.createdAt).getTime(),
+    }, message.userId === currentUser?.uid)));
+    list.scrollTop = list.scrollHeight;
+  }
+
+  async function refreshTeamMessages() {
+    const team = activeTeam();
+    if (!team?.id || !window.CluchAPI?.getTeamMessages) return;
+    try {
+      teamMessagesById.set(team.id, await window.CluchAPI.getTeamMessages(team.id));
+      if (activeTeam()?.id === team.id) paintTeamMessages(team);
+    } catch (_) {
+      teamMessagesById.set(team.id, []);
+      paintTeamMessages(team);
+    }
   }
 
   function renderTeamChat() {
     const tab = document.getElementById('team-chat-tab');
     const team = activeTeam();
-    if (tab) tab.style.display = userTeams.length ? '' : 'none';
-    if (!team) return;
+    if (tab) tab.style.display = '';
     const picker = document.getElementById('team-chat-picker');
     if (picker) {
       picker.innerHTML = '';
       userTeams.forEach(userTeam => {
         const option = document.createElement('button');
         option.type = 'button';
-        option.className = `team-chat-option${userTeam.name === team.name ? ' active' : ''}`;
-        option.innerHTML = `<span>🛡</span><strong>${escapeHtml(userTeam.name)}</strong><small>${userTeam.members?.length || 0} jogadores</small>`;
+        option.className = `team-chat-option${userTeam.name === team?.name ? ' active' : ''}`;
+        option.innerHTML = `<span>▦</span><strong>${escapeHtml(userTeam.name)}</strong><small>${userTeam.members?.length || 0} jogadores</small>`;
         option.addEventListener('click', () => {
           activeTeamName = userTeam.name;
           renderTeamChat();
@@ -409,33 +485,39 @@
         picker.appendChild(option);
       });
     }
-    const chat = teamChatFor(team, true);
-    document.getElementById('team-chat-name').textContent = team.name;
-    document.getElementById('team-chat-members').textContent = `${team.members?.length || 0} jogadores no roster`;
-    const list = document.getElementById('team-chat-messages');
-    list.innerHTML = '';
-    if (!chat.messages.length) {
-      const welcome = document.createElement('div');
-      welcome.className = 'chat-system-msg';
-      welcome.textContent = `Canal privado de ${team.name}. Organize seu time aqui.`;
-      list.appendChild(welcome);
-    }
-    chat.messages.forEach(message => list.appendChild(messageElement(message, message.from === userKey(currentUser?.nick))));
-    list.scrollTop = list.scrollHeight;
+    document.getElementById('team-chat-name').textContent = team?.name || 'Canal da equipe';
+    document.getElementById('team-chat-members').textContent = team
+      ? `${team.members?.length || 0} membros · acesso validado no servidor`
+      : 'Privado · somente roster autenticado';
+    const input = document.getElementById('team-chat-input');
+    const send = document.getElementById('team-chat-send-btn');
+    input.disabled = !team;
+    send.disabled = !team;
+    paintTeamMessages(team);
+    if (team) void refreshTeamMessages();
   }
 
-  function sendTeamMessage() {
+  async function sendTeamMessage() {
     const input = document.getElementById('team-chat-input');
     const team = activeTeam();
-    const chat = teamChatFor(team, true);
     const text = input?.value.trim();
-    if (!text || !chat || !currentUser?.nick) return;
-    chat.messages.push({ id: `${Date.now()}_${Math.random()}`, from: userKey(currentUser.nick), nick: currentUser.nick, text, createdAt: Date.now() });
-    chat.messages = chat.messages.slice(-300);
-    chat.updatedAt = Date.now();
-    input.value = '';
-    saveSocial();
-    renderTeamChat();
+    if (!text || !team?.id || !currentUser?.uid || !window.CluchAPI?.sendTeamMessage) return;
+    input.disabled = true;
+    try {
+      const message = await window.CluchAPI.sendTeamMessage(team.id, text);
+      if (message) teamMessagesById.set(team.id, [...(teamMessagesById.get(team.id) || []), message].slice(-100));
+      input.value = '';
+      paintTeamMessages(team);
+    } catch (_) {
+      const list = document.getElementById('team-chat-messages');
+      const warning = document.createElement('div');
+      warning.className = 'chat-system-msg error';
+      warning.textContent = 'Não foi possível enviar. Confirme sua sessão e participação no roster.';
+      list.appendChild(warning);
+    } finally {
+      input.disabled = false;
+      input.focus();
+    }
   }
 
   function switchTab(tab) {
@@ -459,7 +541,14 @@
     const dmList = document.getElementById('chat-messages-dm');
     dmList.appendChild(messageElement({ nick: ORG_NAME, text: 'Olá! Como posso ajudar?', createdAt: Date.now() - 60000 }));
     loadSocial();
+    loadSteamFriends();
     loadUserTeams();
+    window.setInterval(() => {
+      if (isOpen && activeTab === 'team') void refreshTeamMessages();
+    }, 3000);
+    window.setInterval(() => {
+      if (!document.hidden) void loadUserTeams();
+    }, 15000);
 
     const panel = document.getElementById('chat-panel');
     const toggle = document.getElementById('chat-toggle-btn');

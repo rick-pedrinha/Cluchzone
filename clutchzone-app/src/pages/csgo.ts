@@ -9,7 +9,7 @@ import { escapeHtml } from '../core/ui/sanitize.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   // Initialize user and load data
-  await authService.init();
+  const authenticatedUser = await authService.init();
   await Promise.all([tournamentService.loadAll(), teamService.loadAll()]);
 
   // DOM Elements
@@ -19,6 +19,21 @@ document.addEventListener('DOMContentLoaded', async () => {
   const btnExploreTours = document.getElementById('btn-explore-tours');
   const tabButtons = document.querySelectorAll('.cs2-tab-btn');
   const tabPanes = document.querySelectorAll('.tab-pane');
+  const sessionCard = document.getElementById('cs2-session-card');
+  const sessionName = document.getElementById('cs2-session-name');
+
+  if (authenticatedUser) {
+    sessionCard?.setAttribute('data-state', 'authenticated');
+    if (sessionName) sessionName.textContent = `${authenticatedUser.nick} · conectado`;
+  } else {
+    const authState = (window as typeof window & { ClutchAuth?: { getState?: () => string } }).ClutchAuth?.getState?.();
+    sessionCard?.setAttribute('data-state', authState === 'unavailable' ? 'loading' : 'anonymous');
+    if (sessionName) {
+      sessionName.textContent = authState === 'unavailable'
+        ? 'Backend indisponível · sessão preservada'
+        : 'Entre uma vez para sincronizar sua conta';
+    }
+  }
 
   // Stats Counters
   const statActiveCamps = document.getElementById('stat-active-camps');

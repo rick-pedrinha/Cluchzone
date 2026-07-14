@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="premium.css"/>
   <link rel="stylesheet" href="shared-chat.css"/>
   <link rel="stylesheet" href="auth.css"/>
+  <link rel="stylesheet" href="inventory.css"/>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
   :root {
@@ -545,9 +546,12 @@
 
 <div id="toast-container" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;align-items:center;gap:8px;"></div>
 
+<script src="config.js"></script>
 <script src="api.js"></script>
+<script src="auth.js"></script>
 <script src="premium.js"></script>
 <script src="shared-chat.js"></script>
+<script src="inventory.js"></script>
 <script>
 // ── TABS ──
 document.querySelectorAll('.passport-tab').forEach(tab => {
@@ -696,6 +700,5 @@ if (mgrid) {
 }
 </script>
 <script src="passport.js"></script>
-<script src="auth.js"></script>
 </body>
 </html>

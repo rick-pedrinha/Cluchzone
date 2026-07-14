@@ -20,6 +20,14 @@ O navegador nunca recebe a chave da Steam, não processa o retorno OpenID e não
 | `GET` | `/auth/steam/callback` | Valida a asserção Steam, sincroniza o perfil e cria a sessão |
 | `GET` | `/auth/me` | Retorna o usuário da sessão |
 | `POST` | `/auth/logout` | Destrói a sessão e expira o cookie |
+| `GET` | `/api/friends/steam` | Sincroniza a lista pública de amigos Steam da conta autenticada |
+| `GET` | `/api/tournaments/:tournamentId/players/:playerName/cs2-inventory` | Exibe o inventário público de CS2 de um jogador confirmado no campeonato |
+| `GET` | `/api/players/:userId/showcases/:game/inventory` | Exibe a vitrine pública permanente do perfil para `cs2` ou `pubg`; o backend resolve o SteamID pelo usuário Clutchzone |
+| `GET` | `/api/teams/mine` | Lista somente as equipes da sessão autenticada |
+| `GET/POST` | `/api/teams/:teamId/messages` | Lê ou envia mensagens no canal privado; exige participação no roster |
+| `GET` | `/api/marketplace/listings` | Vitrine pública de anúncios publicados |
+| `POST` | `/api/marketplace/listings/:listingId/orders` | Cria pedido ou proposta com a identidade da sessão |
+| `GET/PUT/POST/PATCH` | `/api/seller/*` | Perfil comercial, anúncios, estoque e pedidos do ERP do vendedor |
 | `GET` | `/api/store/:key` | Compatibilidade de leitura para dados existentes |
 | `POST` | `/api/store/:key` | Compatibilidade de escrita; exige sessão |
 
@@ -71,6 +79,10 @@ npm run dev
 Abra `http://localhost:3000`. O backend usa `http://localhost:3001` por padrão no frontend local.
 O login começa em `http://localhost:3001/auth/steam` e o callback OpenID de desenvolvimento é `http://localhost:3001/auth/steam/callback`.
 
+`http://localhost:3000` é a única origem canônica do frontend em desenvolvimento. Acessos por `127.0.0.1`, pela pasta `clutchzone-app/` ou pelo servidor Vite são redirecionados para essa origem para impedir alternância de versão e perda do cookie `SameSite`. Todas as páginas carregam a mesma configuração pública, o mesmo cliente de autenticação e os mesmos componentes compartilhados. Uma falha transitória não encerra a sessão: a interface tenta sincronizá-la novamente em segundo plano e o logout só ocorre por ação explícita do usuário.
+
+A vitrine comercial está em `http://localhost:3000/marketplace.html` e o ERP em `http://localhost:3000/seller-erp.html`. O ERP administra propostas, pedidos, publicação e estoque; pagamentos e repasses financeiros ainda não são processados pela plataforma.
+
 ## Qualidade
 
 ```bash
@@ -88,6 +100,14 @@ npm run build
 
 Os testes cobrem login/callback, SteamID inválido, usuário idempotente, conflito de SteamID, sessão, logout, CORS, rate limiting, rota protegida, open redirect e erros seguros. As chamadas externas da Steam são simuladas.
 
+A lista social combina amizades internas do Clutchzone com amigos retornados pela Steam. A identidade consultada sempre vem da sessão do backend. Perfis com lista de amigos privada não podem ser sincronizados; nesse caso a interface preserva normalmente as amizades internas.
+
+As vitrines de inventário ficam disponíveis no passaporte do jogador mesmo fora de campeonatos. O backend aceita apenas o ID interno do usuário Clutchzone e um jogo permitido (`cs2` ou `pubg`), resolve o SteamID cadastrado e sincroniza automaticamente os melhores destaques públicos por tipo e raridade. A coleção completa reutiliza o mesmo resultado em cache ao ser aberta. A rota antiga de campeonato continua exigindo participação aprovada. Inventários privados e indisponibilidade da Steam possuem estados visuais próprios e não bloqueiam o restante do perfil. A consulta de inventário público não envia `STEAM_API_KEY` ao navegador.
+
+O plano de produto e segurança para salas dedicadas, veto de mapas e séries MD1/MD3 está em [`docs/CS2_MATCH_AUTOMATION.md`](docs/CS2_MATCH_AUTOMATION.md).
+
+O canal **Equipe** do chat usa equipes, membros e mensagens persistidos no PostgreSQL. O `teamId` e o remetente não são aceitos como identidade do navegador: cada leitura e envio valida `req.session.userId` contra o roster no backend. Atalhos ocultados pelo próprio usuário continuam sendo apenas uma preferência visual local.
+
 ## Deploy
 
 ### Render
@@ -104,4 +124,4 @@ Para cookies entre GitHub Pages e outro domínio, o backend usa `SameSite=None; 
 
 ## Segurança e limitações
 
-Consulte `SECURITY.md`. O fluxo de autenticação está pronto para múltiplas instâncias. Os domínios antigos de equipes, campeonatos, chats e pagamentos ainda usam documentos agregados e lógica de autorização no cliente; a rota de compatibilidade preserva o comportamento, mas novas operações sensíveis devem migrar para modelos e rotas transacionais com autorização por recurso antes de uso financeiro ou competitivo em produção.
+Consulte `SECURITY.md`. O fluxo de autenticação está pronto para múltiplas instâncias. Equipes novas, chat privado de equipe e marketplace já usam modelos transacionais e autorização por recurso. Partes legadas de campeonatos, convites antigos, chat geral e pagamentos ainda usam documentos agregados ou não estão implementadas; a rota de compatibilidade preserva dados existentes, mas esses fluxos devem ser migrados antes de uso financeiro ou competitivo em produção.

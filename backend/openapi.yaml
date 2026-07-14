@@ -1,0 +1,153 @@
+openapi: 3.1.0
+info:
+  title: ClutchZone Backend API
+  version: 3.1.0
+  description: API autenticada por sessão; identidades nunca são aceitas do frontend.
+servers:
+  - url: http://localhost:3001
+paths:
+  /health:
+    get:
+      summary: Liveness do processo
+      responses:
+        '200': { description: Processo saudável }
+  /ready:
+    get:
+      summary: Readiness da API e PostgreSQL
+      responses:
+        '200': { description: API pronta para receber tráfego }
+        '503': { description: Dependência indisponível }
+  /auth/steam:
+    get:
+      summary: Inicia Steam OpenID
+      responses:
+        '303': { description: Redirecionamento para a Steam }
+  /auth/steam/callback:
+    get:
+      summary: Valida o retorno Steam OpenID e regenera a sessão
+      responses:
+        '303': { description: Autenticação concluída }
+        '401': { description: Resposta OpenID inválida }
+  /auth/me:
+    get:
+      summary: Usuário da sessão atual
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200': { description: Usuário autenticado }
+        '401': { description: Sessão ausente }
+  /auth/logout:
+    post:
+      summary: Encerra a sessão
+      security: [{ cookieAuth: [] }]
+      responses:
+        '204': { description: Sessão encerrada }
+  /api/matches:
+    post:
+      summary: Cria partida para dois times
+      security: [{ cookieAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateMatch' }
+      responses:
+        '201': { description: Partida criada }
+        '403': { description: Requer organizador ou admin }
+  /api/matches/{matchId}:
+    get:
+      summary: Consulta uma partida autorizada
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/MatchId'
+      responses:
+        '200': { description: Partida }
+        '404': { description: Partida inexistente ou não autorizada }
+  /api/matches/{matchId}/ping:
+    post:
+      summary: Registra medições regionais do participante da sessão
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/MatchId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [samples]
+              additionalProperties: false
+              properties:
+                samples:
+                  type: array
+                  minItems: 6
+                  maxItems: 6
+                  items: { $ref: '#/components/schemas/LatencySample' }
+      responses:
+        '200': { description: Medições registradas }
+        '404': { description: Participante não pertence à partida }
+  /api/matches/{matchId}/check-in:
+    post:
+      summary: Confirma o participante da sessão
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/MatchId'
+      responses:
+        '200': { description: Check-in confirmado }
+        '409': { description: Check-in fechado }
+  /api/matches/{matchId}/provision:
+    post:
+      summary: Solicita servidor efêmero de forma idempotente
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/MatchId'
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema: { type: string, minLength: 8, maxLength: 128 }
+      responses:
+        '202': { description: Evento de provisionamento persistido }
+        '403': { description: Operação não autorizada }
+        '409': { description: Partida ou medições incompletas }
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: clutchzone.sid
+  parameters:
+    MatchId:
+      name: matchId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+  schemas:
+    Participant:
+      type: object
+      additionalProperties: false
+      required: [userId, teamRef, role]
+      properties:
+        userId: { type: string, format: uuid }
+        teamRef: { type: string, minLength: 1, maxLength: 100 }
+        role: { type: string, enum: [PLAYER, CAPTAIN, COACH] }
+    CreateMatch:
+      type: object
+      additionalProperties: false
+      required: [format, scheduledAt, participants]
+      properties:
+        tournamentRef: { type: [string, 'null'], maxLength: 100 }
+        format: { type: string, enum: [BEST_OF_1, BEST_OF_3] }
+        scheduledAt: { type: string, format: date-time }
+        participants:
+          type: array
+          minItems: 2
+          maxItems: 64
+          items: { $ref: '#/components/schemas/Participant' }
+    LatencySample:
+      type: object
+      additionalProperties: false
+      required: [regionCode, latencyMs]
+      properties:
+        regionCode:
+          type: string
+          enum: [sao-paulo, virginia, frankfurt, london, singapore, sydney]
+        latencyMs: { type: integer, minimum: 1, maximum: 2000 }

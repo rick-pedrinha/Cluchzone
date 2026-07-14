@@ -15,6 +15,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "worker:outbox": "tsx watch src/events/outbox.worker.ts",
+    "worker:outbox:start": "node dist/events/outbox.worker.js",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "prisma:generate": "prisma generate",
@@ -24,6 +26,7 @@
   },
   "dependencies": {
     "@prisma/client": "6.19.3",
+    "amqplib": "^2.0.1",
     "connect-pg-simple": "10.0.0",
     "cors": "2.8.5",
     "dotenv": "17.4.2",
@@ -40,6 +43,7 @@
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
+    "@types/amqplib": "^0.10.8",
     "@types/connect-pg-simple": "7.0.3",
     "@types/cors": "2.8.19",
     "@types/express": "5.0.6",
@@ -56,5 +60,7 @@
     "typescript-eslint": "8.64.0",
     "vitest": "4.1.10"
   },
-  "engines": { "node": ">=20.19" }
+  "engines": {
+    "node": ">=20.19"
+  }
 }

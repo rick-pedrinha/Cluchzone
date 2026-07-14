@@ -23,4 +23,31 @@ export class PrismaUserRepository implements UserRepository {
   async findById(id: string): Promise<PublicUser | null> {
     return this.prisma.user.findUnique({ where: { id } });
   }
+
+  async findActiveBySteamIds(steamIds: string[]): Promise<PublicUser[]> {
+    if (steamIds.length === 0) return [];
+    return this.prisma.user.findMany({
+      where: { steamId64: { in: steamIds }, status: 'ACTIVE' },
+    });
+  }
+
+  async findActiveByDisplayName(displayName: string): Promise<PublicUser | null> {
+    const matches = await this.prisma.user.findMany({
+      where: { displayName: { equals: displayName, mode: 'insensitive' }, status: 'ACTIVE' },
+      orderBy: { lastLoginAt: 'desc' },
+      take: 2,
+    });
+    if (matches.length > 1) {
+      throw new AppError(409, 'PLAYER_IDENTITY_AMBIGUOUS', 'More than one Clutchzone account uses this display name.');
+    }
+    return matches[0] ?? null;
+  }
+
+  async updateShowcaseVisibility(id: string, visible: boolean): Promise<PublicUser | null> {
+    const result = await this.prisma.user.updateMany({
+      where: { id, status: 'ACTIVE' },
+      data: { showcaseVisible: visible },
+    });
+    return result.count === 1 ? this.findById(id) : null;
+  }
 }
