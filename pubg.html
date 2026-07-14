@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data:; script-src 'self' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' https: data:; font-src 'self' https: data:; frame-src 'none'; upgrade-insecure-requests" />
+  <meta name="room-name" content="PUBG Arena — Lobby"/>
+  <meta name="room-icon" content="🪂"/>
+  <meta name="org-name" content="Staff_PUBG"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CLUTCHZONE — PUBG Arena</title>
+  <meta name="description" content="Entre na fila de espera do avião para os campeonatos de PUBG da CLUTCHZONE." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;600;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="pubg.css" />
+  <link rel="stylesheet" href="chat.css"/>
+  <link rel="stylesheet" href="premium.css"/>
+  <link rel="stylesheet" href="auth.css"/>
+</head>
+<body class="pubg-theme">
+
+  <!-- Custom Cursor Glow -->
+  <div id="cursor-glow"></div>
+
+  <!-- Background overlay for atmosphere -->
+  <div class="pubg-bg-grid"></div>
+  <div class="pubg-fog-effect"></div>
+
+  <!-- NAVBAR -->
+  <nav id="navbar" class="pubg-nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">CLUTCHZONE</a>
+      <ul class="nav-links">
+        <li><a href="index.html#games" class="nav-link">Jogos</a></li>
+        <li><a href="pubg.html" class="nav-link active">PUBG</a></li>
+        <li><a href="csgo.html" class="nav-link">CS2</a></li>
+        <li><a href="brawlstars.html" class="nav-link">Brawl Stars</a></li>
+      </ul>
+      <div class="nav-actions">
+        <span class="pubg-active-badge">
+          <span class="pulse-light orange"></span> LOBBIES ABERTOS
+        </span>
+        <a href="index.html" class="btn-login-back">VOLTAR AO HUB</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTAINER -->
+  <main class="pubg-container">
+    <!-- HERO SECTION -->
+    <header class="pubg-hero">
+      <div class="pubg-hero-content">
+        <div class="pubg-game-logo">
+          <span class="game-icon">✈️</span>
+          <h1>PUBG BATTLEGROUNDS</h1>
+        </div>
+        <p class="pubg-subtitle">Selecione seu assento no avião de transporte C-130 e prepare-se para o Drop. Sobreviva até o fim.</p>
+        <div style="margin-top: 20px; display: flex; gap: 12px; justify-content: center;">
+          <button class="cs2-btn cs2-btn-primary" id="btn-create-tour-pubg" style="background: var(--pubg-desert); border-color: var(--pubg-desert);">Criar Campeonato</button>
+          <button class="cs2-btn cs2-btn-secondary">Explorar Campeonatos</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- TOURNAMENTS LIST -->
+    <section class="pubg-tournaments">
+      <div class="pubg-section-header">
+        <h2>🏆 CAMPEONATOS PUBG DISPONÍVEIS</h2>
+        <p>Inscreva-se nos torneios ativos e reserve seu assento de drop.</p>
+      </div>
+
+      <div class="pubg-tournaments-grid">
+        <!-- Tournament Card 1 -->
+        <div class="pubg-tour-card active" data-tour-id="1">
+          <div class="pubg-tour-header">
+            <span class="pubg-badge-type">DUO / SQUAD</span>
+            <span class="pubg-prize">R$ 10.000</span>
+          </div>
+          <h3>Erangel Survivor Cup</h3>
+          <div class="pubg-tour-details">
+            <span>📅 Hoje às 20:00</span>
+            <span>📍 Servidor: SA</span>
+            <span>✈️ Lotação: <strong id="tour-count-1">74</strong>/100</span>
+          </div>
+          <div class="pubg-progress-bar">
+            <div class="pubg-progress-fill" style="width: 74%"></div>
+          </div>
+          <button class="pubg-btn-action open-airplane-btn" data-tour-id="1">RESERVAR ASSENTO</button>
+        </div>
+
+        <!-- Tournament Card 2 -->
+        <div class="pubg-tour-card active" data-tour-id="2">
+          <div class="pubg-tour-header">
+            <span class="pubg-badge-type">SOLO</span>
+            <span class="pubg-prize">R$ 5.000</span>
+          </div>
+          <h3>Miramar Desert Clash</h3>
+          <div class="pubg-tour-details">
+            <span>📅 Amanhã às 18:00</span>
+            <span>📍 Servidor: SA</span>
+            <span>✈️ Lotação: <strong id="tour-count-2">42</strong>/100</span>
+          </div>
+          <div class="pubg-progress-bar">
+            <div class="pubg-progress-fill" style="width: 42%"></div>
+          </div>
+          <button class="pubg-btn-action open-airplane-btn" data-tour-id="2">RESERVAR ASSENTO</button>
+        </div>
+
+        <!-- Tournament Card 3 -->
+        <div class="pubg-tour-card upcoming" data-tour-id="3">
+          <div class="pubg-tour-header">
+            <span class="pubg-badge-type">SQUAD FPP</span>
+            <span class="pubg-prize">R$ 20.000</span>
+          </div>
+          <h3>CLUTCHZONE PUBG Masters</h3>
+          <div class="pubg-tour-details">
+            <span>📅 Sábado às 15:00</span>
+            <span>📍 Servidor: SA</span>
+            <span>✈️ Lotação: <strong>0</strong>/100</span>
+          </div>
+          <div class="pubg-progress-bar">
+            <div class="pubg-progress-fill" style="width: 0%"></div>
+          </div>
+          <button class="pubg-btn-action disabled" disabled>INSCRIÇÕES EM BREVE</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- AIRPLANE LOBBY SECTION -->
+    <section class="pubg-airplane-lobby" id="airplane-lobby-section">
+      <div class="pubg-section-header">
+        <h2>✈️ AVIÃO — 100 ASSENTOS / 50 DUOs</h2>
+        <p>Campeonato: <span id="current-tournament-title" class="highlight-tour">Erangel Survivor Cup</span></p>
+      </div>
+
+      <div class="lobby-controls">
+        <div class="countdown-box">
+          <span class="countdown-title">DECOLAGEM EM:</span>
+          <span class="countdown-timer" id="pubg-timer">14:59</span>
+        </div>
+        <div class="lobby-stats-box">
+          <span>👥 LOBBY: <span id="lobby-occupancy"><strong>0/100</strong></span></span>
+          <span class="pubg-status-text animate-pulse">Aguardando preenchimento total</span>
+        </div>
+      </div>
+
+      <!-- AIRPLANE CARD -->
+      <div class="airplane-card">
+
+        <!-- Legend -->
+        <div class="seat-legend" style="margin-bottom:18px;">
+          <div class="legend-item"><div class="legend-dot confirmed"></div> Confirmado</div>
+          <div class="legend-item"><div class="legend-dot pending"></div> Pendente</div>
+          <div class="legend-item"><div class="legend-dot available"></div> Disponível</div>
+          <div class="legend-item"><div class="legend-dot mine"></div> Seu assento</div>
+        </div>
+
+        <!-- Seat Grid (populated by JS) -->
+        <div class="plane-grid" id="plane-grid"></div>
+
+        <!-- Summary bar -->
+        <div class="plane-summary">
+          <div class="summary-item">
+            <div class="summary-num confirmed" id="summary-confirmed">0</div>
+            <div class="summary-label">Confirmados</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-num pending" id="summary-pending">0</div>
+            <div class="summary-label">Pendentes</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-num available" id="summary-avail">100</div>
+            <div class="summary-label">Disponíveis</div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <!-- Player Info Card / Tooltip -->
+  <div class="player-profile-tooltip" id="player-tooltip">
+    <div class="tooltip-header">
+      <span class="tooltip-avatar">🎮</span>
+      <div>
+        <div class="tooltip-nick" id="tooltip-nick">PlayerName</div>
+        <div class="tooltip-rank" id="tooltip-rank">Diamond II</div>
+      </div>
+    </div>
+    <div class="tooltip-stats">
+      <div class="t-stat"><span>K/D:</span> <strong id="tooltip-kd">2.41</strong></div>
+      <div class="t-stat"><span>Vitórias:</span> <strong id="tooltip-wins">14%</strong></div>
+      <div class="t-stat"><span>Reputação:</span> <strong id="tooltip-rep" class="green-text">92%</strong></div>
+    </div>
+  </div>
+
+  <footer class="hub-footer">
+    <div class="hub-footer-logo">CLUTCHZONE</div>
+    <p>© 2026 CLUTCHZONE Esports · Licenciado para PUBG Battlegrounds Tournaments ⚡</p>
+  </footer>
+
+  <div id="toast-container"></div>
+
+  <script src="api.js"></script>
+  <script src="main.js"></script>
+  <script src="pubg.js"></script>
+  <script src="chat.js"></script>
+  <script src="premium.js"></script>
+  <script src="auth.js"></script>
+</body>
+</html>

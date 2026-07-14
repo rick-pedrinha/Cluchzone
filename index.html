@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CLUTCHZONE — Plataforma de Campeonatos</title>
+  <meta name="description" content="A maior plataforma de campeonatos de esports do Brasil. Escolha seu jogo, entre na fila e compita."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+  <link rel="stylesheet" href="chat.css"/>
+  <link rel="stylesheet" href="premium.css"/>
+  <link rel="stylesheet" href="auth.css"/>
+  <style>
+    /* ── HUB SPECIFIC ── */
+    .hub-hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      position: relative; overflow: hidden;
+      padding-top: 64px;
+    }
+    .hub-hero-bg {
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 0%,   rgba(123,47,247,.22) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 100% 50%,  rgba(0,212,255,.12) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 40% at 0%   80%,  rgba(255,45,122,.10) 0%, transparent 55%),
+        linear-gradient(180deg,#050811 0%,#080d1a 100%);
+    }
+    .hub-grid-overlay {
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(0,212,255,.04) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(0,212,255,.04) 1px,transparent 1px);
+      background-size: 60px 60px;
+      animation: grid-drift 20s linear infinite;
+    }
+    @keyframes grid-drift { to { transform: translateY(60px); } }
+
+    .hub-hero-content {
+      position: relative; z-index: 2;
+      text-align: center;
+      padding: 0 24px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .hub-logo {
+      display: flex; align-items: center; justify-content: center; gap: 14px;
+      margin-bottom: 24px;
+    }
+    .hub-logo-icon {
+      font-size: 52px;
+      filter: drop-shadow(0 0 20px rgba(0,212,255,.6));
+      animation: logo-pulse 3s ease-in-out infinite;
+    }
+    @keyframes logo-pulse {
+      0%,100% { filter: drop-shadow(0 0 20px rgba(0,212,255,.6)); }
+      50%      { filter: drop-shadow(0 0 40px rgba(123,47,247,.8)); }
+    }
+    .hub-logo-text {
+      font-family: var(--font-head);
+      font-size: clamp(40px,7vw,90px);
+      font-weight: 900; letter-spacing: 4px;
+      background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 50%, #ff2d7a 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 30px rgba(0,212,255,.3));
+    }
+    .hub-tagline {
+      font-family: var(--font-ui); font-size: clamp(14px,2vw,18px);
+      letter-spacing: 6px; color: var(--text-2); text-transform: uppercase;
+      margin-bottom: 48px;
+    }
+    .hub-badge-row {
+      display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+      margin-bottom: 60px;
+    }
+    .hub-badge {
+      display: flex; align-items: center; gap: 6px;
+      padding: 8px 16px;
+      background: rgba(255,255,255,.05);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-family: var(--font-ui); font-size: 12px; font-weight: 700;
+      color: var(--text-2); letter-spacing: 1px;
+    }
+    .hub-badge.live { border-color: rgba(255,45,122,.4); color: var(--pink); background: rgba(255,45,122,.08); }
+
+    /* ── GAME SELECTION GRID ── */
+    .games-section { padding: 80px 0; position: relative; z-index: 1; }
+    .games-section .container { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+
+    .games-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+    .game-card {
+      position: relative;
+      border-radius: 20px;
+      overflow: hidden;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      transition: all .4s cubic-bezier(.4,0,.2,1);
+      text-decoration: none;
+      display: block;
+      aspect-ratio: 3/4;
+    }
+    .game-card:hover {
+      transform: translateY(-8px) scale(1.02);
+      border-color: transparent;
+    }
+    .game-card-bg {
+      position: absolute; inset: 0;
+      background-size: cover; background-position: center;
+      transition: transform .6s ease;
+    }
+    .game-card:hover .game-card-bg { transform: scale(1.08); }
+
+    .game-card-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(180deg, transparent 30%, rgba(0,0,0,.9) 100%);
+    }
+    .game-card:hover .game-card-overlay { background: linear-gradient(180deg, transparent 10%, rgba(0,0,0,.85) 100%); }
+
+    .game-card-content {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      padding: 20px;
+    }
+    .game-card-tag {
+      display: inline-block;
+      font-family: var(--font-ui); font-size: 10px; font-weight: 700;
+      letter-spacing: 2px; padding: 3px 10px; border-radius: 6px;
+      margin-bottom: 8px;
+    }
+    .game-card-title {
+      font-family: var(--font-head); font-size: 22px; font-weight: 900;
+      color: #fff; margin-bottom: 6px; letter-spacing: 1px;
+    }
+    .game-card-meta {
+      font-family: var(--font-ui); font-size: 12px; color: rgba(255,255,255,.6);
+      display: flex; gap: 10px; margin-bottom: 12px;
+    }
+    .game-card-btn {
+      display: flex; align-items: center; gap: 6px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-family: var(--font-ui); font-size: 12px; font-weight: 700;
+      border: 1px solid rgba(255,255,255,.3);
+      color: #fff; background: rgba(255,255,255,.1);
+      backdrop-filter: blur(10px);
+      transition: all .3s;
+      width: fit-content;
+    }
+    .game-card:hover .game-card-btn {
+      background: rgba(255,255,255,.25);
+      border-color: rgba(255,255,255,.6);
+    }
+    .game-card-badge {
+      position: absolute; top: 14px; right: 14px;
+      font-family: var(--font-ui); font-size: 10px; font-weight: 700;
+      padding: 4px 10px; border-radius: 6px;
+      backdrop-filter: blur(10px);
+    }
+    .badge-new    { background: rgba(0,255,136,.2); border: 1px solid rgba(0,255,136,.5); color: #00ff88; }
+    .badge-hot    { background: rgba(255,45,122,.2); border: 1px solid rgba(255,45,122,.5); color: #ff2d7a; }
+    .badge-live   { background: rgba(255,60,0,.2);   border: 1px solid rgba(255,60,0,.5);   color: #ff6b00; }
+    .badge-soon   { background: rgba(0,212,255,.2);  border: 1px solid rgba(0,212,255,.5);  color: #00d4ff; }
+
+    /* game-specific card themes */
+    .game-pubg    .game-card-bg  { background: url('images/pubg_bg.jpg') no-repeat top center / cover; }
+    .game-pubg    .game-card-tag { background: rgba(255,165,0,.2); color: #ffb347; border: 1px solid rgba(255,165,0,.4); }
+    .game-pubg:hover              { box-shadow: 0 0 60px rgba(255,140,0,.35); }
+
+    .game-csgo    .game-card-bg  { background: url('images/cs2_bg.jpg') no-repeat top center / cover; }
+    .game-csgo    .game-card-tag { background: rgba(0,160,255,.2); color: #4db8ff; border: 1px solid rgba(0,160,255,.4); }
+    .game-csgo:hover              { box-shadow: 0 0 60px rgba(0,160,255,.35); }
+
+    .game-brawl   .game-card-bg  { background: url('images/brawl_bg.jpg') no-repeat top center / cover; }
+    .game-brawl   .game-card-tag { background: rgba(255,215,0,.2); color: #ffd700; border: 1px solid rgba(255,215,0,.4); }
+    .game-brawl:hover             { box-shadow: 0 0 60px rgba(255,200,0,.35); }
+
+    /* === VALORANT — vermelho neon === */
+    .game-val     .game-card-bg  { background: url('images/val_bg.jpg') no-repeat top center / cover; }
+    .game-val     .game-card-overlay { background: linear-gradient(180deg, rgba(180,10,20,.15) 0%, rgba(0,0,0,.92) 100%); }
+    .game-val     .game-card-tag { background: rgba(255,70,85,.25); color: #ff4655; border: 1px solid rgba(255,70,85,.5); }
+    .game-val:hover               { box-shadow: 0 0 60px rgba(255,70,85,.4); }
+
+    /* === APEX LEGENDS — laranja fogo === */
+    .game-apex    .game-card-bg  { background: url('images/apex_bg.jpg') no-repeat top center / cover; }
+    .game-apex    .game-card-overlay { background: linear-gradient(180deg, rgba(200,60,0,.15) 0%, rgba(0,0,0,.92) 100%); }
+    .game-apex    .game-card-tag { background: rgba(255,80,0,.25); color: #ff6030; border: 1px solid rgba(255,100,0,.5); }
+    .game-apex:hover              { box-shadow: 0 0 60px rgba(255,80,0,.4); }
+
+    /* === RAINBOW SIX — azul tático === */
+    .game-r6      .game-card-bg  { background: url('images/r6_bg.jpg') no-repeat top center / cover; }
+    .game-r6      .game-card-overlay { background: linear-gradient(180deg, rgba(10,40,120,.15) 0%, rgba(0,0,0,.92) 100%); }
+    .game-r6      .game-card-tag { background: rgba(100,150,255,.25); color: #6496ff; border: 1px solid rgba(100,150,255,.5); }
+    .game-r6:hover                { box-shadow: 0 0 60px rgba(100,150,255,.4); }
+
+    /* === CALL OF DUTY — verde militar === */
+    .game-cod     .game-card-bg  { background: url('images/cod_bg.jpg') no-repeat top center / cover; }
+    .game-cod     .game-card-overlay { background: linear-gradient(180deg, rgba(0,60,10,.15) 0%, rgba(0,0,0,.92) 100%); }
+    .game-cod     .game-card-tag { background: rgba(0,200,100,.25); color: #00c864; border: 1px solid rgba(0,200,100,.5); }
+    .game-cod:hover               { box-shadow: 0 0 60px rgba(0,200,100,.4); }
+
+    /* === LEAGUE OF LEGENDS — dourado épico === */
+    .game-lol     .game-card-bg  { background: url('images/lol_bg.jpg') no-repeat top center / cover; }
+    .game-lol     .game-card-overlay { background: linear-gradient(180deg, rgba(150,110,0,.15) 0%, rgba(0,0,0,.92) 100%); }
+    .game-lol     .game-card-tag { background: rgba(200,170,0,.25); color: #c8aa00; border: 1px solid rgba(200,170,0,.5); }
+    .game-lol:hover               { box-shadow: 0 0 60px rgba(200,170,0,.4); }
+
+    /* PUBG plane icon in bg */
+    .game-pubg-plane {
+      position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+      font-size: 48px; opacity: .15;
+      animation: plane-drift 4s ease-in-out infinite;
+    }
+    @keyframes plane-drift {
+      0%,100% { transform: translateX(-50%) translateY(0) rotate(-5deg); }
+      50%      { transform: translateX(-50%) translateY(-8px) rotate(5deg); }
+    }
+
+    /* CS bomb icon */
+    .game-csgo-split {
+      position: absolute; inset: 0;
+      background: linear-gradient(90deg,
+        rgba(255,100,0,.08) 0%, rgba(255,100,0,.08) 50%,
+        rgba(0,100,200,.08) 50%, rgba(0,100,200,.08) 100%);
+    }
+
+    /* Brawl stars gems */
+    .game-brawl-gems {
+      position: absolute; inset: 0;
+      overflow: hidden;
+    }
+    .gem {
+      position: absolute;
+      font-size: 16px;
+      animation: gem-float 3s ease-in-out infinite;
+      opacity: .3;
+    }
+    .gem:nth-child(1)  { top: 15%; left: 20%; animation-delay: 0s; }
+    .gem:nth-child(2)  { top: 30%; left: 70%; animation-delay: .5s; }
+    .gem:nth-child(3)  { top: 60%; left: 30%; animation-delay: 1s; }
+    .gem:nth-child(4)  { top: 75%; left: 75%; animation-delay: 1.5s; }
+    @keyframes gem-float {
+      0%,100% { transform: translateY(0) rotate(0deg); }
+      50%      { transform: translateY(-10px) rotate(20deg); }
+    }
+
+    /* FEATURED CARD (PUBG — spans 2 columns) */
+    .game-card.featured { grid-column: span 2; aspect-ratio: 16/9; }
+
+    /* ── STATS ROW ── */
+    .hub-stats-strip {
+      background: rgba(0,0,0,.4);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(20px);
+    }
+    .hub-stats-inner {
+      max-width: 1280px; margin: 0 auto; padding: 20px 24px;
+      display: flex; align-items: center; justify-content: space-around;
+      flex-wrap: wrap; gap: 20px;
+    }
+    .hs-item { text-align: center; }
+    .hs-num { font-family: var(--font-head); font-size: 28px; font-weight: 900; color: var(--cyan); }
+    .hs-label { font-family: var(--font-ui); font-size: 11px; color: var(--text-2); letter-spacing: 1px; }
+
+    /* ── LIVE TICKER ── */
+    .live-ticker {
+      background: rgba(255,45,122,.06);
+      border-bottom: 1px solid rgba(255,45,122,.2);
+      padding: 0;
+      overflow: hidden;
+      position: relative; z-index: 10;
+    }
+    .ticker-inner {
+      display: flex; align-items: center;
+      padding: 10px 24px; gap: 20px;
+    }
+    .ticker-label {
+      flex-shrink: 0;
+      font-family: var(--font-ui); font-size: 11px; font-weight: 700;
+      letter-spacing: 2px; color: var(--pink);
+      padding: 4px 10px; background: rgba(255,45,122,.15);
+      border-radius: 6px; border: 1px solid rgba(255,45,122,.3);
+    }
+    .ticker-track { overflow: hidden; flex: 1; }
+    .ticker-content {
+      display: flex; gap: 40px; white-space: nowrap;
+      animation: ticker-scroll 40s linear infinite;
+    }
+    @keyframes ticker-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+    .ticker-item {
+      font-family: var(--font-ui); font-size: 13px; font-weight: 600; color: var(--text-2);
+      flex-shrink: 0;
+    }
+    .ticker-item span { color: var(--cyan); }
+
+    /* ── NAV ── */
+    #navbar { position:fixed; top:0; left:0; right:0; z-index:1000;
+      background: rgba(5,8,17,.8); backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border); }
+    .nav-inner { max-width:1280px; margin:0 auto; padding:0 24px;
+      height:60px; display:flex; align-items:center; gap:24px; }
+    .nav-logo { font-family:var(--font-head); font-size:22px; font-weight:900; letter-spacing:3px;
+      background: linear-gradient(135deg,#00d4ff,#7b2ff7,#ff2d7a);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+      text-decoration:none; }
+    .nav-links { display:flex; align-items:center; gap:4px; list-style:none; }
+    .nav-link { display:block; padding:6px 12px;
+      font-family:var(--font-ui); font-size:14px; font-weight:600; color:var(--text-2);
+      border-radius:8px; transition:all .3s; text-decoration:none; }
+    .nav-link:hover { color:var(--cyan); background:rgba(0,212,255,.08); }
+    .nav-actions { display:flex; align-items:center; gap:10px; margin-left:auto; }
+    .btn-nav-login { padding:6px 16px; background:transparent;
+      border:1px solid var(--border); color:var(--text-1); border-radius:8px;
+      font-family:var(--font-ui); font-size:13px; font-weight:600; cursor:pointer;
+      transition:all .3s; }
+    .btn-nav-login:hover { border-color:var(--cyan); color:var(--cyan); }
+    .btn-nav-register { padding:6px 16px;
+      background:linear-gradient(135deg,var(--cyan),var(--purple));
+      border:none; color:#fff; border-radius:8px;
+      font-family:var(--font-ui); font-size:13px; font-weight:700; cursor:pointer;
+      transition:all .3s; }
+    .btn-nav-register:hover { transform:translateY(-1px); box-shadow:0 4px 20px rgba(0,212,255,.4); }
+
+    /* ── FOOTER ── */
+    .hub-footer { padding:40px 0 20px; border-top:1px solid var(--border); text-align:center; }
+    .hub-footer-logo { font-family:var(--font-head); font-size:20px; font-weight:900; letter-spacing:3px;
+      background: linear-gradient(135deg,#00d4ff,#7b2ff7,#ff2d7a);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+      margin-bottom:8px; }
+    .hub-footer p { font-size:12px; color:var(--text-2); }
+
+    /* ── PARTICLES ── */
+    #particles-canvas { position:fixed; inset:0; pointer-events:none; z-index:0; opacity:.4; }
+    #cursor-glow { position:fixed; width:280px; height:280px; border-radius:50%;
+      background:radial-gradient(circle,rgba(0,212,255,.07) 0%,transparent 70%);
+      pointer-events:none; z-index:9999; transform:translate(-50%,-50%); }
+
+    /* section header */
+    .sec-head { text-align:center; margin-bottom:40px; }
+    .sec-title { font-family:var(--font-head); font-size:clamp(24px,3.5vw,40px);
+      font-weight:900; letter-spacing:2px; margin-bottom:8px; }
+    .sec-title .accent { color:var(--cyan); text-shadow:0 0 20px rgba(0,212,255,.4); }
+    .sec-sub { font-family:var(--font-ui); font-size:14px; color:var(--text-2); }
+
+    @media(max-width:1024px) {
+      .games-grid { grid-template-columns: repeat(2,1fr); }
+      .game-card.featured { grid-column: span 2; }
+    }
+    @media(max-width:600px) {
+      .games-grid { grid-template-columns: 1fr; }
+      .game-card.featured { grid-column: span 1; aspect-ratio: 3/4; }
+      .hub-logo-text { font-size: 36px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="cursor-glow"></div>
+  <canvas id="particles-canvas"></canvas>
+
+  <!-- NAVBAR -->
+  <nav id="navbar">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">CLUTCHZONE</a>
+      <ul class="nav-links">
+        <li><a href="#games" class="nav-link">Jogos</a></li>
+        <li><a href="pubg.html" class="nav-link">PUBG</a></li>
+        <li><a href="csgo.html" class="nav-link">CS2</a></li>
+        <li><a href="brawlstars.html" class="nav-link">Brawl Stars</a></li>
+        <li><a href="passport.html" class="nav-link">🛂 Passaporte</a></li>
+      </ul>
+      <div class="nav-actions">
+        <div style="display:flex;align-items:center;gap:6px;padding:4px 12px;background:rgba(255,45,122,.1);border:1px solid rgba(255,45,122,.3);border-radius:20px;font-family:var(--font-ui);font-size:11px;font-weight:700;color:var(--pink);">
+          <span style="width:6px;height:6px;background:var(--pink);border-radius:50%;animation:pulse-dot 1.5s infinite;display:inline-block;"></span>
+          5 AO VIVO
+        </div>
+        <button class="btn-nav-login" id="btn-login">Entrar</button>
+        <button class="btn-nav-register" id="btn-register">Criar Conta</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- LIVE TICKER -->
+  <div class="live-ticker" style="margin-top:60px;">
+    <div class="ticker-inner">
+      <div class="ticker-label">🔴 AO VIVO</div>
+      <div class="ticker-track">
+        <div class="ticker-content">
+          <span class="ticker-item">🎯 <span>NEXUS8</span> vs <span>SHOCKWAVE</span> — CS2 Copa CLUTCHZONE Semis — 14:11</span>
+          <span class="ticker-item">✈️ PUBG Invitational — <span>78/100</span> jogadores na fila</span>
+          <span class="ticker-item">⭐ Brawl Stars Open — <span>Quarterfinals em andamento</span></span>
+          <span class="ticker-item">🔫 CS2 — <span>GHOST5</span> elimina <span>IRON WOLVES</span> 13:7</span>
+          <span class="ticker-item">🎯 <span>NEXUS8</span> vs <span>SHOCKWAVE</span> — CS2 Copa CLUTCHZONE Semis — 14:11</span>
+          <span class="ticker-item">✈️ PUBG Invitational — <span>78/100</span> jogadores na fila</span>
+          <span class="ticker-item">⭐ Brawl Stars Open — <span>Quarterfinals em andamento</span></span>
+          <span class="ticker-item">🔫 CS2 — <span>GHOST5</span> elimina <span>IRON WOLVES</span> 13:7</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <main>
+    <!-- HERO -->
+    <section class="hub-hero">
+      <div class="hub-hero-bg"></div>
+      <div class="hub-grid-overlay"></div>
+      <div class="hub-hero-content">
+        <div class="hub-logo">
+          <span class="hub-logo-icon">⚡</span>
+          <span class="hub-logo-text">CLUTCHZONE</span>
+        </div>
+        <p class="hub-tagline">Escolha seu jogo. Entre na fila. Domine.</p>
+        <div class="hub-badge-row">
+          <div class="hub-badge live"><span style="width:6px;height:6px;background:var(--pink);border-radius:50%;display:inline-block;animation:pulse-dot 1.5s infinite;"></span> 5 Partidas Ao Vivo</div>
+          <div class="hub-badge">🏆 R$ 2.4M em Premiações</div>
+          <div class="hub-badge">👥 148k Jogadores</div>
+          <div class="hub-badge">🎮 8 Jogos</div>
+        </div>
+        <div style="display: flex; gap: 14px; justify-content: center; align-items: center; margin-top: 18px; flex-wrap: wrap;">
+          <a href="#games" class="btn-primary" style="font-family:var(--font-ui);font-size:16px;font-weight:700;letter-spacing:2px;padding:16px 48px;border:none;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,#00d4ff,#7b2ff7);color:#fff;border-radius:12px;transition:all .3s;" id="btn-choose-game">
+            ESCOLHER JOGO →
+          </a>
+          <a href="team-create.html" class="btn-primary" style="font-family:var(--font-ui);font-size:16px;font-weight:700;letter-spacing:2px;padding:16px 48px;border:1px solid var(--tm-cyan);cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:10px;background:rgba(255,255,255,0.03);color:var(--tm-cyan);border-radius:12px;transition:all .3s;">
+            🛡️ CRIAR EQUIPE
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- STATS STRIP -->
+    <div class="hub-stats-strip">
+      <div class="hub-stats-inner">
+        <div class="hs-item"><div class="hs-num" data-target="148000">148k</div><div class="hs-label">Jogadores Ativos</div></div>
+        <div class="hs-item"><div class="hs-num" data-target="3200">3.2k</div><div class="hs-label">Campeonatos</div></div>
+        <div class="hs-item"><div class="hs-num">8</div><div class="hs-label">Jogos</div></div>
+        <div class="hs-item"><div class="hs-num">R$2.4M</div><div class="hs-label">Em Premiações</div></div>
+        <div class="hs-item"><div class="hs-num" style="color:var(--pink);">5</div><div class="hs-label">🔴 Ao Vivo Agora</div></div>
+      </div>
+    </div>
+
+    <!-- GAME SELECTION -->
+    <section id="games" class="games-section">
+      <div class="container">
+        <div class="sec-head">
+          <h2 class="sec-title">ESCOLHA SEU <span class="accent">JOGO</span></h2>
+          <p class="sec-sub">Cada jogo tem sua própria arena com mecânicas únicas</p>
+        </div>
+
+        <div class="games-grid">
+
+          <!-- PUBG — FEATURED -->
+          <a href="pubg.html" class="game-card featured game-pubg">
+            <div class="game-card-bg"></div>
+            <div class="game-pubg-plane">✈️</div>
+            <div class="game-card-overlay"></div>
+            <span class="game-card-badge badge-hot">🔥 EM ALTA</span>
+            <div class="game-card-content">
+              <span class="game-card-tag">BATTLE ROYALE</span>
+              <div class="game-card-title">PUBG</div>
+              <div class="game-card-meta">
+                <span>✈️ Fila no Avião</span>
+                <span>👥 Até 100 Players</span>
+                <span>🏆 12 Campeonatos Ativos</span>
+              </div>
+              <div class="game-card-btn">Entrar na Arena →</div>
+            </div>
+          </a>
+
+          <!-- CS2 -->
+          <a href="csgo.html" class="game-card game-csgo">
+            <div class="game-card-bg"></div>
+            <div class="game-csgo-split"></div>
+            <div class="game-card-overlay"></div>
+            <span class="game-card-badge badge-live">🔴 AO VIVO</span>
+            <div class="game-card-content">
+              <span class="game-card-tag">FPS TÁTICO</span>
+              <div class="game-card-title">CS2</div>
+              <div class="game-card-meta">
+                <span>💣 Base TR vs CT</span>
+                <span>🏆 8 Campeonatos</span>
+              </div>
+              <div class="game-card-btn">Entrar na Arena →</div>
+            </div>
+          </a>
+
+          <!-- BRAWL STARS -->
+          <a href="brawlstars.html" class="game-card game-brawl">
+            <div class="game-card-bg"></div>
+            <div class="game-brawl-gems">
+              <span class="gem">💎</span><span class="gem">⭐</span>
+              <span class="gem">💎</span><span class="gem">⭐</span>
+            </div>
+            <div class="game-card-overlay"></div>
+            <span class="game-card-badge badge-new">✨ NOVO</span>
+            <div class="game-card-content">
+              <span class="game-card-tag">SUPERCELL</span>
+              <div class="game-card-title">BRAWL STARS</div>
+              <div class="game-card-meta">
+                <span>💎 Arena de Gems</span>
+                <span>🏆 6 Campeonatos</span>
+              </div>
+              <div class="game-card-btn">Entrar na Arena →</div>
+            </div>
+          </a>
+
+          <!-- VALORANT -->
+          <a href="#" class="game-card game-val" id="card-val">
+            <div class="game-card-bg"></div>
+            <div class="game-card-overlay"></div>
+            <span class="game-card-badge badge-soon">🔵 EM BREVE</span>
+            <div class="game-card-content">
+              <span class="game-card-tag">FPS TÁTICO</span>
+              <div class="game-card-title">VALORANT</div>
+              <div class="game-card-meta">
+                <span>🔫 5v5</span><span>🏆 Em Breve</span>
+              </div>
+              <div class="game-card-btn" style="opacity:.7;">Em Breve</div>
+            </div>
+          </a>
+
+          <!-- APEX -->
+          <a href="#" class="game-card game-apex" id="card-apex">
+            <div class="game-card-bg"></div>
+            <div class="game-card-overlay"></div>
+            <span class="game-card-badge badge-soon">🔵 EM BREVE</span>
+            <div class="game-card-content">
+              <span class="game-card-tag">BATTLE ROYALE</span>
+              <div class="game-card-title">APEX LEGENDS</div>
+              <div class="game-card-meta">
+                <span>🔥 Squads</span><span>🏆 Em Breve</span>
+              </div>
+              <div class="game-card-btn" style="opacity:.7;">Em Breve</div>
+            </div>
+          </a>
+
+          <!-- R6 -->
+          <a href="#" class="game-card game-r6" id="card-r6">
+            <div class="game-card-bg"></div>
+            <div class="game-card-overlay"></div>
+            <span class="game-card-badge badge-soon">🔵 EM BREVE</span>
+            <div class="game-card-content">
+              <span class="game-card-tag">FPS TÁTICO</span>
+              <div class="game-card-title">RAINBOW SIX</div>
+              <div class="game-card-meta">
+                <span>💣 5v5</span><span>🏆 Em Breve</span>
+              </div>
+              <div class="game-card-btn" style="opacity:.7;">Em Breve</div>
+            </div>
+          </a>
+
+          <!-- CoD -->
+          <a href="#" class="game-card game-cod" id="card-cod">
+            <div class="game-card-bg"></div>
+            <div class="game-card-overlay"></div>
+            <span class="game-card-badge badge-soon">🔵 EM BREVE</span>
+            <div class="game-card-content">
+              <span class="game-card-tag">FPS</span>
+              <div class="game-card-title">CALL OF DUTY</div>
+              <div class="game-card-meta">
+                <span>💥 Warzone</span><span>🏆 Em Breve</span>
+              </div>
+              <div class="game-card-btn" style="opacity:.7;">Em Breve</div>
+            </div>
+          </a>
+
+          <!-- LoL -->
+          <a href="#" class="game-card game-lol" id="card-lol">
+            <div class="game-card-bg"></div>
+            <div class="game-card-overlay"></div>
+            <span class="game-card-badge badge-soon">🔵 EM BREVE</span>
+            <div class="game-card-content">
+              <span class="game-card-tag">MOBA</span>
+              <div class="game-card-title">LEAGUE OF LEGENDS</div>
+              <div class="game-card-meta">
+                <span>⚔️ 5v5</span><span>🏆 Em Breve</span>
+              </div>
+              <div class="game-card-btn" style="opacity:.7;">Em Breve</div>
+            </div>
+          </a>
+
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="hub-footer">
+    <div class="hub-footer-logo">CLUTCHZONE</div>
+    <p>© 2026 CLUTCHZONE Esports · Feito para a cena competitiva brasileira ⚡</p>
+  </footer>
+
+  <div id="toast-container"></div>
+
+  <script src="api.js"></script>
+  <script src="main.js"></script>
+  <script>
+    // "Em breve" cards
+    ['card-val','card-apex','card-r6','card-cod','card-lol'].forEach(id=>{
+      document.getElementById(id)?.addEventListener('click',e=>{e.preventDefault();showToast('🔵 Este jogo estará disponível em breve!','info');});
+    });
+    document.getElementById('btn-choose-game').addEventListener('click',e=>{e.preventDefault();document.getElementById('games').scrollIntoView({behavior:'smooth'});});
+
+    window.addEventListener('scroll',()=>document.getElementById('navbar').style.boxShadow=window.scrollY>20?'0 4px 30px rgba(0,0,0,.5)':'');
+  </script>
+  <script src="premium.js"></script>
+  <script src="chat.js"></script>
+  <script src="auth.js"></script>
+  <meta name="room-name" content="CLUTCHZONE Hub"/>
+  <meta name="room-icon" content="⚡"/>
+  <meta name="org-name" content="Staff_CLUTCHZONE"/>
+</body>
+</html>

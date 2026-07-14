@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data:; script-src 'self' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' https: data:; font-src 'self' https: data:; frame-src 'none'; upgrade-insecure-requests" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CLUTCHZONE - Detalhes do Campeonato</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;600;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="csgo.css" />
+  <link rel="stylesheet" href="chat.css" />
+  <link rel="stylesheet" href="premium.css" />
+  <link rel="stylesheet" href="auth.css" />
+</head>
+<body class="csgo-theme tournament-detail-page">
+  <div id="cursor-glow"></div>
+
+  <nav id="navbar" class="csgo-nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">CLUTCHZONE</a>
+      <ul class="nav-links">
+        <li><a href="csgo.html" class="nav-link">Campeonatos</a></li>
+        <li><a href="csgo.html" class="nav-link">CS2</a></li>
+        <li><a href="passport.html" class="nav-link">Passaporte</a></li>
+      </ul>
+      <div class="nav-actions">
+        <a href="csgo.html" class="btn-login-back">VOLTAR</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="td-shell">
+    <section class="td-hero">
+      <div class="td-hero-bg" id="td-hero-bg"></div>
+      <div class="td-hero-overlay"></div>
+      <div class="td-hero-content">
+        <div class="td-status" id="td-status">Carregando</div>
+        <h1 id="td-title">Campeonato</h1>
+        <p id="td-description">Detalhes completos do campeonato CLUTCHZONE.</p>
+        <div class="td-actions" style="display: flex; gap: 12px; flex-wrap: wrap;">
+          <button class="cs2-btn cs2-btn-primary" id="td-join-team-btn" style="background: linear-gradient(135deg, #ffd700, #ffaa00); color: #000; border-color: #ffaa00;">🛡️ Inscrever Equipe</button>
+          <button class="cs2-btn cs2-btn-primary" id="td-join-solo-btn">👤 Jogar Solo (Fila)</button>
+          <a class="cs2-btn cs2-btn-secondary" href="csgo.html">Ver todos</a>
+        </div>
+        <div id="td-team-selector" style="display:none; margin-top:16px; max-width:390px; padding:14px; border:1px solid rgba(255,215,0,.35); border-radius:9px; background:rgba(7,9,13,.9);">
+          <label for="td-team-select" style="display:block; margin-bottom:7px; font:700 11px 'Orbitron',sans-serif; color:#ffd700;">SELECIONE A EQUIPE PARA INSCRIÇÃO</label>
+          <select id="td-team-select" style="width:100%; padding:10px; border:1px solid rgba(255,255,255,.16); border-radius:6px; background:#111827; color:#fff;"></select>
+          <button class="cs2-btn cs2-btn-primary" id="td-confirm-team-btn" type="button" style="width:100%; margin-top:10px; background:linear-gradient(135deg,#ffd700,#ffaa00); color:#000; border-color:#ffaa00;">Confirmar inscrição</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="td-stats" aria-label="Resumo do campeonato">
+      <div class="td-stat"><span>Premiação</span><strong id="td-prize">-</strong></div>
+      <div class="td-stat"><span>Inscrições</span><strong id="td-slots">-</strong></div>
+      <div class="td-stat"><span>Formato</span><strong id="td-format">-</strong></div>
+      <div class="td-stat"><span>Região</span><strong id="td-region">-</strong></div>
+      <div class="td-stat"><span>Organizador</span><strong id="td-organizer">-</strong></div>
+    </section>
+
+    <!-- ─── PIX REGISTRATION PAYMENT CONTAINER ─── -->
+    <div id="td-payment-container" style="display: none;"></div>
+
+    <section class="td-layout">
+      <div class="td-main">
+        <div class="td-section-head">
+          <h2>Chaveamento</h2>
+          <span id="td-bracket-note">Atualizado automaticamente</span>
+        </div>
+        <div class="td-bracket" id="td-bracket"></div>
+      </div>
+
+      <aside class="td-side">
+
+        <!-- ─── PUBLIC: Equipes (visible to everyone) ─── -->
+        <div id="td-public-teams-block">
+          <div class="td-section-head">
+            <h2>Equipes</h2>
+            <span id="td-team-count">0 equipes</span>
+          </div>
+          <div class="td-team-list" id="td-team-list"></div>
+        </div>
+
+        <!-- ─── ADMIN PANEL MOVED TO ORGANIZER-PANEL.HTML ─── -->
+
+        <!-- Solo Queue -->
+        <div class="td-section-head" style="margin-top: 32px;">
+          <h2 style="color: #00d4ff;">👤 Fila Solo</h2>
+          <span id="td-solo-count" style="color: #00d4ff;">0 jogadores</span>
+        </div>
+        <p style="font-size: 11px; color: #4a5568; margin-bottom: 12px; line-height: 1.5;">
+          Jogadores aguardando para completar vagas em equipes com slots abertos.
+        </p>
+        <div id="td-solo-list"></div>
+      </aside>
+    </section>
+
+    <section class="td-rules">
+      <div class="td-section-head">
+        <h2>Regras e Sala Privada</h2>
+      </div>
+      <div class="td-rule-grid">
+        <div>
+          <span>Regras</span>
+          <p id="td-rules">-</p>
+        </div>
+        <div>
+          <span>Sala privada Steam</span>
+          <p id="td-server">Aguardando liberação</p>
+          <button id="td-steam-lobby-access" type="button" style="display:none; margin-top:8px; border:1px solid rgba(0,212,255,.55); background:rgba(0,212,255,.1); color:#00d4ff; padding:8px 11px; border-radius:6px; font-family:'Orbitron',sans-serif; font-size:10px; font-weight:900; cursor:pointer;">ENTRAR NA SALA STEAM</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ─── EDIT TOURNAMENT MODAL ─── -->
+  <div class="modal-overlay" id="modal-edit-camp">
+    <div class="modal-box" style="max-width:500px; background:#070a13; border:1px solid rgba(0,212,255,0.25); box-shadow:0 0 30px rgba(0,212,255,0.15);">
+      <button class="modal-close" onclick="document.getElementById('modal-edit-camp').classList.remove('open')">✕</button>
+      <div class="create-tour-header" style="margin-bottom:20px; display:flex; gap:12px; align-items:center;">
+        <div class="create-tour-icon" style="font-size:24px; width:46px; height:46px; border-radius:10px; background:rgba(0,212,255,0.1); border:1px solid rgba(0,212,255,0.35); display:flex; align-items:center; justify-content:center;">⚙️</div>
+        <div>
+          <div class="create-tour-title" style="font-family:'Orbitron',sans-serif; font-size:16px; color:#fff; font-weight:900;">Editar Campeonato</div>
+          <div class="create-tour-sub" style="font-size:12px; color:#718096; margin-top:2px;">Atualize as informações do campeonato em tempo real</div>
+        </div>
+      </div>
+      
+      <form id="edit-camp-form" class="auth-form" style="display:flex; flex-direction:column; gap:14px;">
+        <div class="form-field">
+          <label style="font-size:11px; font-family:'Orbitron',sans-serif; color:#718096; text-transform:uppercase; margin-bottom:6px; display:block;">Nome do Campeonato</label>
+          <input class="form-input" id="edit-c-name" type="text" required style="width:100%; box-sizing:border-box; background:#04060b; color:#fff; border:1px solid rgba(255,255,255,0.1); border-radius:6px; padding:10px; font-family:inherit; outline:none;" />
+        </div>
+        <div class="form-field">
+          <label style="font-size:11px; font-family:'Orbitron',sans-serif; color:#718096; text-transform:uppercase; margin-bottom:6px; display:block;">Regras / Descrição</label>
+          <textarea class="form-input" id="edit-c-rules" rows="3" required style="width:100%; box-sizing:border-box; background:#04060b; color:#fff; border:1px solid rgba(255,255,255,0.1); border-radius:6px; padding:10px; font-family:inherit; outline:none; resize:none;"></textarea>
+        </div>
+        
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+          <div class="form-field">
+            <label style="font-size:11px; font-family:'Orbitron',sans-serif; color:#718096; text-transform:uppercase; margin-bottom:6px; display:block;">Premiação</label>
+            <input class="form-input" id="edit-c-prize" type="text" required style="width:100%; box-sizing:border-box; background:#04060b; color:#fff; border:1px solid rgba(255,255,255,0.1); border-radius:6px; padding:10px; font-family:inherit; outline:none;" />
+          </div>
+          <div class="form-field">
+            <label style="font-size:11px; font-family:'Orbitron',sans-serif; color:#718096; text-transform:uppercase; margin-bottom:6px; display:block;">Vagas Máximas</label>
+            <input class="form-input" id="edit-c-slots" type="number" required style="width:100%; box-sizing:border-box; background:#04060b; color:#fff; border:1px solid rgba(255,255,255,0.1); border-radius:6px; padding:10px; font-family:inherit; outline:none;" />
+          </div>
+        </div>
+        
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+          <div class="form-field">
+            <label style="font-size:11px; font-family:'Orbitron',sans-serif; color:#718096; text-transform:uppercase; margin-bottom:6px; display:block;">Região</label>
+            <input class="form-input" id="edit-c-region" type="text" required style="width:100%; box-sizing:border-box; background:#04060b; color:#fff; border:1px solid rgba(255,255,255,0.1); border-radius:6px; padding:10px; font-family:inherit; outline:none;" />
+          </div>
+          <div class="form-field">
+            <label style="font-size:11px; font-family:'Orbitron',sans-serif; color:#718096; text-transform:uppercase; margin-bottom:6px; display:block;">Status</label>
+            <select class="form-select" id="edit-c-status" style="width:100%; box-sizing:border-box; background:#04060b; color:#fff; border:1px solid rgba(255,255,255,0.1); border-radius:6px; padding:10px; font-family:inherit; outline:none; cursor:pointer;">
+              <option value="Registros Abertos">Registros Abertos</option>
+              <option value="Em Andamento">Em Andamento</option>
+              <option value="Finalizado">Finalizado</option>
+            </select>
+          </div>
+        </div>
+
+        <button type="submit" class="cs2-btn cs2-btn-primary" style="margin-top:10px; width:100%; border-radius:6px; font-family:'Orbitron',sans-serif; font-size:12px; font-weight:900; letter-spacing:1px;">💾 Salvar Alterações</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <script src="api.js"></script>
+  <script src="tournament-details.js"></script>
+  <script src="chat.js"></script>
+  <script src="premium.js"></script>
+  <script src="auth.js"></script>
+</body>
+</html>

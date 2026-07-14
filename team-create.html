@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CLUTCHZONE — Criar Equipe Tática</title>
+  <meta name="description" content="Crie e gerencie sua própria equipe competitiva de eSports na CLUTCHZONE." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;600;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="teams.css" />
+  <link rel="stylesheet" href="chat.css"/>
+  <link rel="stylesheet" href="premium.css"/>
+  <link rel="stylesheet" href="auth.css"/>
+</head>
+<body class="csgo-theme">
+
+  <!-- Custom Cursor Glow -->
+  <div id="cursor-glow" style="position:fixed;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(0,212,255,.05) 0%,transparent 70%);pointer-events:none;z-index:9999;transform:translate(-50%,-50%);"></div>
+
+  <!-- NAVBAR -->
+  <nav id="navbar" class="csgo-nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">CLUTCHZONE</a>
+      <ul class="nav-links">
+        <li><a href="index.html#games" class="nav-link">Jogos</a></li>
+        <li><a href="pubg.html" class="nav-link">PUBG</a></li>
+        <li><a href="csgo.html" class="nav-link">CS2</a></li>
+        <li><a href="brawlstars.html" class="nav-link">Brawl Stars</a></li>
+        <li><a href="passport.html" class="nav-link">🛂 Passaporte</a></li>
+        <li><a href="my-teams.html" class="nav-link">👥 Equipes</a></li>
+      </ul>
+      <div class="nav-actions">
+        <a href="my-teams.html" class="btn-login-back">👥 MINHAS EQUIPES</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="team-container" style="margin-top: 80px;">
+    
+    <div class="team-card" style="max-width: 800px; margin: 0 auto;">
+      <div class="team-card-title">🛡️ CADASTRAR NOVA EQUIPE</div>
+      <p style="font-size: 13px; color: #a0aec0; margin-bottom: 24px; line-height: 1.4;">Forme o seu esquadrão oficial. Como capitão, você poderá inscrever a equipe em todos os campeonatos, convidar novos talentos e gerenciar os cargos e funções.</p>
+
+      <form id="cluchzone-team-create-form" class="auth-form">
+        <div class="tm-form-grid">
+          
+          <!-- Name & Tag -->
+          <div class="tm-form-group">
+            <label class="form-label">Nome da Equipe *</label>
+            <input class="form-input" id="tm-name" type="text" placeholder="Ex: Imperial Esports" required maxlength="40"/>
+          </div>
+          <div class="tm-form-group">
+            <label class="form-label">TAG da Equipe (Max 5 letras) *</label>
+            <input class="form-input" id="tm-tag" type="text" placeholder="Ex: IMP" required maxlength="5" style="text-transform: uppercase;"/>
+          </div>
+
+          <!-- Description -->
+          <div class="tm-form-group full">
+            <label class="form-label">Descrição da Equipe</label>
+            <textarea class="form-textarea" id="tm-desc" placeholder="Conte sobre a história do time, objetivos ou foco tático..." maxlength="250"></textarea>
+          </div>
+
+          <!-- Region -->
+          <div class="tm-form-group">
+            <label class="form-label">Região do Time</label>
+            <select class="form-select" id="tm-region">
+              <option value="Brasil - SP">Brasil - SP</option>
+              <option value="Brasil - RJ">Brasil - RJ</option>
+              <option value="América do Sul">América do Sul</option>
+              <option value="Europa">Europa</option>
+            </select>
+          </div>
+
+          <!-- Logo Drag & Drop Box -->
+          <div class="tm-form-group">
+            <label class="form-label">Logo da Equipe (Arraste seu arquivo) *</label>
+            <div class="tm-upload-box" id="tm-logo-upload-box">
+              <span style="font-size: 24px;">📁</span>
+              <p style="font-size: 11px; margin-top: 4px; color: #718096;">Arraste o arquivo de imagem aqui ou <span style="color:var(--tm-cyan); font-weight:700;">clique para procurar</span></p>
+              <input type="file" id="tm-logo-file" accept="image/*" style="position:absolute; inset:0; opacity:0; cursor:pointer;" required />
+              <img id="logo-preview-img" class="tm-upload-preview" alt="Preview da Logo" />
+            </div>
+          </div>
+
+          <!-- Banner Drag & Drop Box -->
+          <div class="tm-form-group">
+            <label class="form-label">Banner da Equipe (Arraste seu arquivo) *</label>
+            <div class="tm-upload-box" id="tm-banner-upload-box">
+              <span style="font-size: 24px;">🖼️</span>
+              <p style="font-size: 11px; margin-top: 4px; color: #718096;">Arraste o arquivo de imagem aqui ou <span style="color:var(--tm-cyan); font-weight:700;">clique para procurar</span></p>
+              <input type="file" id="tm-banner-file" accept="image/*" style="position:absolute; inset:0; opacity:0; cursor:pointer;" required />
+              <img id="banner-preview-img" class="tm-upload-preview" alt="Preview do Banner" />
+            </div>
+          </div>
+
+          <!-- Social Links -->
+          <div class="tm-form-group">
+            <label class="form-label">Discord da Equipe</label>
+            <input class="form-input" id="tm-link-discord" type="url" placeholder="https://discord.gg/..."/>
+          </div>
+          <div class="tm-form-group">
+            <label class="form-label">Steam da Equipe</label>
+            <input class="form-input" id="tm-link-steam" type="url" placeholder="https://steamcommunity.com/groups/..."/>
+          </div>
+          <div class="tm-form-group">
+            <label class="form-label">Instagram</label>
+            <input class="form-input" id="tm-link-insta" type="url" placeholder="https://instagram.com/..."/>
+          </div>
+          <div class="tm-form-group">
+            <label class="form-label">Site Oficial</label>
+            <input class="form-input" id="tm-link-site" type="url" placeholder="https://..."/>
+          </div>
+
+          <!-- Roster Settings -->
+          <div class="form-divider" style="grid-column: 1 / -1; height: 1px; background: var(--tm-border); margin: 12px 0;"></div>
+          
+          <div class="tm-form-group">
+            <label class="form-label">Capitão (Você) *</label>
+            <input class="form-input" id="tm-captain-name" type="text" disabled/>
+          </div>
+          <div class="tm-form-group">
+            <label class="form-label">Vice-Capitão (Nick/User) *</label>
+            <input class="form-input" id="tm-vice-name" type="text" placeholder="Nick do vice-capitão" required/>
+          </div>
+
+          <div class="tm-form-group full">
+            <label class="form-label">Titulares Adicionais (Nicks separados por vírgula) *</label>
+            <input class="form-input" id="tm-players-list" type="text" placeholder="Jogador3, Jogador4, Jogador5" required/>
+          </div>
+          <div class="tm-form-group full">
+            <label class="form-label">Reservas (Nicks separados por vírgula)</label>
+            <input class="form-input" id="tm-reserves-list" type="text" placeholder="Reserva1, Reserva2"/>
+          </div>
+
+        </div>
+
+        <button type="submit" class="cs2-btn cs2-btn-primary" style="margin-top: 24px; padding: 14px 28px; width: 100%;">🛡️ PUBLICAR E CRIAR EQUIPE</button>
+      </form>
+    </div>
+
+  </main>
+
+  <footer class="hub-footer" style="margin-top: 60px;">
+    <div class="hub-footer-logo">CLUTCHZONE</div>
+    <p>© 2026 CLUTCHZONE Esports · Todos os direitos reservados ⚡</p>
+  </footer>
+
+  <div id="toast-container" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;align-items:center;gap:8px;"></div>
+
+  <script src="api.js"></script>
+  <script src="main.js"></script>
+  <script src="teams.js"></script>
+  <script src="chat.js"></script>
+  <script src="premium.js"></script>
+  <script src="auth.js"></script>
+  <script>
+    // Follow mouse glow
+    const glow = document.getElementById('cursor-glow');
+    document.addEventListener('mousemove', (e) => {
+      glow.style.left = e.clientX + 'px';
+      glow.style.top = e.clientY + 'px';
+    });
+  </script>
+</body>
+</html>

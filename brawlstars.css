@@ -1,0 +1,542 @@
+/* ═══════════════════════════════════════════════════════════════
+   CLUTCHZONE — BRAWL STARS STYLE SHEET
+   Vibrant, Colorful Cartoon Theme & Interactive Gem Mine
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  --brawl-purple: #4c118e;
+  --brawl-gold: #fcc200;
+  --brawl-gold-dark: #b8860b;
+  --brawl-blue: #007cff;
+  --brawl-red: #ff3b30;
+  --brawl-gem: #00ffd8;
+  --brawl-dark: #120526;
+  
+  --font-lilita: 'Lilita One', sans-serif;
+}
+
+body.brawl-theme {
+  background-color: var(--brawl-dark);
+  color: #fff;
+  font-family: 'Rajdhani', sans-serif;
+  cursor: none;
+  background: radial-gradient(circle at 50% 50%, #2a0b54 0%, var(--brawl-dark) 100%);
+}
+
+.font-lilita {
+  font-family: var(--font-lilita), cursive;
+  letter-spacing: 1.5px;
+  text-shadow: 3px 3px 0px #000, -1px -1px 0px #000, 1px -1px 0px #000, -1px 1px 0px #000, 1px 1px 0px #000;
+}
+
+/* Custom Brawl Nav */
+.brawl-nav {
+  background: rgba(18, 5, 38, 0.95) !important;
+  border-bottom: 4px solid var(--brawl-gold) !important;
+}
+
+.brawl-gem-counter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 255, 216, 0.15);
+  border: 2px solid var(--brawl-gem);
+  padding: 4px 14px;
+  border-radius: 20px;
+  color: var(--brawl-gem);
+  font-weight: 700;
+  font-size: 15px;
+  text-shadow: 0 0 10px rgba(0, 255, 216, 0.5);
+  box-shadow: inset 0 2px 8px rgba(0, 255, 216, 0.2);
+}
+
+.nav-gem-icon {
+  animation: gem-spin 3s linear infinite;
+}
+@keyframes gem-spin {
+  0% { transform: rotateY(0); }
+  100% { transform: rotateY(360deg); }
+}
+
+/* Header style */
+.brawl-hero {
+  text-align: center;
+  padding: 85px 24px 15px;
+  position: relative;
+  background: linear-gradient(135deg, rgba(18, 5, 38, 0.95) 35%, transparent 100%),
+              url('images/brawl_bg.jpg') center/cover no-repeat;
+  min-height: 380px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.brawl-logo-animation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+.brawl-logo-animation h1 {
+  font-size: clamp(24px, 5vw, 48px);
+  color: var(--brawl-gold);
+}
+.star-icon {
+  font-size: 36px;
+  animation: star-bounce 2s ease-in-out infinite alternate;
+}
+@keyframes star-bounce {
+  from { transform: translateY(0) scale(1) rotate(0); }
+  to { transform: translateY(-8px) scale(1.1) rotate(15deg); }
+}
+.brawl-subtitle {
+  font-size: 15px;
+  color: #cbd5e0;
+  max-width: 600px;
+  margin: 10px auto 0;
+  font-weight: 600;
+}
+
+/* Floating BG decorations */
+.brawl-bg-stars {
+  position: fixed;
+  inset: 0;
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(252, 194, 0, 0.05) 0%, transparent 10%),
+    radial-gradient(circle at 85% 15%, rgba(0, 124, 255, 0.05) 0%, transparent 15%),
+    radial-gradient(circle at 75% 75%, rgba(255, 45, 122, 0.05) 0%, transparent 10%);
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Main Arena Container */
+.brawl-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px 24px 60px;
+}
+
+/* Tournament Selection tabs */
+.brawl-section-title {
+  margin-bottom: 20px;
+}
+.brawl-section-title h2 {
+  font-size: 24px;
+  color: #fff;
+}
+.brawl-section-title p {
+  font-size: 14px;
+  color: #a0aec0;
+  margin-top: 4px;
+}
+
+.brawl-tabs {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+.brawl-tab {
+  flex: 1;
+  min-width: 250px;
+  background: #1c0a37;
+  border: 3px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 16px 20px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  overflow: hidden;
+}
+.brawl-tab::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0; height: 6px;
+  background: var(--brawl-gold-dark);
+}
+.brawl-tab:hover {
+  transform: translateY(-4px);
+  border-color: var(--brawl-gold);
+}
+.brawl-tab.active {
+  border-color: var(--brawl-gold);
+  background: #31135c;
+  box-shadow: 0 8px 24px rgba(252, 194, 0, 0.15);
+}
+.brawl-tab.active::after {
+  background: var(--brawl-gold);
+}
+
+.tab-badge {
+  display: inline-block;
+  font-family: var(--font-lilita), sans-serif;
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  color: #fff;
+  border: 1px solid rgba(0,0,0,0.2);
+  margin-bottom: 8px;
+}
+.tab-badge.gem-grab { background-color: #9c27b0; }
+.tab-badge.brawl-ball { background-color: #4caf50; }
+
+.tab-name {
+  font-size: 18px;
+  color: #fff;
+  margin-bottom: 6px;
+}
+.tab-prize {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--brawl-gold);
+}
+
+/* Arena Lobby main grid layout */
+.brawl-arena-lobby {
+  background: rgba(28, 10, 55, 0.7);
+  border: 4px solid var(--brawl-purple);
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 12px 36px rgba(0,0,0,0.6);
+  backdrop-filter: blur(10px);
+}
+
+.brawl-grid-layout {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr 1fr;
+  gap: 30px;
+  align-items: center;
+}
+
+.brawl-team {
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 16px;
+  padding: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.05);
+}
+
+.team-title {
+  font-size: 22px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+.team-title.blue { color: var(--brawl-blue); }
+.team-title.red { color: var(--brawl-red); }
+
+.slots-container {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.brawl-slot {
+  height: 80px;
+  border-radius: 12px;
+  border: 3px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.02);
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  position: relative;
+  transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.brawl-slot.empty {
+  border-style: dashed;
+  color: #718096;
+  font-weight: 700;
+  justify-content: center;
+  align-items: center;
+}
+
+.brawl-slot.occupied {
+  color: #fff;
+  border-left-width: 6px;
+}
+.blue-team .brawl-slot.occupied { border-left-color: var(--brawl-blue); border-color: rgba(0, 124, 255, 0.2); }
+.red-team .brawl-slot.occupied { border-left-color: var(--brawl-red); border-color: rgba(255, 59, 48, 0.2); }
+
+.brawl-slot.yours {
+  background: rgba(252, 194, 0, 0.05);
+  border-color: var(--brawl-gold) !important;
+  box-shadow: 0 0 15px rgba(252, 194, 0, 0.2);
+}
+
+.brawl-slot-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #2d3748;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  border: 2px solid #4a5568;
+  flex-shrink: 0;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+.blue-team .brawl-slot.occupied .brawl-slot-avatar { border-color: var(--brawl-blue); }
+.red-team .brawl-slot.occupied .brawl-slot-avatar { border-color: var(--brawl-red); }
+.brawl-slot.yours .brawl-slot-avatar { border-color: var(--brawl-gold) !important; }
+
+.slot-player-info {
+  display: flex;
+  flex-direction: column;
+}
+.slot-brawler-name {
+  font-family: var(--font-lilita), sans-serif;
+  font-size: 16px;
+  color: var(--brawl-gold);
+}
+.slot-player-nick {
+  font-size: 13px;
+  font-weight: 700;
+  color: #a0aec0;
+}
+
+.brawl-slot-leave {
+  position: absolute;
+  top: 6px; right: 6px;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: rgba(255, 59, 48, 0.2);
+  border: 1px solid var(--brawl-red);
+  color: var(--brawl-red);
+  font-size: 8px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.brawl-slot-leave:hover {
+  background: var(--brawl-red);
+  color: #fff;
+}
+
+/* Gem Mine Central Visual style */
+.brawl-gem-mine-container {
+  text-align: center;
+  background: radial-gradient(circle, #2d1854 0%, #160731 100%);
+  border: 3px solid var(--brawl-purple);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+}
+.mine-hull h4 {
+  font-size: 18px;
+  color: var(--brawl-gem);
+  margin-bottom: 6px;
+}
+.mine-hull p {
+  font-size: 11px;
+  color: #cbd5e0;
+  margin-bottom: 24px;
+}
+
+.gem-mine-core {
+  width: 140px;
+  height: 140px;
+  margin: 0 auto 20px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mine-hole {
+  width: 90px;
+  height: 90px;
+  background: #000;
+  border-radius: 50%;
+  border: 6px solid #1a0e36;
+  box-shadow: 
+    inset 0 4px 12px rgba(0,0,0,0.9),
+    0 4px 10px rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 5;
+}
+
+.mine-active-gem {
+  font-size: 42px;
+  cursor: pointer;
+  user-select: none;
+  animation: gem-bounce-glow 2.5s ease-in-out infinite alternate;
+  transition: all 0.2s;
+  z-index: 10;
+}
+@keyframes gem-bounce-glow {
+  0% { 
+    transform: scale(0.9) translateY(4px); 
+    text-shadow: 0 0 10px rgba(0, 255, 216, 0.4); 
+  }
+  100% { 
+    transform: scale(1.1) translateY(-6px) rotate(10deg); 
+    text-shadow: 0 0 30px rgba(0, 255, 216, 0.9), 0 0 50px rgba(0, 255, 216, 0.4); 
+  }
+}
+.mine-active-gem:hover {
+  transform: scale(1.25) rotate(-5deg);
+  text-shadow: 0 0 40px rgba(0, 255, 216, 1);
+}
+.mine-active-gem:active {
+  transform: scale(0.85);
+}
+
+.mine-glow-ring {
+  position: absolute;
+  inset: -10px;
+  border: 2px dashed rgba(0, 255, 216, 0.2);
+  border-radius: 50%;
+  animation: rotate-ring 15s linear infinite;
+}
+@keyframes rotate-ring {
+  to { transform: rotate(360deg); }
+}
+
+.mine-status {
+  font-size: 14px;
+  color: var(--brawl-gem);
+  text-shadow: 2px 2px 0px #000;
+  animation: text-blink 1.5s infinite alternate;
+}
+@keyframes text-blink {
+  from { opacity: 0.5; }
+  to { opacity: 1; }
+}
+
+/* Flying gem animation element dynamically generated */
+.flying-gem {
+  position: fixed;
+  font-size: 32px;
+  pointer-events: none;
+  z-index: 9999;
+  text-shadow: 0 0 20px rgba(0, 255, 216, 0.8);
+  animation: float-fly 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+@keyframes float-fly {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(0.4); opacity: 0; }
+}
+
+/* Brawler Selector Modal Box styles */
+.brawler-picker-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(8px);
+  z-index: 2500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+.brawler-picker-modal.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.picker-box {
+  background: linear-gradient(135deg, #1c0a37 0%, var(--brawl-dark) 100%);
+  border: 4px solid var(--brawl-gold);
+  border-radius: 20px;
+  padding: 30px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.8);
+  transform: scale(0.9);
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.brawler-picker-modal.show .picker-box {
+  transform: scale(1);
+}
+
+.picker-box h3 {
+  font-size: 26px;
+  color: var(--brawl-gold);
+  text-align: center;
+  margin-bottom: 6px;
+}
+.picker-box p {
+  font-size: 13px;
+  color: #cbd5e0;
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.brawlers-selector-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.brawler-option {
+  background: rgba(0,0,0,0.3);
+  border: 2px solid rgba(255,255,255,0.06);
+  border-radius: 12px;
+  padding: 10px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.brawler-option:hover {
+  border-color: var(--brawl-gold);
+  transform: translateY(-3px);
+  background: rgba(252, 194, 0, 0.05);
+}
+.brawler-option span {
+  font-size: 11px;
+  display: block;
+  margin-top: 6px;
+  color: #e2e8f0;
+}
+
+.brawler-pic {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #1a0e36;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  border: 2px solid rgba(255,255,255,0.1);
+}
+
+.btn-picker-close {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  background: var(--brawl-red);
+  color: #fff;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-picker-close:hover {
+  filter: brightness(1.2);
+}
+
+@media (max-width: 1024px) {
+  .brawl-grid-layout {
+    grid-template-columns: 1fr;
+  }
+  .brawl-gem-mine-container {
+    order: -1;
+  }
+}
+@media (max-width: 600px) {
+  .brawlers-selector-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data:; script-src 'self' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' https: data:; font-src 'self' https: data:; frame-src 'none'; upgrade-insecure-requests" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CLUTCHZONE - Painel do Organizador</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;600;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="csgo.css" />
+  <link rel="stylesheet" href="chat.css" />
+  <link rel="stylesheet" href="premium.css" />
+  <link rel="stylesheet" href="auth.css" />
+  <style>
+    .op-container {
+      max-width: 1100px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+    .op-header {
+      background: linear-gradient(135deg, rgba(7, 10, 18, 0.95), rgba(11, 16, 27, 0.95));
+      border: 1px solid rgba(0, 212, 255, 0.15);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    }
+    .op-title h1 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 24px;
+      font-weight: 900;
+      color: #fff;
+      margin: 0;
+      letter-spacing: 1px;
+    }
+    .op-title p {
+      font-size: 13px;
+      color: #718096;
+      margin: 6px 0 0;
+    }
+    .op-grid {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 30px;
+      align-items: start;
+    }
+    .op-nav {
+      background: rgba(8, 12, 22, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .op-nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      padding: 14px 16px;
+      background: none;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      color: #718096;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.25s;
+    }
+    .op-nav-btn:hover {
+      background: rgba(255, 255, 255, 0.02);
+      color: #a0aec0;
+    }
+    .op-nav-btn.active {
+      background: rgba(0, 212, 255, 0.08);
+      border-color: rgba(0, 212, 255, 0.25);
+      color: #00d4ff;
+    }
+    .op-content-card {
+      background: rgba(8, 12, 22, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 24px;
+      min-height: 400px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+    .op-view {
+      display: none;
+    }
+    .op-view.active {
+      display: block;
+    }
+    .op-badge-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .op-badge {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 9px;
+      font-weight: 900;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+    @media (max-width: 768px) {
+      .op-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body class="csgo-theme">
+  <div id="cursor-glow"></div>
+
+  <nav id="navbar" class="csgo-nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">CLUTCHZONE</a>
+      <ul class="nav-links">
+        <li><a href="csgo.html" class="nav-link">Campeonatos</a></li>
+        <li><a href="csgo.html" class="nav-link">CS2</a></li>
+        <li><a href="passport.html" class="nav-link">Passaporte</a></li>
+      </ul>
+      <div class="nav-actions">
+        <a id="btn-back-to-camp" href="#" class="btn-login-back">VOLTAR AO TORNEIO</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="op-container">
+    <header class="op-header">
+      <div class="op-title">
+        <h1 id="op-camp-name">Painel do Organizador</h1>
+        <p id="op-camp-meta">Carregando detalhes do campeonato...</p>
+      </div>
+      <div style="display:flex; gap:12px; align-items:center;">
+        <div id="op-status-badge" class="op-badge" style="background:rgba(255,215,0,0.1); color:#ffd700; border:1px solid rgba(255,215,0,0.3); font-size:11px; padding:6px 12px; border-radius:20px;">Carregando</div>
+      </div>
+    </header>
+
+    <div class="op-grid">
+      <aside class="op-aside">
+        <nav class="op-nav">
+          <button id="tab-btn-teams" class="op-nav-btn active" onclick="switchPanel('teams')">
+            <span>🛡️</span> Gerenciar Equipes
+          </button>
+          <button id="tab-btn-matches" class="op-nav-btn" onclick="switchPanel('matches')">
+            <span>🎮</span> Controlar Partidas
+          </button>
+          <button id="tab-btn-solo" class="op-nav-btn" onclick="switchPanel('solo')">
+            <span>👤</span> Fila Solo
+          </button>
+          <button id="tab-btn-payments" class="op-nav-btn" onclick="switchPanel('payments')">
+            <span>💳</span> Pagamentos
+          </button>
+          <button id="tab-btn-config" class="op-nav-btn" onclick="switchPanel('config')">
+            <span>⚙️</span> Ajustes & Sala Steam
+          </button>
+        </nav>
+      </aside>
+
+      <section class="op-content-card">
+        <!-- VIEW 1: TEAMS -->
+        <div id="panel-teams" class="op-view active">
+          <h2 style="font-family:'Orbitron',sans-serif; color:#fff; font-size:18px; margin:0 0 16px;">🛡️ Gerenciar Inscrições de Equipes</h2>
+          <div style="display:flex; border-bottom:1px solid rgba(255,255,255,0.06); margin-bottom:20px; gap:8px;">
+            <button id="admin-tab-pending" onclick="adminSwitchTab('pending')" style="
+              font-family:'Orbitron',sans-serif; font-size:10px; font-weight:900; letter-spacing:0.5px;
+              padding:10px 14px; background:none; border:none; color:#ffd700; cursor:pointer;
+              border-bottom:2px solid #ffd700; margin-bottom:-1px;
+            ">⏳ PENDENTES (<span id="count-pending">0</span>)</button>
+            <button id="admin-tab-approved" onclick="adminSwitchTab('approved')" style="
+              font-family:'Orbitron',sans-serif; font-size:10px; font-weight:900; letter-spacing:0.5px;
+              padding:10px 14px; background:none; border:none; color:#718096; cursor:pointer;
+              border-bottom:2px solid transparent; margin-bottom:-1px;
+            ">✅ APROVADAS (<span id="count-approved">0</span>)</button>
+            <button id="admin-tab-rejected" onclick="adminSwitchTab('rejected')" style="
+              font-family:'Orbitron',sans-serif; font-size:10px; font-weight:900; letter-spacing:0.5px;
+              padding:10px 14px; background:none; border:none; color:#718096; cursor:pointer;
+              border-bottom:2px solid transparent; margin-bottom:-1px;
+            ">❌ REJEITADAS</button>
+          </div>
+          
+          <div id="admin-content-pending"><div id="admin-pending-list" style="display:flex;flex-direction:column;gap:12px;"></div></div>
+          <div id="admin-content-approved" style="display:none;"><div id="admin-approved-list" style="display:flex;flex-direction:column;gap:12px;"></div></div>
+          <div id="admin-content-rejected" style="display:none;"><div id="admin-rejected-list" style="display:flex;flex-direction:column;gap:12px;"></div></div>
+        </div>
+
+        <!-- VIEW 2: MATCHES -->
+        <div id="panel-matches" class="op-view">
+          <h2 style="font-family:'Orbitron',sans-serif; color:#fff; font-size:18px; margin:0 0 16px;">🎮 Chaves e Controle de Partidas</h2>
+          <div id="admin-matches-control-list" style="display:flex; flex-direction:column; gap:12px;"></div>
+        </div>
+
+        <!-- VIEW 3: SOLO QUEUE -->
+        <div id="panel-solo" class="op-view">
+          <h2 style="font-family:'Orbitron',sans-serif; color:#fff; font-size:18px; margin:0 0 16px;">👤 Gerenciar Fila Solo</h2>
+          <div id="admin-solo-control-list" style="display:flex; flex-direction:column; gap:12px;"></div>
+        </div>
+
+        <!-- VIEW 4: PAYMENTS -->
+        <div id="panel-payments" class="op-view">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; margin-bottom:18px;">
+            <div>
+              <h2 style="font-family:'Orbitron',sans-serif; color:#fff; font-size:18px; margin:0 0 6px;">💳 Pagamentos por Jogador</h2>
+              <p style="margin:0; color:#718096; font-size:12px;">Acompanhe e atualize o status individual de cada integrante inscrito.</p>
+            </div>
+            <button type="button" onclick="adminDownloadPaymentsPdf()" style="font-family:'Orbitron',sans-serif; font-size:10px; font-weight:900; letter-spacing:.5px; color:#061019; background:linear-gradient(135deg,#00d4ff,#00ff88); border:none; border-radius:7px; padding:11px 14px; cursor:pointer;">📄 BAIXAR RELATÓRIO PDF</button>
+          </div>
+          <div class="op-badge-row" style="margin-bottom:18px;">
+            <div class="op-badge" style="background:rgba(0,255,136,.08);color:#00ff88;border:1px solid rgba(0,255,136,.22);">✓ Pagos: <strong id="payment-count-paid">0</strong></div>
+            <div class="op-badge" style="background:rgba(255,215,0,.08);color:#ffd700;border:1px solid rgba(255,215,0,.22);">◷ Em análise: <strong id="payment-count-sent">0</strong></div>
+            <div class="op-badge" style="background:rgba(255,51,51,.08);color:#ff6b6b;border:1px solid rgba(255,51,51,.22);">! Pendentes: <strong id="payment-count-pending">0</strong></div>
+          </div>
+          <div id="admin-payments-list" style="display:flex; flex-direction:column; gap:14px;"></div>
+        </div>
+
+        <!-- VIEW 5: CONFIGS -->
+        <div id="panel-config" class="op-view">
+          <h2 style="font-family:'Orbitron',sans-serif; color:#fff; font-size:18px; margin:0 0 20px;">⚙️ Ajustes Gerais e Sala Privada</h2>
+          
+          <div style="background:rgba(255,255,255,0.02); padding:20px; border-radius:12px; border:1px solid rgba(255,255,255,0.04); margin-bottom:24px;">
+            <h3 style="font-family:'Orbitron',sans-serif; font-size:13px; color:#fff; margin:0 0 16px; border-bottom:1px solid rgba(255,255,255,0.04); padding-bottom:6px;">🎮 Sala Privada Steam</h3>
+            
+            <div style="display:grid; grid-template-columns:1fr; gap:16px;">
+              <div>
+                <label style="font-size:10px; color:#718096; font-family:'Orbitron',sans-serif; display:block; margin-bottom:6px;">LINK OU CÓDIGO DE CONVITE STEAM *</label>
+                <input class="form-input" id="admin-steam-invite" type="text" placeholder="Cole aqui o link ou código da sala privada" style="font-size:13px; padding:8px 12px; background:#0c101b; width:100%; border:1px solid rgba(255,255,255,0.08); color:#fff; border-radius:6px;" />
+              </div>
+              <div>
+                <label style="font-size:10px; color:#718096; font-family:'Orbitron',sans-serif; display:block; margin-bottom:6px;">INSTRUÇÕES PARA AS EQUIPES</label>
+                <input class="form-input" id="admin-steam-instructions" type="text" placeholder="Ex.: Entre na sala 10 minutos antes da partida" style="font-size:13px; padding:8px 12px; background:#0c101b; width:100%; border:1px solid rgba(255,255,255,0.08); color:#fff; border-radius:6px;" />
+              </div>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+                <span style="font-size:13px; color:#a0aec0;">Liberar sala apenas para equipes confirmadas</span>
+                <label class="switch" style="position:relative; display:inline-block; width:46px; height:24px;">
+                  <input type="checkbox" id="admin-steam-active" style="opacity:0; width:0; height:0;">
+                  <span class="slider round" style="position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background-color:#1a2030; transition:.4s; border-radius:34px; border:1px solid rgba(255,255,255,0.08); cursor:pointer;"></span>
+                </label>
+              </div>
+            </div>
+            <p style="margin:14px 0 0; color:#718096; font-size:12px; line-height:1.5;">Crie a sala privada no CS2 e publique o convite da Steam. Não é necessário contratar ou informar um servidor.</p>
+            <button onclick="adminSaveSteamLobby()" style="
+              margin-top:20px; width:100%; font-family:'Orbitron',sans-serif; font-size:11px; font-weight:900;
+              padding:10px; border-radius:6px; cursor:pointer; background:#00d4ff; border:none; color:#000; transition:opacity 0.2s;
+            " onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">PUBLICAR SALA PRIVADA</button>
+          </div>
+
+          <!-- General actions -->
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            <button onclick="openEditCampModal()" style="
+              width:100%; font-family:'Orbitron',sans-serif; font-size:11px; font-weight:900;
+              color:#00d4ff; border:1px solid rgba(0,212,255,0.25); background:rgba(0,212,255,0.05);
+              padding:10px; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition: background 0.2s;
+            " onmouseover="this.style.background='rgba(0,212,255,0.1)'" onmouseout="this.style.background='rgba(0,212,255,0.05)'">
+              ⚙️ EDITAR TORNEIO (NOME / SLOTS / PRÊMIO)
+            </button>
+            <button onclick="adminCloseTournament()" style="
+              width:100%; font-family:'Orbitron',sans-serif; font-size:11px; font-weight:900;
+              color:#ff9900; border:1px solid rgba(255,153,0,0.25); background:rgba(255,153,0,0.05);
+              padding:10px; border-radius:6px; cursor:pointer; transition: background 0.2s;
+            " onmouseover="this.style.background='rgba(255,153,0,0.1)'" onmouseout="this.style.background='rgba(255,153,0,0.05)'">
+              🏆 FINALIZAR TORNEIO E DECLARAR CAMPEÃO
+            </button>
+            <button onclick="adminDeleteTournament()" style="
+              width:100%; font-family:'Orbitron',sans-serif; font-size:11px; font-weight:900;
+              color:#ff3333; border:1px solid rgba(255,51,51,0.3); background:rgba(255,51,51,0.08);
+              padding:10px; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition: background 0.2s;
+            " onmouseover="this.style.background='rgba(255,51,51,0.2)'" onmouseout="this.style.background='rgba(255,51,51,0.08)'">
+              🗑️ EXCLUIR CAMPEONATO (DESTRUTIVO)
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- ─── EDIT TOURNAMENT MODAL (embedded here for convenience) ─── -->
+  <div class="modal-overlay" id="modal-edit-camp">
+    <div class="modal-box" style="max-width:500px; background:#070a13; border:1px solid rgba(0,212,255,0.25); box-shadow:0 0 30px rgba(0,212,255,0.15);">
+      <button class="modal-close" onclick="document.getElementById('modal-edit-camp').classList.remove('open')">✕</button>
+      <h3 style="font-family:'Orbitron',sans-serif; color:#fff; font-size:18px; margin-bottom:12px;">Editar Torneio</h3>
+      <form id="edit-camp-form" class="auth-form">
+        <div class="form-field">
+          <label>Nome do Campeonato</label>
+          <input class="form-input" id="edit-c-name" type="text" required />
+        </div>
+        <div class="form-field">
+          <label>Regras & Descrição</label>
+          <textarea class="form-input" id="edit-c-rules" rows="4" style="resize:vertical;" required></textarea>
+        </div>
+        <div class="form-field">
+          <label>Premiação Total</label>
+          <input class="form-input" id="edit-c-prize" type="text" required />
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+          <div class="form-field">
+            <label>Vagas Máximas</label>
+            <input class="form-input" id="edit-c-slots" type="number" required />
+          </div>
+          <div class="form-field">
+            <label>Região</label>
+            <input class="form-input" id="edit-c-region" type="text" required />
+          </div>
+        </div>
+        <div class="form-field">
+          <label>Status do Torneio</label>
+          <select class="form-select" id="edit-c-status" style="width:100%;">
+            <option value="Registros Abertos">Registros Abertos</option>
+            <option value="Em Andamento">Em Andamento</option>
+            <option value="Finalizado">Finalizado</option>
+          </select>
+        </div>
+        <button class="cs2-btn cs2-btn-primary" type="submit" style="width:100%; margin-top:14px;">SALVAR ALTERAÇÕES</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast-container" style="position:fixed; bottom:20px; right:20px; z-index:9999; display:flex; flex-direction:column; gap:8px; pointer-events:none;"></div>
+
+  <script src="api.js"></script>
+  <script src="organizer-panel.js"></script>
+</body>
+</html>

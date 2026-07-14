@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data:; script-src 'self' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' https: data:; font-src 'self' https: data:; frame-src 'none'; upgrade-insecure-requests" />
+  <meta name="room-name" content="Brawl Arena — Gem Mine"/>
+  <meta name="room-icon" content="⭐"/>
+  <meta name="org-name" content="Staff_Brawl"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CLUTCHZONE — Brawl Arena</title>
+  <meta name="description" content="Entre na Gem Mine da CLUTCHZONE e inscreva-se nos campeonatos de Brawl Stars." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;600;700&family=Lilita+One&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="brawlstars.css" />
+  <link rel="stylesheet" href="chat.css"/>
+  <link rel="stylesheet" href="premium.css"/>
+  <link rel="stylesheet" href="auth.css"/>
+</head>
+<body class="brawl-theme">
+
+  <!-- Custom Cursor Glow -->
+  <div id="cursor-glow"></div>
+
+  <!-- Background decorations (spawning stars / floating graphics) -->
+  <div class="brawl-bg-stars"></div>
+
+  <!-- NAVBAR -->
+  <nav id="navbar" class="brawl-nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">CLUTCHZONE</a>
+      <ul class="nav-links">
+        <li><a href="index.html#games" class="nav-link">Jogos</a></li>
+        <li><a href="pubg.html" class="nav-link">PUBG</a></li>
+        <li><a href="csgo.html" class="nav-link">CS2</a></li>
+        <li><a href="brawlstars.html" class="nav-link active">Brawl Stars</a></li>
+      </ul>
+      <div class="nav-actions">
+        <span class="brawl-gem-counter">
+          <span class="nav-gem-icon font-ui">💎</span> <span id="user-gems-total">0</span> GEMS
+        </span>
+        <a href="index.html" class="btn-login-back font-lilita">SAIR DA ARENA</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- BRAWL HERO HEADER -->
+  <header class="brawl-hero">
+    <div class="brawl-hero-content">
+      <div class="brawl-logo-animation">
+        <span class="star-icon">⭐</span>
+        <h1 class="font-lilita">BRAWL STARS CLASH</h1>
+      </div>
+      <p class="brawl-subtitle">Pegue Gemas da mina para reivindicar sua vaga nos lobbies 3v3 de Gem Grab. Escolha seu Brawler e brigue!</p>
+      <div style="margin-top: 20px; display: flex; gap: 12px; justify-content: center;">
+        <button class="cs2-btn cs2-btn-primary" id="btn-create-tour-brawl" style="background: var(--brawl-gold); color: #000; border-color: var(--brawl-gold);">Criar Campeonato</button>
+        <button class="cs2-btn cs2-btn-secondary">Explorar Campeonatos</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="brawl-container">
+
+    <!-- TOURNAMENTS LIST -->
+    <section class="brawl-tournaments">
+      <div class="brawl-section-title">
+        <h2 class="font-lilita">🏆 TORNEIOS BRAWL STARS</h2>
+        <p>Inscreva-se clicando nas gemas da mina para reservar seu espaço!</p>
+      </div>
+
+      <div class="brawl-tabs">
+        <div class="brawl-tab active" data-tour-id="1">
+          <div class="tab-badge gem-grab">GEM GRAB</div>
+          <div class="tab-name font-lilita">Brawl Cup Brasil #1</div>
+          <div class="tab-prize">🏆 R$ 3.000</div>
+        </div>
+        <div class="brawl-tab" data-tour-id="2">
+          <div class="tab-badge brawl-ball">BRAWL BALL</div>
+          <div class="tab-name font-lilita">Star League Qualifier</div>
+          <div class="tab-prize">🏆 R$ 1.500</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- GEM MINE INTERACTIVE LOBBY -->
+    <section class="brawl-arena-lobby">
+      <div class="brawl-grid-layout">
+        
+        <!-- Left: Blue Team (3 slots) -->
+        <div class="brawl-team blue-team">
+          <h3 class="font-lilita team-title blue">EQUIPE AZUL</h3>
+          <div class="slots-container" id="blue-slots">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Center: The Gem Mine (Spawns Gems to Click) -->
+        <div class="brawl-gem-mine-container">
+          <div class="mine-hull">
+            <h4 class="font-lilita">MINA DE GEMAS</h4>
+            <p>Clique em uma gema brilhante para preencher um slot vago!</p>
+            
+            <!-- Mine Central Core -->
+            <div class="gem-mine-core">
+              <div class="mine-hole">
+                <!-- Gem Spawns here periodically -->
+                <div class="mine-active-gem" id="active-gem">💎</div>
+              </div>
+              <div class="mine-glow-ring"></div>
+            </div>
+            
+            <div class="mine-status font-lilita" id="mine-status-text">GEMA DISPONÍVEL!</div>
+          </div>
+        </div>
+
+        <!-- Right: Red Team (3 slots) -->
+        <div class="brawl-team red-team">
+          <h3 class="font-lilita team-title red">EQUIPE VERMELHA</h3>
+          <div class="slots-container" id="red-slots">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- BRAWLER SELECTION MODAL (Overlay inside page) -->
+    <div class="brawler-picker-modal" id="brawler-picker">
+      <div class="picker-box">
+        <h3 class="font-lilita">ESCOLHA SEU BRAWLER</h3>
+        <p>Selecione um herói para seu slot:</p>
+        <div class="brawlers-selector-grid">
+          <div class="brawler-option" data-brawler="Shelly">
+            <div class="brawler-pic shelly">💥</div>
+            <span class="font-lilita">Shelly</span>
+          </div>
+          <div class="brawler-option" data-brawler="Colt">
+            <div class="brawler-pic colt">🔫</div>
+            <span class="font-lilita">Colt</span>
+          </div>
+          <div class="brawler-option" data-brawler="El Primo">
+            <div class="brawler-pic primo">💪</div>
+            <span class="font-lilita">El Primo</span>
+          </div>
+          <div class="brawler-option" data-brawler="Leon">
+            <div class="brawler-pic leon">🦎</div>
+            <span class="font-lilita">Leon</span>
+          </div>
+          <div class="brawler-option" data-brawler="Spike">
+            <div class="brawler-pic spike">🌵</div>
+            <span class="font-lilita">Spike</span>
+          </div>
+          <div class="brawler-option" data-brawler="Crow">
+            <div class="brawler-pic crow">🐦</div>
+            <span class="font-lilita">Crow</span>
+          </div>
+          <div class="brawler-option" data-brawler="Mortis">
+            <div class="brawler-pic mortis">🦇</div>
+            <span class="font-lilita">Mortis</span>
+          </div>
+          <div class="brawler-option" data-brawler="Piper">
+            <div class="brawler-pic piper">☂️</div>
+            <span class="font-lilita">Piper</span>
+          </div>
+        </div>
+        <button class="btn-picker-close font-lilita" id="picker-close-btn">CANCELAR</button>
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="hub-footer">
+    <div class="hub-footer-logo">CLUTCHZONE</div>
+    <p>© 2026 CLUTCHZONE Esports · Torneios de Brawl Stars ⚡</p>
+  </footer>
+
+  <div id="toast-container"></div>
+
+  <script src="api.js"></script>
+  <script src="main.js"></script>
+  <script src="brawlstars.js"></script>
+  <script src="chat.js"></script>
+  <script src="premium.js"></script>
+  <script src="auth.js"></script>
+</body>
+</html>
