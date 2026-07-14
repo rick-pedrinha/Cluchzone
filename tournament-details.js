@@ -123,6 +123,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     allCampTeamNames.forEach(name => {
       const team = teamByName(name);
       const pending = (camp.pendingApprovals || []).includes(name);
+      const roster = [...new Set([team?.captain, ...(team?.members || []), ...(team?.reserves || [])].filter(Boolean))];
+      const inventoryRoster = !pending && roster.length ? `
+        <details class="cs2-roster-inventory">
+          <summary>Ver elenco e inventários CS2</summary>
+          ${roster.map(player => `
+            <div class="cs2-roster-player">
+              <span>${player}</span>
+              <button class="cs2-inventory-trigger" type="button" data-cs2-tournament-id="${encodeURIComponent(camp.id)}" data-cs2-inventory-player="${encodeURIComponent(player)}">ARSENAL</button>
+            </div>`).join('')}
+        </details>` : '';
       const card = document.createElement('article');
       card.className = 'td-team-card';
       card.innerHTML = `
@@ -131,6 +141,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           <strong>${name}</strong>
           <span>Capitão: ${team?.captain || 'Aguardando'}</span>
           <small>${team?.members?.length || 0} jogadores no roster</small>
+          ${inventoryRoster}
         </div>
         <div class="td-team-status ${pending ? 'pending' : 'approved'}">${pending ? 'Pendente' : 'Aprovada'}</div>
       `;
@@ -313,6 +324,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           <strong style="color:${isMe ? '#00d4ff' : '#fff'}">${nick}${isMe ? ' (você)' : ''}</strong>
           <span style="font-size:11px; color:#718096;">Aguardando alocação em equipe</span>
         </div>
+        <button class="cs2-inventory-trigger" type="button" data-cs2-tournament-id="${encodeURIComponent(camp.id)}" data-cs2-inventory-player="${encodeURIComponent(nick)}">VER INVENTÁRIO</button>
         <div style="font-family:'Orbitron',sans-serif; font-size:9px; font-weight:900; background:rgba(0,212,255,0.1); color:#00d4ff; border:1px solid rgba(0,212,255,0.25); padding:2px 8px; border-radius:4px; white-space:nowrap;">#${index + 1} na fila</div>
       `;
       list.appendChild(card);

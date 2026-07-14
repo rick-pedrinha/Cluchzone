@@ -27,7 +27,12 @@ window.CluchAPI = (() => {
       headers: { accept: 'application/json', 'content-type': 'application/json', ...(options.headers || {}) },
     });
     const payload = await response.json().catch(() => null);
-    if (!response.ok) throw new Error(payload?.error?.message || `HTTP ${response.status}`);
+    if (!response.ok) {
+      const error = new Error(payload?.error?.message || `HTTP ${response.status}`);
+      error.code = payload?.error?.code || 'REQUEST_FAILED';
+      error.status = response.status;
+      throw error;
+    }
     return payload;
   }
 
@@ -57,6 +62,83 @@ window.CluchAPI = (() => {
 
   async function removeStore(key) { return setStore(key, null); }
 
+  async function getSteamFriends() {
+    const payload = await request('/api/friends/steam');
+    return Array.isArray(payload?.friends) ? payload.friends : [];
+  }
+
+  async function getMyTeams() {
+    const payload = await request('/api/teams/mine');
+    return Array.isArray(payload?.teams) ? payload.teams : [];
+  }
+
+  async function createTeam(input) {
+    const payload = await request('/api/teams', { method: 'POST', body: JSON.stringify(input) });
+    return payload?.team || null;
+  }
+
+  async function getTeamMessages(teamId) {
+    const payload = await request(`/api/teams/${encodeURIComponent(teamId)}/messages`);
+    return Array.isArray(payload?.messages) ? payload.messages : [];
+  }
+
+  async function sendTeamMessage(teamId, text) {
+    const payload = await request(`/api/teams/${encodeURIComponent(teamId)}/messages`, {
+      method: 'POST',
+      body: JSON.stringify({ text }),
+    });
+    return payload?.message || null;
+  }
+
+  async function getMarketplaceListings(filters = {}) {
+    const query = new URLSearchParams();
+    if (filters.kind) query.set('kind', filters.kind);
+    if (filters.game) query.set('game', filters.game);
+    if (filters.q) query.set('q', filters.q);
+    const suffix = query.toString() ? `?${query}` : '';
+    const payload = await request(`/api/marketplace/listings${suffix}`);
+    return Array.isArray(payload?.listings) ? payload.listings : [];
+  }
+
+  async function createMarketplaceOrder(listingId, input) {
+    const payload = await request(`/api/marketplace/listings/${encodeURIComponent(listingId)}/orders`, {
+      method: 'POST',
+      body: JSON.stringify(input),
+    });
+    return payload?.order || null;
+  }
+
+  async function getSellerDashboard() {
+    const payload = await request('/api/seller/dashboard');
+    return payload?.dashboard || null;
+  }
+
+  async function saveSellerProfile(input) {
+    const payload = await request('/api/seller/profile', { method: 'PUT', body: JSON.stringify(input) });
+    return payload?.seller || null;
+  }
+
+  async function createSellerListing(input) {
+    const payload = await request('/api/seller/listings', { method: 'POST', body: JSON.stringify(input) });
+    return payload?.listing || null;
+  }
+
+  async function updateSellerListingStatus(listingId, status) {
+    const payload = await request(`/api/seller/listings/${encodeURIComponent(listingId)}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    });
+    return payload?.listing || null;
+  }
+
+  async function updateSellerOrderStatus(orderId, status) {
+    const payload = await request(`/api/seller/orders/${encodeURIComponent(orderId)}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    });
+    return payload?.order || null;
+  }
+
   async function onStoreChange(key, callback) {
     listeners.get(key)?.();
     let active = true;
@@ -81,5 +163,24 @@ window.CluchAPI = (() => {
     return { ok: true, user: window.ClutchAuth?.getUser() || null };
   }
 
-  return { getStore, setStore, removeStore, onStoreChange, auth, online: Boolean(baseUrl) };
+  return {
+    getStore,
+    setStore,
+    removeStore,
+    getSteamFriends,
+    getMyTeams,
+    createTeam,
+    getTeamMessages,
+    sendTeamMessage,
+    getMarketplaceListings,
+    createMarketplaceOrder,
+    getSellerDashboard,
+    saveSellerProfile,
+    createSellerListing,
+    updateSellerListingStatus,
+    updateSellerOrderStatus,
+    onStoreChange,
+    auth,
+    online: Boolean(baseUrl),
+  };
 })();

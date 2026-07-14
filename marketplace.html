@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Marketplace ClutchZone para patrocínios, streamers e produtos gamer.">
+  <meta name="room-name" content="Marketplace CLUTCHZONE">
+  <meta name="room-icon" content="◆">
+  <title>Marketplace | CLUTCHZONE</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="marketplace.css">
+  <link rel="stylesheet" href="chat.css">
+  <link rel="stylesheet" href="auth.css">
+</head>
+<body class="market-page">
+  <nav class="market-nav" aria-label="Navegação principal">
+    <div class="market-nav-inner">
+      <a class="market-brand" href="index.html">CLUTCH<span>ZONE</span></a>
+      <div class="market-nav-links">
+        <a href="index.html">Arena</a>
+        <a class="active" href="marketplace.html">Marketplace</a>
+        <a href="seller-erp.html">ERP vendedor</a>
+      </div>
+      <div class="nav-actions"></div>
+    </div>
+  </nav>
+
+  <main class="market-main">
+    <section class="market-hero">
+      <div>
+        <p class="market-eyebrow">CLUTCH BUSINESS NETWORK</p>
+        <h1>Marcas encontram <span>audiência.</span> Criadores encontram oportunidades.</h1>
+        <p>Um ambiente competitivo para patrocínios, ativações com streamers e produtos gamer. As negociações começam aqui; identidade e pedidos são validados no backend da ClutchZone.</p>
+      </div>
+      <div class="market-hero-stats" aria-label="Recursos do marketplace">
+        <div class="market-stat"><strong>3</strong><span>frentes comerciais</span></div>
+        <div class="market-stat"><strong>24/7</strong><span>vitrine disponível</span></div>
+        <div class="market-stat"><strong>1×</strong><span>login Steam</span></div>
+        <div class="market-stat"><strong>100%</strong><span>pedidos rastreáveis</span></div>
+      </div>
+    </section>
+
+    <section class="market-paths" aria-label="Áreas do marketplace">
+      <article class="market-path" data-index="01"><div class="market-path-icon">◎</div><h2>Patrocínios</h2><p>Projetos para equipes, campeonatos, naming rights, mídia e ativações dentro da comunidade.</p></article>
+      <article class="market-path" data-index="02"><div class="market-path-icon">◉</div><h2>Streamers</h2><p>Publis, transmissões, presença em eventos e pacotes de conteúdo por jogo e audiência.</p></article>
+      <article class="market-path" data-index="03"><div class="market-path-icon">◇</div><h2>Produtos</h2><p>Equipamentos, colecionáveis e itens comerciais com estoque controlado pelo vendedor.</p></article>
+    </section>
+
+    <section aria-labelledby="market-listings-title">
+      <form class="market-toolbar" id="market-filters">
+        <div class="market-field"><label for="market-search">Buscar oportunidade</label><input class="market-input" id="market-search" name="q" maxlength="100" placeholder="Marca, produto, streamer..."></div>
+        <div class="market-field"><label for="market-kind">Categoria</label><select class="market-select" id="market-kind" name="kind"><option value="">Todas</option><option value="SPONSORSHIP">Patrocínios</option><option value="STREAMER_SERVICE">Streamers</option><option value="PRODUCT">Produtos</option></select></div>
+        <div class="market-field"><label for="market-game">Jogo</label><input class="market-input" id="market-game" name="game" maxlength="60" placeholder="CS2, PUBG..."></div>
+        <button class="market-button" type="submit">FILTRAR RADAR</button>
+      </form>
+      <div class="market-section-head"><div><h2 id="market-listings-title">Oportunidades em destaque</h2><p>Somente anúncios publicados aparecem nesta vitrine.</p></div><span class="market-count" id="market-count">CARREGANDO</span></div>
+      <div id="market-error" class="market-error" role="alert" hidden></div>
+      <div class="listing-grid" id="market-listings" aria-live="polite"><div class="market-loading">Sincronizando oportunidades...</div></div>
+    </section>
+  </main>
+
+  <div class="market-modal" id="order-modal" role="dialog" aria-modal="true" aria-labelledby="order-title">
+    <form class="market-modal-card" id="order-form">
+      <div class="market-modal-head"><div><p class="market-eyebrow">SOLICITAÇÃO SEGURA</p><h2 id="order-title">Iniciar negociação</h2></div><button class="market-modal-close" id="order-close" type="button" aria-label="Fechar">×</button></div>
+      <p id="order-listing-name"></p>
+      <div class="market-form-grid">
+        <div class="market-field"><label for="order-quantity">Quantidade</label><input class="market-input" id="order-quantity" type="number" min="1" max="100" value="1" required></div>
+        <div class="market-field"><label for="order-total">Total estimado</label><input class="market-input" id="order-total" readonly></div>
+        <div class="market-field full"><label for="order-brief">Briefing para o vendedor</label><textarea class="market-textarea" id="order-brief" minlength="10" maxlength="500" required placeholder="Conte o objetivo, prazo e detalhes da parceria ou compra."></textarea></div>
+      </div>
+      <div id="order-error" class="market-error" role="alert" hidden></div>
+      <div class="market-form-actions"><button class="market-button secondary" id="order-cancel" type="button">CANCELAR</button><button class="market-button" type="submit">ENVIAR PEDIDO</button></div>
+    </form>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="api.js"></script>
+  <script src="auth.js"></script>
+  <script src="marketplace.js"></script>
+  <script src="chat.js"></script>
+</body>
+</html>
