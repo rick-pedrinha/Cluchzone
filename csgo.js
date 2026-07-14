@@ -9,7 +9,8 @@
 // Mantém os dados reais já cadastrados no navegador.
 // Não remova equipes ou campeonatos automaticamente ao abrir a página.
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  await window.ClutchAuth?.ready;
 
   /* ─── DATA PERSISTENCE & INITIALIZATION ─── */
   const STORAGE_KEY_CAMPS = 'cluchzone_cs2_camps';
@@ -25,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // 1. Recover current user session
-  let currentUser = JSON.parse(localStorage.getItem('cluchzone_auth') || 'null');
+  let currentUser = window.ClutchAuth?.getUser() || null;
   let isPremiumUser = localStorage.getItem('cluchzone_premium') === 'true';
 
   // Fallback guest session if not logged in — no permissions
@@ -34,22 +35,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ── RBAC: Role-Based Access Control ──────────────────────
-  const ADMIN_NICKS = new Set([
-    'admin',
-    'staff_cs2',
-    'staff_pubg',
-    'staff_brawl',
-    'xdropx_steam',
-    'xdropx',
-    'rique',
-    'rick'
-  ]);
-
   function getUserRole() {
     if (!currentUser) return 'guest';
-    if (currentUser.role && currentUser.role !== 'guest') return currentUser.role;
-    if (ADMIN_NICKS.has(String(currentUser.nick).trim().toLowerCase())) return 'admin';
-    return 'player';
+    return currentUser.role || 'player';
   }
 
   function checkOrganizerPermission() {
@@ -326,7 +314,7 @@ document.addEventListener('DOMContentLoaded', () => {
   async function syncInitialData() {
     if (!window.CluchAPI) return;
 
-    currentUser = await CluchAPI.getStore('cluchzone_auth', currentUser);
+    currentUser = window.ClutchAuth?.getUser() || currentUser;
     isPremiumUser = await CluchAPI.getStore('cluchzone_premium', isPremiumUser);
     tournaments = await CluchAPI.getStore(STORAGE_KEY_CAMPS, tournaments);
     teams = await CluchAPI.getStore(STORAGE_KEY_TEAMS, teams);

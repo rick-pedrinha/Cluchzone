@@ -19,7 +19,7 @@ function initTeams() {
     : 'my-teams.html';
 
   // 1. Get logged-in user
-  let currentUser = JSON.parse(localStorage.getItem('cluchzone_auth') || 'null');
+  let currentUser = window.ClutchAuth?.getUser() || null;
   if (!currentUser) {
     currentUser = { nick: "Jogador_Convidado", provider: "email", games: ["CS2"] };
   }
@@ -831,7 +831,7 @@ function initTeams() {
 }
 
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initTeams);
+  document.addEventListener('DOMContentLoaded', () => window.ClutchAuth?.ready.then(initTeams));
 } else {
   initTeams();
 }
