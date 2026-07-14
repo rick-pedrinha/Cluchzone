@@ -3,6 +3,8 @@
 > Plataforma competitiva para comunidades de eSports: crie campeonatos, forme equipes, organize pagamentos e mantenha jogadores conectados em tempo real.
 
 <p align="center">
+  <a href="https://rick-pedrinha.github.io/Cluchzone/index.html#games"><img src="https://img.shields.io/badge/DEMO-ACESSAR%20CLUTCHZONE-00E676?style=for-the-badge&logo=githubpages&logoColor=white" alt="Acessar demo ao vivo do CLUTCHZONE" /></a>
+  <br />
   <img src="https://img.shields.io/badge/status-em%20desenvolvimento-00D4FF?style=for-the-badge" alt="Status: em desenvolvimento" />
   <img src="https://img.shields.io/badge/stack-JavaScript%20%7C%20TypeScript-7B2FF7?style=for-the-badge" alt="JavaScript e TypeScript" />
   <img src="https://img.shields.io/badge/esports-CLUTCHZONE-00E676?style=for-the-badge" alt="CLUTCHZONE eSports" />
@@ -21,6 +23,10 @@
 ## Visão geral
 
 O **CLUTCHZONE** é um hub de campeonatos pensado para jogadores, capitães e organizadores. O projeto reúne a experiência social de uma plataforma gamer com ferramentas operacionais para torneios: inscrições por equipe, gestão de chaves, pagamento por atleta, sala privada Steam e canais de conversa.
+
+<p align="center">
+  <a href="https://rick-pedrinha.github.io/Cluchzone/index.html#games"><strong>▶ Testar a demo ao vivo</strong></a>
+</p>
 
 O repositório mantém duas experiências sincronizadas:
 
