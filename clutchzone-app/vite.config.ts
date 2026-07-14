@@ -22,6 +22,8 @@ const sharedLegacyAssets = {
   'marketplace.css': resolve(__dirname, '..', 'marketplace.css'),
   'marketplace.js': resolve(__dirname, '..', 'marketplace.js'),
   'seller-erp.js': resolve(__dirname, '..', 'seller-erp.js'),
+  'game-personality.js': resolve(__dirname, '..', 'game-personality.js'),
+  'game-personality.css': resolve(__dirname, '..', 'game-personality.css'),
   'globalization.js': resolve(__dirname, '..', 'globalization.js'),
   'globalization.css': resolve(__dirname, '..', 'globalization.css'),
 };
