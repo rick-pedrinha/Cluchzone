@@ -27,7 +27,7 @@ O repositório mantém duas experiências sincronizadas:
 | Camada | Objetivo |
 | --- | --- |
 | **Aplicação estática** | Interface completa em HTML, CSS e JavaScript, atendida por uma API Node.js local. |
-| **`cluchzone-app/`** | Evolução em Vite + TypeScript, com módulos de domínio e integração com Firestore. |
+| **`clutchzone-app/`** | Evolução em Vite + TypeScript, com módulos de domínio e integração com Firestore. |
 
 ## Recursos
 
@@ -78,7 +78,7 @@ flowchart LR
 ├── chat.*                    # CLUTCH SOCIAL e chats de equipes
 ├── passport.*                # Perfil, avatar e identidade do jogador
 ├── tournament-details.*      # Inscrição, bracket e sala Steam
-└── cluchzone-app/
+└── clutchzone-app/
     └── src/
         ├── core/             # API, autenticação, estado e componentes de UI
         ├── features/         # Domínios de equipes e campeonatos
@@ -115,7 +115,7 @@ O servidor cria `data/db.json` automaticamente na primeira execução. Esse arqu
 ### Versão Vite + TypeScript
 
 ```bash
-cd cluchzone-app
+cd clutchzone-app
 npm install
 npm run dev
 ```
@@ -126,7 +126,7 @@ Para gerar o build de produção:
 npm run build
 ```
 
-> A integração Firebase usa variáveis `VITE_FIREBASE_*`. Crie um arquivo `cluchzone-app/.env.local` com as credenciais do seu projeto Firebase antes de executar a versão Vite em outro ambiente.
+> A integração Firebase usa variáveis `VITE_FIREBASE_*`. Crie um arquivo `clutchzone-app/.env.local` com as credenciais do seu projeto Firebase antes de executar a versão Vite em outro ambiente.
 
 ## Qualidade e segurança
 

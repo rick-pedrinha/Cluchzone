@@ -4,7 +4,7 @@
     "indexes": "firebase.indexes.json"
   },
   "hosting": {
-    "public": "cluchzone-app/dist",
+    "public": "clutchzone-app/dist",
     "ignore": [
       "firebase.json",
       "**/.*",
