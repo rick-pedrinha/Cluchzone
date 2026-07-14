@@ -1,161 +1,107 @@
 # CLUTCHZONE
 
-> Plataforma competitiva para comunidades de eSports: crie campeonatos, forme equipes, organize pagamentos e mantenha jogadores conectados em tempo real.
-
-<p align="center">
-  <a href="https://rick-pedrinha.github.io/Cluchzone/index.html#games"><img src="https://img.shields.io/badge/DEMO-ACESSAR%20CLUTCHZONE-00E676?style=for-the-badge&logo=githubpages&logoColor=white" alt="Acessar demo ao vivo do CLUTCHZONE" /></a>
-  <br />
-  <img src="https://img.shields.io/badge/status-em%20desenvolvimento-00D4FF?style=for-the-badge" alt="Status: em desenvolvimento" />
-  <img src="https://img.shields.io/badge/stack-JavaScript%20%7C%20TypeScript-7B2FF7?style=for-the-badge" alt="JavaScript e TypeScript" />
-  <img src="https://img.shields.io/badge/esports-CLUTCHZONE-00E676?style=for-the-badge" alt="CLUTCHZONE eSports" />
-</p>
-
-<p align="center">
-  <a href="#visão-geral">Visão geral</a> ·
-  <a href="#recursos">Recursos</a> ·
-  <a href="#arquitetura">Arquitetura</a> ·
-  <a href="#executar-localmente">Executar</a> ·
-  <a href="#roadmap">Roadmap</a>
-</p>
-
----
-
-## Visão geral
-
-O **CLUTCHZONE** é um hub de campeonatos pensado para jogadores, capitães e organizadores. O projeto reúne a experiência social de uma plataforma gamer com ferramentas operacionais para torneios: inscrições por equipe, gestão de chaves, pagamento por atleta, sala privada Steam e canais de conversa.
-
-<p align="center">
-  <a href="https://rick-pedrinha.github.io/Cluchzone/index.html#games"><strong>▶ Testar a demo ao vivo</strong></a>
-</p>
-
-O repositório mantém duas experiências sincronizadas:
-
-| Camada | Objetivo |
-| --- | --- |
-| **Aplicação estática** | Interface completa em HTML, CSS e JavaScript, atendida por uma API Node.js local. |
-| **`clutchzone-app/`** | Evolução em Vite + TypeScript, com módulos de domínio e integração com Firestore. |
-
-## Recursos
-
-### Para jogadores
-
-- Perfil de jogador com nome editável e foto de avatar.
-- Criação e gerenciamento de equipes, membros, capitães e reservas.
-- Inscrição escolhendo a equipe correta quando o jogador participa de mais de um time.
-- Fila solo para completar rosters.
-- CLUTCH SOCIAL com sala da comunidade, amigos por nome de usuário, mensagens privadas e chats de equipe.
-- Acesso à sala privada da Steam por link ou código de convite, sem depender de IP, porta ou senha de servidor.
-
-### Para organizadores
-
-- Aprovação ou recusa de inscrições e controle de comprovantes.
-- Chaves, partidas e resultados do campeonato.
-- Painel de pagamentos por equipe **e por jogador** com estados `Pendente`, `Em análise` e `Pago`.
-- Exportação de relatório PDF com campeonato, equipes, funções dos atletas e status de pagamento.
-- Publicação da sala privada Steam somente para equipes confirmadas.
+Plataforma de campeonatos de eSports com frontend estático e backend seguro para autenticação Steam.
 
 ## Arquitetura
 
-```mermaid
-flowchart LR
-  P[Jogador] --> UI[CLUTCHZONE UI]
-  O[Organizador] --> UI
+- `*.html`, `*.css`, `*.js`: frontend legado que pode ser publicado no GitHub Pages.
+- `clutchzone-app/`: evolução Vite + TypeScript do frontend.
+- `backend/`: monólito modular Express + TypeScript, PostgreSQL e Prisma.
+- `backend/prisma/`: modelo e migration real de usuários, sessões, rate limits e estado compatível.
 
-  UI --> S[App estática<br/>HTML · CSS · JavaScript]
-  UI --> V[Vite App<br/>TypeScript]
+O navegador nunca recebe a chave da Steam, não processa o retorno OpenID e não armazena autenticação no `localStorage`. A sessão é identificada por cookie `HttpOnly` e persistida no PostgreSQL. Papéis e status vêm exclusivamente do usuário armazenado no backend.
 
-  S --> API[API Node.js local]
-  API --> DB[(data/db.json)]
+## Endpoints
 
-  V --> FS[Firebase Firestore]
-  V --> LC[Cache local]
+| Método | Rota | Finalidade |
+| --- | --- | --- |
+| `GET` | `/health` | Health check |
+| `GET` | `/auth/steam` | Inicia Steam OpenID; aceita apenas `returnTo` local |
+| `GET` | `/auth/steam/callback` | Valida a asserção Steam, sincroniza o perfil e cria a sessão |
+| `GET` | `/auth/me` | Retorna o usuário da sessão |
+| `POST` | `/auth/logout` | Destrói a sessão e expira o cookie |
+| `GET` | `/api/store/:key` | Compatibilidade de leitura para dados existentes |
+| `POST` | `/api/store/:key` | Compatibilidade de escrita; exige sessão |
 
-  S -. assets compartilhados .- V
-```
+## Variáveis de ambiente do backend
 
-### Estrutura de pastas
+Copie `backend/.env.example` para `backend/.env` e preencha todos os valores. A inicialização falha se uma variável obrigatória estiver ausente ou inválida.
 
-```text
-.
-├── server.js                 # API local, autenticação e arquivos estáticos
-├── index.html                # Landing page
-├── csgo.*                    # Arena CS2 e fluxo de campeonatos
-├── organizer-panel.*         # Operação de inscrições, partidas e pagamentos
-├── chat.*                    # CLUTCH SOCIAL e chats de equipes
-├── passport.*                # Perfil, avatar e identidade do jogador
-├── tournament-details.*      # Inscrição, bracket e sala Steam
-└── clutchzone-app/
-    └── src/
-        ├── core/             # API, autenticação, estado e componentes de UI
-        ├── features/         # Domínios de equipes e campeonatos
-        ├── pages/            # Controladores das telas
-        └── types/            # Contratos TypeScript
-```
-
-## Tecnologias
-
-| Área | Tecnologias |
+| Variável | Descrição |
 | --- | --- |
-| Interface | HTML5, CSS3, JavaScript (ES6+) |
-| Aplicação modular | TypeScript, Vite |
-| Dados e sincronização | API REST local, Local Storage, Firebase Firestore |
-| Autenticação local | Node.js `crypto` com `scrypt` |
-| Deploy | Firebase Hosting |
+| `NODE_ENV` | `development`, `test` ou `production` |
+| `PORT` | Porta HTTP do backend |
+| `DATABASE_URL` | URL PostgreSQL |
+| `SESSION_SECRET` | Segredo aleatório com pelo menos 32 caracteres |
+| `STEAM_API_KEY` | Chave Steam Web API, somente no backend; necessária no callback para sincronizar o perfil, mas não para iniciar o redirecionamento OpenID |
+| `FRONTEND_URL` | URL canônica do frontend |
+| `BACKEND_URL` | URL pública do backend; HTTPS obrigatório em produção |
+| `CORS_ORIGINS` | Lista exata de origens permitidas, separada por vírgulas |
+| `TRUST_PROXY` | `true` atrás do proxy de Render/Railway/Fly |
+
+Gere um segredo de sessão com:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
+```
+
+No frontend legado, defina a URL pública em `config.js`. No Vite, use `VITE_BACKEND_URL`.
 
 ## Executar localmente
 
-### Aplicação estática + API local
-
-**Pré-requisito:** Node.js 18 ou superior.
+Pré-requisitos: Node.js 20.19+, Docker e Docker Compose.
 
 ```bash
-git clone https://github.com/rick-pedrinha/Cluchzone.git
-cd Cluchzone
-npm run dev
-```
-
-Abra [http://localhost:3000](http://localhost:3000).
-
-O servidor cria `data/db.json` automaticamente na primeira execução. Esse arquivo é local e não deve ser versionado.
-
-### Versão Vite + TypeScript
-
-```bash
-cd clutchzone-app
+docker compose up -d postgres
+cd backend
+copy .env.example .env
 npm install
+npm run doctor
+npm run migrate:deploy
 npm run dev
 ```
 
-Para gerar o build de produção:
+Em outro terminal:
 
 ```bash
+cd C:\Users\rique\OneDrive\Documentos\TESTESITE
+npm run dev
+```
+
+Abra `http://localhost:3000`. O backend usa `http://localhost:3001` por padrão no frontend local.
+O login começa em `http://localhost:3001/auth/steam` e o callback OpenID de desenvolvimento é `http://localhost:3001/auth/steam/callback`.
+
+## Qualidade
+
+```bash
+cd backend
+npm test
+npm run lint
+npm run typecheck
+npm run build
+npm audit
+
+cd ../clutchzone-app
+npm run type-check
 npm run build
 ```
 
-> A integração Firebase usa variáveis `VITE_FIREBASE_*`. Crie um arquivo `clutchzone-app/.env.local` com as credenciais do seu projeto Firebase antes de executar a versão Vite em outro ambiente.
+Os testes cobrem login/callback, SteamID inválido, usuário idempotente, conflito de SteamID, sessão, logout, CORS, rate limiting, rota protegida, open redirect e erros seguros. As chamadas externas da Steam são simuladas.
 
-## Qualidade e segurança
+## Deploy
 
-- A API local bloqueia acesso direto a `.git` e ao diretório `data/`.
-- Senhas locais são armazenadas com `scrypt` e salt aleatório.
-- A aplicação usa cache local como fallback para uma experiência mais resiliente.
-- Regras e índices do Firestore estão versionados em `firebase.rules` e `firebase.indexes.json`.
+### Render
 
-## Roadmap
+1. Use o `render.yaml` como Blueprint.
+2. Configure `STEAM_API_KEY`, `FRONTEND_URL` e `CORS_ORIGINS` no painel.
+3. Confirme `BACKEND_URL` com a URL HTTPS definitiva do serviço.
+4. O comando de início aplica `prisma migrate deploy` antes de iniciar o servidor.
+5. Publique o frontend no GitHub Pages e atualize `config.js` com a URL do backend.
 
-- [x] Campeonatos, equipes, inscrições e brackets.
-- [x] Perfil com avatar e nome exibido em toda a plataforma.
-- [x] Chat social, amigos, mensagens privadas e chats de equipe.
-- [x] Painel individual de pagamentos e relatório PDF.
-- [x] Salas privadas Steam por convite.
-- [ ] Notificações push e moderação avançada.
-- [ ] Integração de estatísticas oficiais por jogo.
-- [ ] Painel administrativo com métricas e auditoria de eventos.
+Railway e Fly.io podem usar `backend/Dockerfile`; configure as mesmas variáveis e execute a migration antes de cada release.
 
-## Autor
+Para cookies entre GitHub Pages e outro domínio, o backend usa `SameSite=None; Secure`. Alguns navegadores bloqueiam cookies de terceiros; para máxima compatibilidade, use frontend e API em subdomínios do mesmo domínio registrável.
 
-Desenvolvido por [Rick Pedrinha](https://github.com/rick-pedrinha) como projeto de portfólio focado em produto, experiência competitiva e operação de comunidades eSports.
+## Segurança e limitações
 
----
-
-<p align="center"><strong>CLUTCHZONE</strong> — onde a comunidade entra no jogo.</p>
+Consulte `SECURITY.md`. O fluxo de autenticação está pronto para múltiplas instâncias. Os domínios antigos de equipes, campeonatos, chats e pagamentos ainda usam documentos agregados e lógica de autorização no cliente; a rota de compatibilidade preserva o comportamento, mas novas operações sensíveis devem migrar para modelos e rotas transacionais com autorização por recurso antes de uso financeiro ou competitivo em produção.

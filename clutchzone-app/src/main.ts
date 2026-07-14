@@ -16,7 +16,7 @@ async function bootstrap(): Promise<void> {
   }
 
   // 1. Initialize auth session
-  const user = authService.init();
+  const user = await authService.init();
   
   if (!user) {
     console.info('[CLUTCHZONE] No session found — guest mode');

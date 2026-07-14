@@ -1,88 +1,103 @@
-// ═══════════════════════════════════════════════════════════
-// CLUTCHZONE — Auth Service
-// Wraps localStorage auth + prepares for Firebase Auth migration
-// ═══════════════════════════════════════════════════════════
+import type { User, UserRole } from '../../types/index.js';
+import { premiumStore, userStore } from '../store/app-store.js';
 
-import type { User } from '../../types/index.js';
-import { userStore, premiumStore } from '../store/app-store.js';
-import { resolveRole } from './rbac.js';
-import { STORAGE_KEYS } from '../store/keys.js';
+type BackendUser = {
+  id: string;
+  displayName: string;
+  avatarUrl: string | null;
+  steamId64: string;
+  profileUrl: string;
+  steamLevel: number | null;
+  visibilityState: number | null;
+  profileState: number | null;
+  personaState: number | null;
+  countryCode: string | null;
+  stateCode: string | null;
+  steamCreatedAt: string | null;
+  lastLogoffAt: string | null;
+  role: string;
+  createdAt: string;
+  lastLoginAt: string;
+};
+
+const API_BASE = String(import.meta.env.VITE_BACKEND_URL || '').replace(/\/$/, '');
+
+function normalizeRole(value: string): UserRole {
+  const role = value.toLowerCase();
+  return role === 'admin' || role === 'organizer' || role === 'player' ? role : 'player';
+}
 
 class AuthService {
-  private static _instance: AuthService;
+  private static instance: AuthService;
+  private initialization: Promise<User | null> | null = null;
 
   static getInstance(): AuthService {
-    if (!AuthService._instance) AuthService._instance = new AuthService();
-    return AuthService._instance;
+    AuthService.instance ??= new AuthService();
+    return AuthService.instance;
   }
 
-  // ── Load session from localStorage ───────────────────
-  init(): User | null {
+  init(): Promise<User | null> {
+    this.initialization ??= this.loadSession();
+    return this.initialization;
+  }
+
+  private async loadSession(): Promise<User | null> {
     try {
-      const raw = localStorage.getItem(STORAGE_KEYS.AUTH);
-      if (!raw) return null;
-      const parsed = JSON.parse(raw) as Partial<User>;
+      const response = await fetch(`${API_BASE}/auth/me`, { credentials: 'include', headers: { accept: 'application/json' } });
+      if (response.status === 401) return null;
+      if (!response.ok) throw new Error('Authentication backend unavailable');
+      const payload = await response.json() as { user: BackendUser };
+      const backend = payload.user;
       const user: User = {
-        uid: parsed.uid ?? crypto.randomUUID(),
-        nick: parsed.nick ?? 'Visitante',
-        email: parsed.email ?? '',
-        provider: parsed.provider ?? 'email',
-        role: resolveRole(parsed.nick ?? '', parsed.role),
-        games: parsed.games ?? [],
-        premium: parsed.premium ?? false,
-        avatar: parsed.avatar,
-        createdAt: parsed.createdAt ?? new Date().toISOString(),
-        lastLogin: new Date().toISOString(),
+        uid: backend.id,
+        nick: backend.displayName,
+        email: '',
+        provider: 'steam',
+        role: normalizeRole(backend.role),
+        games: ['CS2', 'PUBG'],
+        premium: false,
+        ...(backend.avatarUrl ? { avatar: backend.avatarUrl } : {}),
+        steamId64: backend.steamId64,
+        profileUrl: backend.profileUrl,
+        steamLevel: backend.steamLevel,
+        visibilityState: backend.visibilityState,
+        profileState: backend.profileState,
+        personaState: backend.personaState,
+        countryCode: backend.countryCode,
+        stateCode: backend.stateCode,
+        steamCreatedAt: backend.steamCreatedAt,
+        lastLogoffAt: backend.lastLogoffAt,
+        createdAt: backend.createdAt,
+        lastLogin: backend.lastLoginAt,
       };
       userStore.set(user);
-      premiumStore.set(localStorage.getItem(STORAGE_KEYS.PREMIUM) === 'true' || user.premium);
+      premiumStore.set(false);
       return user;
-    } catch {
+    } catch (error) {
+      console.error('[Auth] Session check failed', error);
       return null;
     }
   }
 
-  // ── Get current user (sync) ───────────────────────────
-  getCurrentUser(): User | null {
-    return userStore.value;
-  }
+  getCurrentUser(): User | null { return userStore.value; }
 
-  // ── Guest session ─────────────────────────────────────
   getGuestUser(): User {
-    return {
-      uid: 'guest',
-      nick: 'Visitante',
-      email: '',
-      provider: 'email',
-      role: 'guest',
-      games: [],
-      premium: false,
-      createdAt: new Date().toISOString(),
-    };
+    return { uid: 'guest', nick: 'Visitante', email: '', provider: 'steam', role: 'guest', games: [], premium: false, createdAt: new Date().toISOString() };
   }
 
-  // ── Check role ────────────────────────────────────────
-  isOrganizer(): boolean {
-    const user = userStore.value;
-    if (!user) return false;
-    return user.role === 'admin' || user.role === 'organizer';
+  beginSteamLogin(returnTo = window.location.pathname): void {
+    window.location.assign(`${API_BASE}/auth/steam?returnTo=${encodeURIComponent(returnTo)}`);
   }
 
-  isAdmin(): boolean {
-    return userStore.value?.role === 'admin';
-  }
-
-  isCaptain(): boolean {
-    const role = userStore.value?.role;
-    return role === 'captain' || role === 'organizer' || role === 'admin';
-  }
-
-  // ── Logout ────────────────────────────────────────────
-  logout(): void {
-    localStorage.removeItem(STORAGE_KEYS.AUTH);
+  async logout(): Promise<void> {
+    await fetch(`${API_BASE}/auth/logout`, { method: 'POST', credentials: 'include' });
     userStore.set(null);
     premiumStore.set(false);
   }
+
+  isOrganizer(): boolean { return ['admin', 'organizer'].includes(userStore.value?.role ?? ''); }
+  isAdmin(): boolean { return userStore.value?.role === 'admin'; }
+  isCaptain(): boolean { return ['admin', 'organizer', 'captain'].includes(userStore.value?.role ?? ''); }
 }
 
 export const authService = AuthService.getInstance();

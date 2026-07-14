@@ -9,7 +9,7 @@ import { escapeHtml } from '../core/ui/sanitize.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   // Initialize user and load data
-  authService.init();
+  await authService.init();
   await Promise.all([tournamentService.loadAll(), teamService.loadAll()]);
 
   // DOM Elements
@@ -117,7 +117,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         statActiveCamps.textContent = String(list.filter(t => t.status !== 'Finalizado').length);
       }
       
-      const currentUser = authService.init();
+      const currentUser = authService.getCurrentUser();
 
       list.forEach(camp => {
         const card = document.createElement('div');

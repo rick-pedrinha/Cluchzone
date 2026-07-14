@@ -2,12 +2,15 @@
   "name": "cluchzone",
   "version": "1.0.0",
   "private": true,
-  "description": "CLUCHZONE static frontend with a local JSON API backend.",
+  "description": "Frontend estático CLUTCHZONE; autenticação e dados privados ficam no backend separado.",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "backend:dev": "npm run dev --prefix backend",
+    "backend:build": "npm run build --prefix backend",
+    "backend:test": "npm test --prefix backend"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=20.19"
   }
 }

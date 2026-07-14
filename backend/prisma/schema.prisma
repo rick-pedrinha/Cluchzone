@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  PLAYER
+  ORGANIZER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  BANNED
+}
+
+model User {
+  id          String     @id @default(uuid()) @db.Uuid
+  steamId64   String     @unique @map("steam_id_64") @db.VarChar(17)
+  displayName String     @map("display_name") @db.VarChar(100)
+  avatarUrl   String?    @map("avatar_url") @db.Text
+  profileUrl  String     @map("profile_url") @db.Text
+  steamLevel  Int?       @map("steam_level")
+  visibilityState Int?   @map("visibility_state")
+  profileState Int?      @map("profile_state")
+  personaState Int?      @map("persona_state")
+  countryCode String?    @map("country_code") @db.VarChar(2)
+  stateCode   String?    @map("state_code") @db.VarChar(10)
+  steamCreatedAt DateTime? @map("steam_created_at") @db.Timestamptz(3)
+  lastLogoffAt DateTime? @map("last_logoff_at") @db.Timestamptz(3)
+  role        UserRole   @default(PLAYER)
+  status      UserStatus @default(ACTIVE)
+  lastLoginAt DateTime   @map("last_login_at") @db.Timestamptz(3)
+  createdAt   DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@map("users")
+}
+
+model Session {
+  sid    String   @id @db.VarChar
+  sess   Json
+  expire DateTime @db.Timestamptz(6)
+
+  @@index([expire], map: "IDX_session_expire")
+  @@map("session")
+}
+
+model RateLimit {
+  key       String   @id @db.VarChar(255)
+  count     Int
+  resetAt   DateTime @map("reset_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([resetAt])
+  @@map("rate_limits")
+}
+
+model AppState {
+  key       String   @id @db.VarChar(100)
+  value     Json
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@map("app_state")
+}

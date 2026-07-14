@@ -5,9 +5,9 @@
 import { authService } from '../core/auth/auth-service.js';
 import { toast } from '../core/ui/toast.js';
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   // Initialize user session
-  authService.init();
+  await authService.init();
 
   // "Em breve" cards
   const upcomingGames = ['card-val', 'card-apex', 'card-r6', 'card-cod', 'card-lol'];

@@ -4,4 +4,9 @@ cluchzone-app/node_modules/
 .env
 .env.local
 .env.*.local
+data/backend-config.js
+data/db.json
+backend/dist/
+backend/coverage/
+clutchzone-app/dist/
 

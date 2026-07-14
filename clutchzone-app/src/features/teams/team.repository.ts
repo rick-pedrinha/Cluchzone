@@ -6,7 +6,6 @@
 import { db } from '../../core/api/firebase-client.js';
 import { STORAGE_KEYS } from '../../core/store/keys.js';
 import type { Team } from '../../types/index.js';
-import { v4 as uuidv4 } from 'uuid';
 
 export class TeamRepository {
   private static _instance: TeamRepository;
@@ -29,7 +28,7 @@ export class TeamRepository {
     const all = await this.findAll();
     const team: Team = {
       ...data,
-      id: uuidv4(),
+      id: crypto.randomUUID(),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };

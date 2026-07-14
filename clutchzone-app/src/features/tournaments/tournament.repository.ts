@@ -6,7 +6,6 @@
 import { db } from '../../core/api/firebase-client.js';
 import { STORAGE_KEYS } from '../../core/store/keys.js';
 import type { Tournament } from '../../types/index.js';
-import { v4 as uuidv4 } from 'uuid';
 
 export class TournamentRepository {
   private static _instance: TournamentRepository;
@@ -29,7 +28,7 @@ export class TournamentRepository {
     const all = await this.findAll();
     const tournament: Tournament = {
       ...data,
-      id: uuidv4(),
+      id: crypto.randomUUID(),
       registeredTeams: data.registeredTeams ?? [],
       pendingApprovals: data.pendingApprovals ?? [],
       rejectedTeams: data.rejectedTeams ?? [],

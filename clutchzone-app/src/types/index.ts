@@ -17,6 +17,16 @@ export interface User {
   games: string[];
   premium: boolean;
   avatar?: string;
+  steamId64?: string;
+  profileUrl?: string;
+  steamLevel?: number | null;
+  visibilityState?: number | null;
+  profileState?: number | null;
+  personaState?: number | null;
+  countryCode?: string | null;
+  stateCode?: string | null;
+  steamCreatedAt?: string | null;
+  lastLogoffAt?: string | null;
   createdAt: string;
   lastLogin?: string;
 }

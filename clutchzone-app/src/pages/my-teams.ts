@@ -9,7 +9,7 @@ import { escapeHtml } from '../core/ui/sanitize.js';
 import type { Team, PixStatus } from '../types/index.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
-  authService.init();
+  await authService.init();
   await Promise.all([teamService.loadAll(), tournamentService.loadAll()]);
 
   const params = new URLSearchParams(window.location.search);

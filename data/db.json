@@ -1,15 +1,4 @@
 {
-  "users": [],
-  "sessions": {},
-  "store": {
-    "cluchzone_auth": null,
-    "cluchzone_premium": false,
-    "cluchzone_cs2_camps": [],
-    "cluchzone_cs2_teams": [],
-    "cluchzone_cs2_players": [],
-    "cluchzone_cs2_feed": [],
-    "cluchzone_cs2_notifs": [],
-    "cluchzone_pubg_tournaments": [],
-    "cluchzone_brawl_teams": []
-  }
+  "deprecated": true,
+  "message": "Runtime state moved to PostgreSQL. This file contains no users or sessions."
 }

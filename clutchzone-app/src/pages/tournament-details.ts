@@ -5,13 +5,11 @@
 import { authService } from '../core/auth/auth-service.js';
 import { tournamentService } from '../features/tournaments/tournament.service.js';
 import { teamService } from '../features/teams/team.service.js';
-import { modal } from '../core/ui/modal.js';
 import { toast } from '../core/ui/toast.js';
-import { escapeHtml } from '../core/ui/sanitize.js';
-import type { Tournament, PixStatus } from '../types/index.js';
+import type { Tournament } from '../types/index.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
-  const currentUser = authService.init() || authService.getGuestUser();
+  const currentUser = await authService.init() || authService.getGuestUser();
   await tournamentService.loadAll();
   const teams = await teamService.loadAll();
 
@@ -38,9 +36,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const tdSlots = document.getElementById('td-slots');
   const tdServer = document.getElementById('td-server');
   const steamLobbyAccess = document.getElementById('td-steam-lobby-access') as HTMLButtonElement | null;
-  const adminPanelContainer = document.getElementById('admin-panel-container');
-  const adminTeamsList = document.getElementById('admin-teams-list');
-  const editCampForm = document.getElementById('edit-camp-form') as HTMLFormElement;
 
   function showError(msg: string) {
     if (tdTitle) tdTitle.textContent = 'Erro';

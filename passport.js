@@ -7,7 +7,8 @@
 
 'use strict';
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  await window.ClutchAuth?.ready;
 
   const STORAGE_KEY_AUTH = 'cluchzone_auth';
   const STORAGE_KEY_CONN = 'cluchzone_connections';
@@ -15,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const STORAGE_KEY_PROFILE = 'cluchzone_profile';
 
   // 1. Recover auth state
-  let authState = JSON.parse(localStorage.getItem(STORAGE_KEY_AUTH) || 'null');
+  let authState = window.ClutchAuth?.getUser() || null;
   let isPremium = localStorage.getItem(STORAGE_KEY_PREMIUM) === 'true';
   let profileState = JSON.parse(localStorage.getItem(STORAGE_KEY_PROFILE) || '{}');
 
@@ -72,14 +73,14 @@ document.addEventListener('DOMContentLoaded', () => {
     localStorage.setItem(STORAGE_KEY_CONN, JSON.stringify(connectedPlatforms));
   }
 
-  // Mock profile data for each platform connection
+  // Legacy game statistics remain separate; Steam identity fields below are always API-backed.
   const MOCK_PLATFORM_DATA = {
     steam: {
-      nick: 'xDROPx_Steam',
+      nick: authState.displayName || authState.nick,
       avatar: '🎮',
-      level: 'LVL 58',
-      rank: 'Global Elite',
-      hours: '1.420 hrs',
+      level: Number.isInteger(authState.steamLevel) ? `Nível ${authState.steamLevel}` : 'Nível privado',
+      rank: authState.visibilityState === 3 ? 'Perfil público' : 'Perfil privado',
+      hours: 'Steam conectada',
       stats: {
         cs2: { kd: '1.42', winrate: '58%', matches: '512 partidas', label: 'Conectado via Steam' },
         pubg: { kd: '3.20', winrate: '18%', matches: '284 partidas', label: 'Conectado via Steam' }
@@ -107,6 +108,39 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  const PERSONA_STATES = ['Offline', 'Online', 'Ocupado', 'Ausente', 'Soneca', 'Quer trocar', 'Quer jogar'];
+
+  function formatSteamDate(value, includeTime = false) {
+    if (!value) return 'Não informado';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return 'Não informado';
+    return new Intl.DateTimeFormat('pt-BR', includeTime
+      ? { dateStyle: 'medium', timeStyle: 'short' }
+      : { month: 'short', year: 'numeric' }).format(date);
+  }
+
+  function renderSteamInformation() {
+    const values = {
+      'steam-info-level': Number.isInteger(authState.steamLevel) ? String(authState.steamLevel) : 'Não público',
+      'steam-info-status': PERSONA_STATES[authState.personaState] || 'Não informado',
+      'steam-info-visibility': authState.visibilityState === 3 ? 'Público' : authState.visibilityState === 1 ? 'Privado' : 'Não informado',
+      'steam-info-location': [authState.countryCode, authState.stateCode].filter(Boolean).join(' - ') || 'Não informada',
+      'steam-info-created': formatSteamDate(authState.steamCreatedAt),
+      'steam-info-logoff': formatSteamDate(authState.lastLogoffAt, true),
+      'steam-info-id': `SteamID64: ${authState.steamId64 || 'Não informado'}`,
+    };
+    Object.entries(values).forEach(([id, value]) => {
+      const element = document.getElementById(id);
+      if (element) element.textContent = value;
+    });
+    const profileLink = document.getElementById('steam-profile-link');
+    if (profileLink) {
+      const validProfileUrl = typeof authState.profileUrl === 'string' && /^https:\/\/steamcommunity\.com\//.test(authState.profileUrl);
+      profileLink.href = validProfileUrl ? authState.profileUrl : '#';
+      profileLink.hidden = !validProfileUrl;
+    }
+  }
+
   /* ─── RENDER MULTIPLATFORM DATA ─── */
   function renderProfileHeader() {
     const avatarImg = document.getElementById('pass-avatar-img');
@@ -120,28 +154,35 @@ document.addEventListener('DOMContentLoaded', () => {
     // Premium status toggle
     if (premiumStar) premiumStar.style.display = isPremium ? 'inline-flex' : 'none';
 
-    // nick & source
+    // Steam-authoritative name and source
     if (nickText) {
-      const displayName = profileState.displayName || authState.nick;
-      const safeDisplayName = displayName.replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
-      nickText.innerHTML = `${safeDisplayName} <span class="premium-star" id="pass-premium-star" style="display: ${isPremium ? 'inline-flex' : 'none'};">👑 PREMIUM</span>`;
+      const displayName = authState.displayName || authState.nick;
+      nickText.replaceChildren(document.createTextNode(displayName));
+      if (isPremium) {
+        const premium = document.createElement('span');
+        premium.className = 'premium-star';
+        premium.id = 'pass-premium-star';
+        premium.textContent = '👑 PREMIUM';
+        nickText.append(' ', premium);
+      }
     }
 
     if (handleText) {
-      handleText.textContent = `@${(profileState.displayName || authState.nick).toLowerCase()}  ·  Membro desde Jan 2024  ·  Provedor principal: ${authState.provider.toUpperCase()}`;
+      const location = [authState.countryCode, authState.stateCode].filter(Boolean).join(' - ');
+      handleText.textContent = `Steam · Conta desde ${formatSteamDate(authState.steamCreatedAt)}${location ? ` · ${location}` : ''}`;
     }
 
     // Set avatar based on primary provider
     if (avatarImg && avatarText) {
-      if (profileState.avatar) {
-        avatarImg.src = profileState.avatar;
+      if (authState.avatarUrl && /^https:\/\//.test(authState.avatarUrl)) {
+        avatarImg.src = authState.avatarUrl;
         avatarImg.style.display = 'block';
         avatarText.style.display = 'none';
       } else if (authState.provider === 'steam') {
         avatarImg.style.display = 'none';
         avatarText.textContent = '🎮';
         avatarText.style.display = 'flex';
-        if (levelBadge) levelBadge.textContent = 'LVL 58';
+        if (levelBadge) levelBadge.textContent = Number.isInteger(authState.steamLevel) ? `STEAM ${authState.steamLevel}` : 'STEAM --';
       } else if (authState.provider === 'supercell') {
         avatarImg.style.display = 'none';
         avatarText.textContent = '⭐';
@@ -159,6 +200,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (levelBadge) levelBadge.textContent = 'LVL 42';
       }
     }
+
+    if (levelBadge) levelBadge.textContent = Number.isInteger(authState.steamLevel) ? `STEAM ${authState.steamLevel}` : 'STEAM --';
+    renderSteamInformation();
 
     // Dynamic stats strip update
     updateStatsStrip();
@@ -263,6 +307,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const quickAvatarTrigger = document.getElementById('pass-avatar-upload-trigger');
     const quickAvatarInput = document.getElementById('pass-avatar-quick-input');
     if (!openButton || !modal || !form || !nameInput || !avatarInput) return;
+    if (authState.provider === 'steam') {
+      openButton.hidden = true;
+      quickAvatarTrigger?.removeAttribute('role');
+      quickAvatarTrigger?.removeAttribute('tabindex');
+      quickAvatarTrigger?.setAttribute('aria-label', 'Avatar sincronizado da Steam');
+      if (quickAvatarTrigger) {
+        quickAvatarTrigger.style.cursor = 'default';
+        quickAvatarTrigger.classList.add('steam-synced');
+      }
+      return;
+    }
 
     const saveQuickAvatar = file => {
       if (!file) return;
@@ -321,10 +376,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const previousNames = [authState.nick, profileState.displayName];
         profileState = { displayName, avatar: avatar ?? profileState.avatar ?? '' };
         localStorage.setItem(STORAGE_KEY_PROFILE, JSON.stringify(profileState));
-        authState = { ...authState, nick: displayName };
-        localStorage.setItem(STORAGE_KEY_AUTH, JSON.stringify(authState));
-        window.CluchAPI?.setStore(STORAGE_KEY_AUTH, authState);
-        syncProfileNameAcrossTeams(previousNames, displayName);
+        // Display preferences are local only; authenticated identity remains Steam-authoritative.
         window.dispatchEvent(new Event('cluchzone-profile-updated'));
         renderProfileHeader();
         close();
@@ -524,11 +576,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Corrige dados criados antes desta sincronização ao abrir o perfil.
   const savedDisplayName = String(profileState.displayName || '').trim();
   if (savedDisplayName && savedDisplayName !== authState.nick) {
-    const previousAuthName = authState.nick;
-    authState = { ...authState, nick: savedDisplayName };
-    localStorage.setItem(STORAGE_KEY_AUTH, JSON.stringify(authState));
-    window.CluchAPI?.setStore(STORAGE_KEY_AUTH, authState);
-    syncProfileNameAcrossTeams([previousAuthName], savedDisplayName);
+    // Never replace the authenticated Steam identity with browser-controlled profile data.
   }
 
   renderProfileHeader();

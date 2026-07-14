@@ -31,7 +31,7 @@
   };
 
   function getAuth() {
-    try { return JSON.parse(localStorage.getItem(AUTH_KEY) || 'null'); } catch (_) { return null; }
+    return window.ClutchAuth?.getUser() || null;
   }
 
   function loadHiddenTeamChats() {
@@ -492,5 +492,6 @@
     });
   }
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+  const initAfterAuth = () => window.ClutchAuth?.ready.then(init);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initAfterAuth); else initAfterAuth();
 })();

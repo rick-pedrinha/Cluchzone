@@ -4,7 +4,6 @@
 // ═══════════════════════════════════════════════════════════
 
 import type { Bracket, BracketMatch } from '../../types/index.js';
-import { v4 as uuidv4 } from 'uuid';
 
 export function generateSingleElimination(teams: string[]): Bracket {
   const padded = padToPowerOfTwo(teams);
@@ -16,7 +15,7 @@ export function generateSingleElimination(teams: string[]): Bracket {
     const round: BracketMatch[] = [];
     for (let i = 0; i < current.length; i += 2) {
       round.push({
-        id: uuidv4(),
+        id: crypto.randomUUID(),
         round: rounds.length + 1,
         position: Math.floor(i / 2),
         team1: current[i] !== 'BYE' ? current[i] : undefined,
@@ -48,7 +47,7 @@ export function generateRoundRobin(teams: string[]): Bracket {
       const away = fixed[n - 1 - i];
       if (home !== 'BYE' && away !== 'BYE') {
         round.push({
-          id: uuidv4(),
+          id: crypto.randomUUID(),
           round: r + 1,
           position: i,
           team1: home,

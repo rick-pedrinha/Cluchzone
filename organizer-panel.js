@@ -1,6 +1,7 @@
 'use strict';
 
 document.addEventListener('DOMContentLoaded', async () => {
+  await window.ClutchAuth?.ready;
   const CAMP_KEY = 'cluchzone_cs2_camps';
   const TEAM_KEY = 'cluchzone_cs2_teams';
   const AUTH_KEY = 'cluchzone_auth';
@@ -14,11 +15,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   let tournaments = await window.CluchAPI?.getStore(CAMP_KEY, null);
   let teams = await window.CluchAPI?.getStore(TEAM_KEY, null);
-  let currentUser = await window.CluchAPI?.getStore(AUTH_KEY, null);
+  let currentUser = window.ClutchAuth?.getUser() || null;
 
   tournaments = Array.isArray(tournaments) ? tournaments : (getJson(CAMP_KEY) || []);
   teams = Array.isArray(teams) ? teams : (getJson(TEAM_KEY) || []);
-  currentUser = currentUser || getJson(AUTH_KEY) || { nick: 'Jogador_Convidado', provider: 'email' };
+  currentUser = currentUser || { nick: 'Jogador_Convidado', provider: 'steam', role: 'guest' };
 
   const camp = tournaments.find(item => String(item.id) === String(campId));
   
@@ -29,13 +30,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // Security Access Control
-  const isOrganizer = currentUser && (
-    currentUser.nick === camp.organizer || 
-    currentUser.role === 'admin' || 
-    currentUser.nick === 'admin' || 
-    currentUser.nick === 'Staff_CS2' ||
-    currentUser.nick === 'Jogador_Convidado'
-  );
+  const isOrganizer = currentUser && (currentUser.role === 'admin' || currentUser.role === 'organizer');
 
   if (!isOrganizer) {
     alert('Acesso negado: Você não é o organizador ou administrador deste torneio.');
