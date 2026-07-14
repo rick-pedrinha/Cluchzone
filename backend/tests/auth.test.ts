@@ -7,7 +7,7 @@ import { extractVerifiedSteamId, type SteamAuthService } from '../src/auth/steam
 import type { AppConfig } from '../src/config/env.js';
 import { AppError } from '../src/errors/app-error.js';
 import type { SteamFriendProfile, SteamFriendsService } from '../src/friends/steam-friends.service.js';
-import type { PublicUser, SteamProfileInput, UserRepository } from '../src/users/user.types.js';
+import type { PublicUser, SteamProfileInput, UserPreferencesInput, UserRepository } from '../src/users/user.types.js';
 
 const config: AppConfig = {
   nodeEnv: 'test',
@@ -45,7 +45,7 @@ class MemoryUsers implements UserRepository {
     const now = new Date();
     const user: PublicUser = current
       ? { ...current, ...input, lastLoginAt: now, updatedAt: now }
-      : { ...input, id: `user-${this.bySteamId.size + 1}`, role: 'PLAYER', status: 'ACTIVE', showcaseVisible: true, lastLoginAt: now, createdAt: now, updatedAt: now };
+      : { ...input, id: `user-${this.bySteamId.size + 1}`, role: 'PLAYER', status: 'ACTIVE', showcaseVisible: true, preferredLocale: null, timeZone: null, currencyCode: null, regionCode: null, lastLoginAt: now, createdAt: now, updatedAt: now };
     this.bySteamId.set(input.steamId64, user);
     this.byId.set(user.id, user);
     return user;
@@ -67,6 +67,15 @@ class MemoryUsers implements UserRepository {
     const user = this.byId.get(id);
     if (!user || user.status !== 'ACTIVE') return null;
     const updated = { ...user, showcaseVisible: visible, updatedAt: new Date() };
+    this.byId.set(id, updated);
+    this.bySteamId.set(updated.steamId64, updated);
+    return updated;
+  }
+
+  async updatePreferences(id: string, input: UserPreferencesInput): Promise<PublicUser | null> {
+    const user = this.byId.get(id);
+    if (!user || user.status !== 'ACTIVE') return null;
+    const updated = { ...user, ...input, updatedAt: new Date() };
     this.byId.set(id, updated);
     this.bySteamId.set(updated.steamId64, updated);
     return updated;
@@ -230,6 +239,52 @@ describe('security middleware', () => {
     const response = await request(app()).get('/route-that-does-not-exist');
     expect(response.status).toBe(404);
     expect(response.body.error.code).toBe('NOT_FOUND');
+  });
+});
+
+describe('global user preferences', () => {
+  it('publishes the global region and formatting catalog without authentication', async () => {
+    const response = await request(app()).get('/api/global/catalog');
+    expect(response.status).toBe(200);
+    const body = response.body as { communityRegions: Array<{ code: string }>; matchRegions: unknown[] };
+    expect(body.communityRegions.map(region => region.code)).toEqual(expect.arrayContaining([
+      'south-america', 'north-america', 'europe', 'middle-east', 'africa', 'asia', 'oceania',
+    ]));
+    expect(body.matchRegions).toHaveLength(6);
+  });
+
+  it('persists validated preferences against the authenticated session user only', async () => {
+    const users = new MemoryUsers();
+    const agent = request.agent(app(users));
+    await agent.get('/auth/steam/callback?openid.mode=id_res');
+    const response = await agent.put('/api/global/preferences?userId=attacker').set('Content-Type', 'application/json').send(JSON.stringify({
+      preferredLocale: 'en-US',
+      timeZone: 'Europe/London',
+      currencyCode: 'GBP',
+      regionCode: 'europe',
+    }));
+    expect(response.status).toBe(200);
+    expect(response.body.preferences).toEqual({
+      preferredLocale: 'en-US',
+      timeZone: 'Europe/London',
+      currencyCode: 'GBP',
+      regionCode: 'europe',
+    });
+    expect((await agent.get('/auth/me')).body.user).toMatchObject(response.body.preferences);
+  });
+
+  it('rejects unauthenticated or invalid preference updates', async () => {
+    expect((await request(app()).put('/api/global/preferences').set('Content-Type', 'application/json').send('{}')).status).toBe(401);
+    const agent = request.agent(app());
+    await agent.get('/auth/steam/callback?openid.mode=id_res');
+    const invalid = await agent.put('/api/global/preferences').set('Content-Type', 'application/json').send(JSON.stringify({
+      preferredLocale: 'xx-XX',
+      timeZone: 'Not/A_Timezone',
+      currencyCode: 'XXX',
+      regionCode: 'moon',
+    }));
+    expect(invalid.status).toBe(400);
+    expect(invalid.body.error.code).toBe('INVALID_GLOBAL_PREFERENCES');
   });
 });
 

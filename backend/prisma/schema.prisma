@@ -106,6 +106,10 @@ model User {
   role        UserRole   @default(PLAYER)
   status      UserStatus @default(ACTIVE)
   showcaseVisible Boolean @default(true) @map("showcase_visible")
+  preferredLocale String? @map("preferred_locale") @db.VarChar(16)
+  timeZone     String?    @map("time_zone") @db.VarChar(64)
+  currencyCode String?    @map("currency_code") @db.VarChar(3)
+  regionCode   String?    @map("region_code") @db.VarChar(32)
   lastLoginAt DateTime   @map("last_login_at") @db.Timestamptz(3)
   createdAt   DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt   DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
@@ -299,6 +303,7 @@ model MarketplaceSeller {
   category    MarketplaceSellerCategory
   description String                    @db.Text
   websiteUrl  String?                   @map("website_url") @db.Text
+  currencyCode String                   @default("BRL") @map("currency_code") @db.VarChar(3)
   verified    Boolean                   @default(false)
   createdAt   DateTime                  @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt   DateTime                  @updatedAt @map("updated_at") @db.Timestamptz(3)
@@ -319,6 +324,7 @@ model MarketplaceListing {
   game          String                   @db.VarChar(60)
   audience      String?                  @db.VarChar(80)
   priceCents    Int                      @map("price_cents")
+  currencyCode  String                   @default("BRL") @map("currency_code") @db.VarChar(3)
   stockQuantity Int                      @default(0) @map("stock_quantity")
   imageUrl      String?                  @map("image_url") @db.Text
   createdAt     DateTime                 @default(now()) @map("created_at") @db.Timestamptz(3)
@@ -338,6 +344,7 @@ model MarketplaceOrder {
   buyerUserId String                 @map("buyer_user_id") @db.Uuid
   quantity    Int                    @default(1)
   totalCents  Int                    @map("total_cents")
+  currencyCode String                @default("BRL") @map("currency_code") @db.VarChar(3)
   status      MarketplaceOrderStatus @default(PENDING)
   brief       String                 @db.VarChar(500)
   createdAt   DateTime               @default(now()) @map("created_at") @db.Timestamptz(3)

@@ -32,6 +32,10 @@ const player: PublicUser = {
   role: 'PLAYER',
   status: 'ACTIVE',
   showcaseVisible: true,
+  preferredLocale: null,
+  timeZone: null,
+  currencyCode: null,
+  regionCode: null,
   lastLoginAt: new Date(),
   createdAt: new Date(),
   updatedAt: new Date(),
@@ -75,6 +79,7 @@ class InventoryUsers implements UserRepository {
   async updateShowcaseVisibility(id: string, visible: boolean): Promise<PublicUser | null> {
     return id === player.id ? { ...player, showcaseVisible: visible } : null;
   }
+  async updatePreferences(): Promise<PublicUser | null> { return player; }
 }
 
 class FakeInventory implements Cs2InventoryService {

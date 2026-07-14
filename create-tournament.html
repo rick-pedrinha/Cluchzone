@@ -267,6 +267,7 @@
       }
     }
   </style>
+  <link rel="stylesheet" href="globalization.css">
 </head>
 <body class="csgo-theme">
 
@@ -387,14 +388,14 @@
           <div class="form-grid">
             <div class="form-group">
               <label class="form-label">Região *</label>
-              <select class="form-select" id="tournament-region" required>
-                <option value="">Selecione a região</option>
-                <option value="sp">Brasil - São Paulo</option>
-                <option value="rj">Brasil - Rio de Janeiro</option>
-                <option value="sud">Brasil - Sul</option>
-                <option value="sa">América do Sul</option>
-                <option value="na">América do Norte</option>
-                <option value="eu">Europa</option>
+              <select class="form-select" id="tournament-region" required data-global-region-select>
+                <option value="south-america">South America / América do Sul</option>
+                <option value="north-america">North America / América do Norte</option>
+                <option value="europe">Europe / Europa</option>
+                <option value="middle-east">Middle East / Oriente Médio</option>
+                <option value="africa">Africa / África</option>
+                <option value="asia">Asia / Ásia</option>
+                <option value="oceania">Oceania</option>
               </select>
             </div>
 
@@ -422,6 +423,7 @@
 
 <script src="config.js"></script>
 <script src="api.js"></script>
+<script src="globalization.js"></script>
 <script src="auth.js"></script>
   <script src="main.js"></script>
   <script>

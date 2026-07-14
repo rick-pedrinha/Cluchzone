@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (tdDate && tournament.date) {
       const dateVal = new Date(tournament.date);
-      tdDate.textContent = isNaN(dateVal.getTime()) ? tournament.date : dateVal.toLocaleString('pt-BR');
+      tdDate.textContent = isNaN(dateVal.getTime()) ? tournament.date : (window.ClutchGlobal?.formatDate(dateVal) || dateVal.toLocaleString(navigator.language));
     }
 
     if (tdHeroBg) {

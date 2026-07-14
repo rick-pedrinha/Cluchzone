@@ -139,9 +139,9 @@ function animateCounter(el, target, prefix = '', duration = 2000) {
     const progress = Math.min(elapsed / duration, 1);
     const eased = 1 - Math.pow(1 - progress, 3); // ease out cubic
     const current = Math.floor(eased * displayTarget);
-    el.textContent = prefix + current.toLocaleString('pt-BR') + suffix;
+    el.textContent = prefix + (window.ClutchGlobal?.formatNumber(current) || current.toLocaleString(navigator.language)) + suffix;
     if (progress < 1) requestAnimationFrame(step);
-    else el.textContent = prefix + displayTarget.toLocaleString('pt-BR') + suffix;
+    else el.textContent = prefix + (window.ClutchGlobal?.formatNumber(displayTarget) || displayTarget.toLocaleString(navigator.language)) + suffix;
   }
   step();
 }

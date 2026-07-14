@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="marketplace.css">
   <link rel="stylesheet" href="shared-chat.css">
   <link rel="stylesheet" href="auth.css">
+  <link rel="stylesheet" href="globalization.css">
 </head>
 <body class="market-page">
   <nav class="market-nav" aria-label="Navegação principal">
@@ -38,6 +39,7 @@
     </section>
   </main>
   <div class="market-modal" id="order-modal" role="dialog" aria-modal="true" aria-labelledby="order-title"><form class="market-modal-card" id="order-form"><div class="market-modal-head"><div><p class="market-eyebrow">SOLICITAÇÃO SEGURA</p><h2 id="order-title">Iniciar negociação</h2></div><button class="market-modal-close" id="order-close" type="button" aria-label="Fechar">×</button></div><p id="order-listing-name"></p><div class="market-form-grid"><div class="market-field"><label for="order-quantity">Quantidade</label><input class="market-input" id="order-quantity" type="number" min="1" max="100" value="1" required></div><div class="market-field"><label for="order-total">Total estimado</label><input class="market-input" id="order-total" readonly></div><div class="market-field full"><label for="order-brief">Briefing para o vendedor</label><textarea class="market-textarea" id="order-brief" minlength="10" maxlength="500" required placeholder="Conte o objetivo, prazo e detalhes da parceria ou compra."></textarea></div></div><div id="order-error" class="market-error" role="alert" hidden></div><div class="market-form-actions"><button class="market-button secondary" id="order-cancel" type="button">CANCELAR</button><button class="market-button" type="submit">ENVIAR PEDIDO</button></div></form></div>
-  <script src="config.js"></script><script src="api.js"></script><script src="auth.js"></script><script src="marketplace.js"></script><script src="shared-chat.js"></script>
+  <script src="config.js"></script><script src="api.js"></script><script src="globalization.js"></script>
+<script src="auth.js"></script><script src="marketplace.js"></script><script src="shared-chat.js"></script>
 </body>
 </html>

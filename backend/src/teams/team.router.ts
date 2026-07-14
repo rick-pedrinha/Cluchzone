@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { requireAuth } from '../auth/auth.middleware.js';
 import { AppError } from '../errors/app-error.js';
+import { communityRegionCodes } from '../global/globalization.catalog.js';
 import type { TeamRepository } from './team.types.js';
 
 const teamIdSchema = z.string().uuid();
@@ -9,7 +10,7 @@ const createTeamSchema = z.object({
   name: z.string().trim().min(3).max(100),
   tag: z.string().trim().min(2).max(12).transform(value => value.toUpperCase()),
   description: z.string().trim().max(1000).nullable().optional(),
-  region: z.string().trim().min(2).max(80),
+  region: z.enum(communityRegionCodes),
   members: z.array(z.object({
     displayName: z.string().trim().min(1).max(100),
     role: z.enum(['VICE_CAPTAIN', 'PLAYER', 'RESERVE']),

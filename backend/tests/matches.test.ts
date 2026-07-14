@@ -34,6 +34,10 @@ function user(id: string, role: ActorRole): PublicUser {
     role,
     status: 'ACTIVE',
     showcaseVisible: true,
+    preferredLocale: null,
+    timeZone: null,
+    currencyCode: null,
+    regionCode: null,
     lastLoginAt: now,
     createdAt: now,
     updatedAt: now,
@@ -52,6 +56,7 @@ class MatchUsers implements UserRepository {
   async findActiveBySteamIds(): Promise<PublicUser[]> { return []; }
   async findActiveByDisplayName(): Promise<PublicUser | null> { return null; }
   async updateShowcaseVisibility(): Promise<PublicUser | null> { return null; }
+  async updatePreferences(): Promise<PublicUser | null> { return null; }
 }
 
 const baseMatch: MatchView = {

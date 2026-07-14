@@ -20,6 +20,8 @@ O navegador nunca recebe a chave da Steam, não processa o retorno OpenID e não
 | `GET` | `/auth/steam/callback` | Valida a asserção Steam, sincroniza o perfil e cria a sessão |
 | `GET` | `/auth/me` | Retorna o usuário da sessão |
 | `POST` | `/auth/logout` | Destrói a sessão e expira o cookie |
+| `GET` | `/api/global/catalog` | Catálogo público de idiomas/formatação, moedas, regiões globais e datacenters operacionais |
+| `GET/PUT` | `/api/global/preferences` | Lê ou salva idioma, fuso, moeda e região usando somente a identidade da sessão |
 | `GET` | `/api/friends/steam` | Sincroniza a lista pública de amigos Steam da conta autenticada |
 | `GET` | `/api/tournaments/:tournamentId/players/:playerName/cs2-inventory` | Exibe o inventário público de CS2 de um jogador confirmado no campeonato |
 | `GET` | `/api/players/:userId/showcases/:game/inventory` | Exibe a vitrine pública permanente do perfil para `cs2` ou `pubg`; o backend resolve o SteamID pelo usuário Clutchzone |
@@ -82,6 +84,10 @@ O login começa em `http://localhost:3001/auth/steam` e o callback OpenID de des
 `http://localhost:3000` é a única origem canônica do frontend em desenvolvimento. Acessos por `127.0.0.1`, pela pasta `clutchzone-app/` ou pelo servidor Vite são redirecionados para essa origem para impedir alternância de versão e perda do cookie `SameSite`. Todas as páginas carregam a mesma configuração pública, o mesmo cliente de autenticação e os mesmos componentes compartilhados. Uma falha transitória não encerra a sessão: a interface tenta sincronizá-la novamente em segundo plano e o logout só ocorre por ação explícita do usuário.
 
 A vitrine comercial está em `http://localhost:3000/marketplace.html` e o ERP em `http://localhost:3000/seller-erp.html`. O ERP administra propostas, pedidos, publicação e estoque; pagamentos e repasses financeiros ainda não são processados pela plataforma.
+
+O seletor **Global** aparece em todas as páginas. Há 13 opções de idioma/formatação, fusos IANA, 13 moedas e cobertura de comunidade para América do Sul, América do Norte, Europa, Oriente Médio, África, Ásia e Oceania. Usuários Steam autenticados sincronizam essas preferências no PostgreSQL; visitantes recebem apenas uma configuração temporária derivada do navegador, sem identidade em `localStorage`. A região global do usuário não é confundida com capacidade de servidor: o catálogo informa separadamente os seis datacenters atualmente medidos pelo sistema de partidas.
+
+Valores do marketplace agora carregam a moeda real definida pelo vendedor em anúncios, pedidos e relatórios. A preferência visual de moeda nunca renomeia um valor BRL como se fosse USD, nem realiza conversão cambial implícita.
 
 ## Qualidade
 

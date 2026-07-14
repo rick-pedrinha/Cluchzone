@@ -36,6 +36,10 @@ const player: PublicUser = {
   role: 'PLAYER',
   status: 'ACTIVE',
   showcaseVisible: true,
+  preferredLocale: null,
+  timeZone: null,
+  currencyCode: null,
+  regionCode: null,
   lastLoginAt: new Date(),
   createdAt: new Date(),
   updatedAt: new Date(),
@@ -62,6 +66,7 @@ class ShowcaseUsers implements UserRepository {
     this.result = { ...this.result, showcaseVisible: visible };
     return this.result;
   }
+  async updatePreferences(): Promise<PublicUser | null> { return this.result; }
 }
 
 class FakeInventory implements SteamGameInventoryService {

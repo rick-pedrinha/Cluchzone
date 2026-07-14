@@ -1,0 +1,18 @@
+.cz-global-control { position: relative; display: inline-flex; align-items: center; font-family: Rajdhani, system-ui, sans-serif; }
+.cz-global-button { min-height: 38px; padding: 0 12px; border: 1px solid rgba(54,211,255,.36); border-radius: 8px; background: rgba(7,19,31,.88); color: #dff8ff; font: 700 13px/1 Rajdhani,system-ui,sans-serif; letter-spacing: .05em; cursor: pointer; }
+.cz-global-button:hover,.cz-global-button[aria-expanded="true"] { border-color: #36d3ff; box-shadow: 0 0 18px rgba(54,211,255,.16); }
+.cz-global-panel { position: fixed; z-index: 10040; top: 72px; right: 18px; width: min(390px, calc(100vw - 24px)); padding: 20px; border: 1px solid rgba(54,211,255,.38); border-radius: 12px; background: #07111df7; color: #e7f8ff; box-shadow: 0 24px 80px #000c; backdrop-filter: blur(16px); }
+.cz-global-panel[hidden] { display: none; }
+.cz-global-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 15px; }
+.cz-global-head strong { display:block; font: 800 15px/1.2 Orbitron,Rajdhani,sans-serif; letter-spacing: .06em; }
+.cz-global-head span,.cz-global-note { color: #89a9bb; font-size: 13px; }
+.cz-global-close { border: 0; background: transparent; color: #8fb3c6; font-size: 24px; cursor: pointer; }
+.cz-global-form { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.cz-global-field { display: grid; gap: 5px; }
+.cz-global-field.full { grid-column: 1 / -1; }
+.cz-global-field label { color: #84a6b9; font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+.cz-global-field select { width:100%; min-height: 42px; padding: 0 10px; border: 1px solid #234457; border-radius: 7px; background: #091725; color: #e8faff; font: 600 14px Rajdhani,system-ui,sans-serif; }
+.cz-global-save { grid-column: 1 / -1; min-height: 44px; border: 0; border-radius: 7px; background: linear-gradient(120deg,#16bceb,#6557f5); color: white; font: 800 13px Orbitron,Rajdhani,sans-serif; letter-spacing: .06em; cursor:pointer; }
+.cz-global-save:disabled { opacity:.55; cursor:wait; }
+.cz-global-status { grid-column: 1 / -1; min-height: 18px; color:#51e7a7; font-size:13px; }
+@media (max-width: 640px) { .cz-global-button { min-width: 38px; padding:0 9px; font-size:0; }.cz-global-button::before { content:'🌐'; font-size:16px; }.cz-global-panel { top:62px; right:12px; }.cz-global-form { grid-template-columns:1fr; }.cz-global-field,.cz-global-field.full,.cz-global-save,.cz-global-status { grid-column:1; } }

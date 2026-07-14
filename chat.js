@@ -23,7 +23,10 @@
 
   const escapeHtml = value => String(value || '').replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
   const userKey = nick => String(nick || '').trim().toLowerCase();
-  const timeLabel = timestamp => new Date(timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  const timeLabel = timestamp => new Intl.DateTimeFormat(
+    window.ClutchGlobal?.getPreferences().preferredLocale || navigator.language,
+    { hour: '2-digit', minute: '2-digit', timeZone: window.ClutchGlobal?.getPreferences().timeZone },
+  ).format(new Date(timestamp));
   const relativeTime = timestamp => {
     const minutes = Math.max(0, Math.floor((Date.now() - timestamp) / 60000));
     if (minutes < 1) return 'agora';

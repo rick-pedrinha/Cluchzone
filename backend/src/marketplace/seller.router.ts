@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { requireAuth } from '../auth/auth.middleware.js';
 import { AppError } from '../errors/app-error.js';
+import { supportedCurrencyCodes } from '../global/globalization.catalog.js';
 import type { MarketplaceRepository } from './marketplace.types.js';
 
 const idSchema = z.string().uuid();
@@ -10,6 +11,7 @@ const sellerSchema = z.object({
   category: z.enum(['SPONSOR', 'STREAMER', 'MERCHANT', 'AGENCY']),
   description: z.string().trim().min(20).max(1500),
   websiteUrl: z.url().max(500).nullable().optional(),
+  currencyCode: z.enum(supportedCurrencyCodes),
 }).strict();
 const listingSchema = z.object({
   kind: z.enum(['SPONSORSHIP', 'STREAMER_SERVICE', 'PRODUCT']),

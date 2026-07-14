@@ -58,7 +58,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     distributionInputs.forEach(({ input, value }) => {
       if (!input || !value) return;
       const amount = prize * Math.max(Number(input.value) || 0, 0) / 100;
-      value.textContent = amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      value.textContent = window.ClutchGlobal?.formatCurrency(amount * 100, 'BRL')
+        || amount.toLocaleString(navigator.language, { style: 'currency', currency: 'BRL' });
     });
   }
 
@@ -71,10 +72,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const platformFee = grossRevenue * platformRate / 100;
     const netPrize = grossRevenue - platformFee;
     prizeInput.value = netPrize.toFixed(2);
-    const currency = (amount: number) => amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    const currency = (amount: number) => window.ClutchGlobal?.formatCurrency(amount * 100, 'BRL')
+      || amount.toLocaleString(navigator.language, { style: 'currency', currency: 'BRL' });
     if (grossRevenueOutput) grossRevenueOutput.textContent = currency(grossRevenue);
     if (platformFeeOutput) platformFeeOutput.textContent = currency(platformFee);
-    if (platformRateLabel) platformRateLabel.textContent = platformRate.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+    if (platformRateLabel) platformRateLabel.textContent = window.ClutchGlobal?.formatNumber(platformRate, { minimumFractionDigits: 0, maximumFractionDigits: 2 })
+      || platformRate.toLocaleString(navigator.language, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
     if (netPrizeOutput) netPrizeOutput.textContent = currency(netPrize);
     updatePrizeDistribution();
   }
@@ -241,7 +244,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   if (statPlayersOnline) {
-    statPlayersOnline.textContent = (1200 + Math.floor(Math.random() * 80)).toLocaleString('pt-BR');
+    const playersOnline = 1200 + Math.floor(Math.random() * 80);
+    statPlayersOnline.textContent = window.ClutchGlobal?.formatNumber(playersOnline) || playersOnline.toLocaleString(navigator.language);
   }
 
   // Active lobby / Real-time updates subscription

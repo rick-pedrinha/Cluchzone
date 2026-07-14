@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="chat.css"/>
   <link rel="stylesheet" href="premium.css"/>
   <link rel="stylesheet" href="auth.css"/>
+  <link rel="stylesheet" href="globalization.css">
 </head>
 <body class="csgo-theme">
 
@@ -65,12 +66,15 @@
           <!-- Region -->
           <div class="tm-form-group">
             <label class="form-label">Região do Time</label>
-            <select class="form-select" id="tm-region">
-              <option value="Brasil - SP">Brasil - SP</option>
-              <option value="Brasil - RJ">Brasil - RJ</option>
-              <option value="América do Sul">América do Sul</option>
-              <option value="Europa">Europa</option>
-            </select>
+            <select class="form-select" id="tm-region" data-global-region-select>
+                <option value="south-america">South America / América do Sul</option>
+                <option value="north-america">North America / América do Norte</option>
+                <option value="europe">Europe / Europa</option>
+                <option value="middle-east">Middle East / Oriente Médio</option>
+                <option value="africa">Africa / África</option>
+                <option value="asia">Asia / Ásia</option>
+                <option value="oceania">Oceania</option>
+              </select>
           </div>
 
           <!-- Logo Drag & Drop Box -->
@@ -151,6 +155,7 @@
 
 <script src="config.js"></script>
 <script src="api.js"></script>
+<script src="globalization.js"></script>
 <script src="auth.js"></script>
 <script src="main.js"></script>
   <script src="teams.js"></script>

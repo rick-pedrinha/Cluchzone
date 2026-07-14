@@ -15,6 +15,7 @@ function mapSeller(seller: DatabaseSeller): SellerView {
     category: seller.category,
     description: seller.description,
     websiteUrl: seller.websiteUrl,
+    currencyCode: seller.currencyCode,
     verified: seller.verified,
   };
 }
@@ -29,6 +30,7 @@ function mapListing(listing: DatabaseListing): ListingView {
     game: listing.game,
     audience: listing.audience,
     priceCents: listing.priceCents,
+    currencyCode: listing.currencyCode,
     stockQuantity: listing.stockQuantity,
     imageUrl: listing.imageUrl,
     seller: mapSeller(listing.seller),
@@ -82,12 +84,12 @@ export class PrismaMarketplaceRepository implements MarketplaceRepository {
   async getDashboard(userId: string): Promise<SellerDashboard> {
     const seller = await this.prisma.marketplaceSeller.findUnique({ where: { userId } });
     if (!seller) {
-      return { seller: null, listings: [], orders: [], metrics: { totalListings: 0, publishedListings: 0, pendingOrders: 0, completedRevenueCents: 0 } };
+      return { seller: null, listings: [], orders: [], metrics: { totalListings: 0, publishedListings: 0, pendingOrders: 0, completedRevenueCents: 0, completedRevenueByCurrency: [] } };
     }
-    const [listings, orders, revenue] = await Promise.all([
+    const [listings, orders, revenueByCurrency] = await Promise.all([
       this.prisma.marketplaceListing.findMany({ where: { sellerId: seller.id }, include: listingInclude, orderBy: { createdAt: 'desc' } }),
       this.prisma.marketplaceOrder.findMany({ where: { sellerId: seller.id }, include: { listing: true }, orderBy: { createdAt: 'desc' }, take: 100 }),
-      this.prisma.marketplaceOrder.aggregate({ where: { sellerId: seller.id, status: 'COMPLETED' }, _sum: { totalCents: true } }),
+      this.prisma.marketplaceOrder.groupBy({ by: ['currencyCode'], where: { sellerId: seller.id, status: 'COMPLETED' }, _sum: { totalCents: true } }),
     ]);
     const buyers = await this.prisma.user.findMany({ where: { id: { in: [...new Set(orders.map(order => order.buyerUserId))] } } });
     const buyersById = new Map(buyers.map(buyer => [buyer.id, buyer.displayName]));
@@ -102,6 +104,7 @@ export class PrismaMarketplaceRepository implements MarketplaceRepository {
         buyerDisplayName: buyersById.get(order.buyerUserId) ?? 'Jogador ClutchZone',
         quantity: order.quantity,
         totalCents: order.totalCents,
+        currencyCode: order.currencyCode,
         status: order.status,
         brief: order.brief,
         createdAt: order.createdAt,
@@ -111,7 +114,8 @@ export class PrismaMarketplaceRepository implements MarketplaceRepository {
         totalListings: listings.length,
         publishedListings: listings.filter(listing => listing.status === 'PUBLISHED').length,
         pendingOrders: orders.filter(order => order.status === 'PENDING').length,
-        completedRevenueCents: revenue._sum.totalCents ?? 0,
+        completedRevenueCents: revenueByCurrency.find(item => item.currencyCode === seller.currencyCode)?._sum.totalCents ?? 0,
+        completedRevenueByCurrency: revenueByCurrency.map(item => ({ currencyCode: item.currencyCode, totalCents: item._sum.totalCents ?? 0 })),
       },
     };
   }
@@ -119,7 +123,7 @@ export class PrismaMarketplaceRepository implements MarketplaceRepository {
   async createListing(userId: string, input: ListingInput): Promise<ListingView> {
     const seller = await this.prisma.marketplaceSeller.findUnique({ where: { userId } });
     if (!seller) throw new AppError(409, 'SELLER_PROFILE_REQUIRED', 'Create your seller profile before publishing listings.');
-    const listing = await this.prisma.marketplaceListing.create({ data: { sellerId: seller.id, ...input }, include: listingInclude });
+    const listing = await this.prisma.marketplaceListing.create({ data: { sellerId: seller.id, currencyCode: seller.currencyCode, ...input }, include: listingInclude });
     await this.prisma.auditEntry.create({
       data: { actorId: userId, action: 'marketplace.listing_created', resourceType: 'marketplace_listing', resourceId: listing.id, metadata: { kind: listing.kind } },
     });
@@ -156,7 +160,7 @@ export class PrismaMarketplaceRepository implements MarketplaceRepository {
       if (listing.kind === 'PRODUCT' && listing.stockQuantity < quantity) throw new AppError(409, 'INSUFFICIENT_STOCK', 'Insufficient stock.');
       if (listing.kind !== 'PRODUCT' && quantity !== 1) throw new AppError(400, 'INVALID_ORDER_QUANTITY', 'Partnership requests must use quantity one.');
       const order = await transaction.marketplaceOrder.create({
-        data: { listingId, sellerId: listing.sellerId, buyerUserId, quantity, totalCents: listing.priceCents * quantity, brief },
+        data: { listingId, sellerId: listing.sellerId, buyerUserId, quantity, totalCents: listing.priceCents * quantity, currencyCode: listing.currencyCode, brief },
       });
       await transaction.auditEntry.create({
         data: { actorId: buyerUserId, action: 'marketplace.order_created', resourceType: 'marketplace_order', resourceId: order.id, metadata: { listingId } },
@@ -169,6 +173,7 @@ export class PrismaMarketplaceRepository implements MarketplaceRepository {
         buyerDisplayName: buyer.displayName,
         quantity,
         totalCents: order.totalCents,
+        currencyCode: order.currencyCode,
         status: order.status,
         brief: order.brief,
         createdAt: order.createdAt,
@@ -210,6 +215,7 @@ export class PrismaMarketplaceRepository implements MarketplaceRepository {
         buyerDisplayName: buyer?.displayName ?? 'Jogador ClutchZone',
         quantity: updated.quantity,
         totalCents: updated.totalCents,
+        currencyCode: updated.currencyCode,
         status: updated.status,
         brief: updated.brief,
         createdAt: updated.createdAt,

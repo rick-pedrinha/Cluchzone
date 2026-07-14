@@ -1,6 +1,6 @@
 import { Prisma, type PrismaClient } from '@prisma/client';
 import { AppError } from '../errors/app-error.js';
-import type { PublicUser, SteamProfileInput, UserRepository } from './user.types.js';
+import type { PublicUser, SteamProfileInput, UserPreferencesInput, UserRepository } from './user.types.js';
 
 export class PrismaUserRepository implements UserRepository {
   constructor(private readonly prisma: PrismaClient) {}
@@ -47,6 +47,14 @@ export class PrismaUserRepository implements UserRepository {
     const result = await this.prisma.user.updateMany({
       where: { id, status: 'ACTIVE' },
       data: { showcaseVisible: visible },
+    });
+    return result.count === 1 ? this.findById(id) : null;
+  }
+
+  async updatePreferences(id: string, input: UserPreferencesInput): Promise<PublicUser | null> {
+    const result = await this.prisma.user.updateMany({
+      where: { id, status: 'ACTIVE' },
+      data: input,
     });
     return result.count === 1 ? this.findById(id) : null;
   }

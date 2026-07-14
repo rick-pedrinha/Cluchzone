@@ -13,6 +13,7 @@ import { AppError } from './errors/app-error.js';
 import { errorHandler, notFound } from './middleware/error.middleware.js';
 import { createSteamFriendsRouter } from './friends/steam-friends.router.js';
 import type { SteamFriendsService } from './friends/steam-friends.service.js';
+import { createGlobalizationRouter } from './global/globalization.router.js';
 import { createCs2InventoryRouter } from './inventory/cs2-inventory.router.js';
 import type { SteamGameInventoryService } from './inventory/cs2-inventory.service.js';
 import { createPlayerShowcaseRouter } from './inventory/player-showcase.router.js';
@@ -113,6 +114,7 @@ export function createApp(deps: AppDependencies): Express {
     }
   });
   app.use('/auth', createAuthRouter(config, deps.users, deps.steam));
+  app.use('/api/global', createGlobalizationRouter(deps.users));
   app.use('/api/friends', createSteamFriendsRouter(deps.users, deps.steamFriends));
   if (deps.inventory) {
     app.use('/api/players', rateLimit({

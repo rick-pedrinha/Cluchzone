@@ -15,10 +15,19 @@ export type PublicUser = {
   role: 'PLAYER' | 'ORGANIZER' | 'ADMIN';
   status: 'ACTIVE' | 'SUSPENDED' | 'BANNED';
   showcaseVisible: boolean;
+  preferredLocale: string | null;
+  timeZone: string | null;
+  currencyCode: string | null;
+  regionCode: string | null;
   lastLoginAt: Date;
   createdAt: Date;
   updatedAt: Date;
 };
+
+export type UserPreferencesInput = Pick<
+  PublicUser,
+  'preferredLocale' | 'timeZone' | 'currencyCode' | 'regionCode'
+>;
 
 export type SteamProfileInput = Pick<
   PublicUser,
@@ -42,4 +51,5 @@ export interface UserRepository {
   findActiveBySteamIds(steamIds: string[]): Promise<PublicUser[]>;
   findActiveByDisplayName(displayName: string): Promise<PublicUser | null>;
   updateShowcaseVisibility(id: string, visible: boolean): Promise<PublicUser | null>;
+  updatePreferences(id: string, input: UserPreferencesInput): Promise<PublicUser | null>;
 }

@@ -31,7 +31,8 @@ const team: TeamView = {
 class MemoryTeams implements TeamRepository {
   listUserId: string | null = null;
   messageUserId: string | null = null;
-  async create(captainUserId: string, input: CreateTeamInput): Promise<TeamView> { void captainUserId; void input; return team; }
+  createInput: CreateTeamInput | null = null;
+  async create(captainUserId: string, input: CreateTeamInput): Promise<TeamView> { void captainUserId; this.createInput = input; return team; }
   async listMine(targetUserId: string): Promise<TeamView[]> { this.listUserId = targetUserId; return [team]; }
   async listMessages(): Promise<TeamMessageView[]> { return []; }
   async sendMessage(targetTeamId: string, targetUserId: string, text: string): Promise<TeamMessageView> {
@@ -40,8 +41,8 @@ class MemoryTeams implements TeamRepository {
   }
 }
 
-const seller: SellerView = { id: '80000000-0000-4000-8000-000000000001', storeName: 'Clutch Store', slug: 'clutch-store', category: 'MERCHANT', description: 'Equipamentos competitivos selecionados.', websiteUrl: null, verified: false };
-const listing: ListingView = { id: listingId, kind: 'PRODUCT', status: 'PUBLISHED', title: 'Mouse competitivo', description: 'Sensor profissional para jogadores competitivos.', game: 'CS2', audience: 'FPS', priceCents: 29990, stockQuantity: 10, imageUrl: null, seller, createdAt: new Date(), updatedAt: new Date() };
+const seller: SellerView = { id: '80000000-0000-4000-8000-000000000001', storeName: 'Clutch Store', slug: 'clutch-store', category: 'MERCHANT', description: 'Equipamentos competitivos selecionados.', websiteUrl: null, currencyCode: 'USD', verified: false };
+const listing: ListingView = { id: listingId, kind: 'PRODUCT', status: 'PUBLISHED', title: 'Mouse competitivo', description: 'Sensor profissional para jogadores competitivos.', game: 'CS2', audience: 'FPS', priceCents: 29990, currencyCode: 'USD', stockQuantity: 10, imageUrl: null, seller, createdAt: new Date(), updatedAt: new Date() };
 
 class MemoryMarketplace implements MarketplaceRepository {
   dashboardUserId: string | null = null;
@@ -50,13 +51,13 @@ class MemoryMarketplace implements MarketplaceRepository {
   async upsertSeller(targetUserId: string, input: SellerProfileInput): Promise<SellerView> { void targetUserId; void input; return seller; }
   async getDashboard(targetUserId: string): Promise<SellerDashboard> {
     this.dashboardUserId = targetUserId;
-    return { seller, listings: [listing], orders: [], metrics: { totalListings: 1, publishedListings: 1, pendingOrders: 0, completedRevenueCents: 0 } };
+    return { seller, listings: [listing], orders: [], metrics: { totalListings: 1, publishedListings: 1, pendingOrders: 0, completedRevenueCents: 0, completedRevenueByCurrency: [] } };
   }
   async createListing(targetUserId: string, input: ListingInput): Promise<ListingView> { void targetUserId; void input; return listing; }
   async updateListingStatus(targetUserId: string, targetListingId: string, status: ListingStatus): Promise<ListingView> { void targetUserId; void targetListingId; void status; return listing; }
   async createOrder(buyerUserId: string, targetListingId: string, quantity: number, brief: string): Promise<OrderView> {
     this.orderBuyerId = buyerUserId;
-    return { id: '90000000-0000-4000-8000-000000000001', listingId: targetListingId, listingTitle: listing.title, buyerUserId, buyerDisplayName: 'Buyer', quantity, totalCents: listing.priceCents, status: 'PENDING', brief, createdAt: new Date(), updatedAt: new Date() };
+    return { id: '90000000-0000-4000-8000-000000000001', listingId: targetListingId, listingTitle: listing.title, buyerUserId, buyerDisplayName: 'Buyer', quantity, totalCents: listing.priceCents, currencyCode: listing.currencyCode, status: 'PENDING', brief, createdAt: new Date(), updatedAt: new Date() };
   }
   async updateOrderStatus(targetUserId: string, orderId: string, status: OrderStatus): Promise<OrderView> { void targetUserId; void orderId; void status; throw new Error('not used'); }
 }
@@ -93,6 +94,21 @@ describe('private team chat', () => {
     expect(sent.status).toBe(201);
     expect(teams.listUserId).toBe(userId);
     expect(teams.messageUserId).toBe(userId);
+  });
+
+  it('accepts only catalogued global regions for new teams', async () => {
+    const teams = new MemoryTeams();
+    const agent = request.agent(app(teams));
+    await agent.post(`/test-login/${userId}`);
+    const valid = await agent.post('/api/teams').set('Content-Type', 'application/json').send(JSON.stringify({
+      name: 'Global Squad', tag: 'GLB', description: null, region: 'asia', members: [],
+    }));
+    expect(valid.status).toBe(201);
+    expect(teams.createInput?.region).toBe('asia');
+    const invalid = await agent.post('/api/teams').set('Content-Type', 'application/json').send(JSON.stringify({
+      name: 'Moon Squad', tag: 'MOON', description: null, region: 'moon', members: [],
+    }));
+    expect(invalid.status).toBe(400);
   });
 });
 

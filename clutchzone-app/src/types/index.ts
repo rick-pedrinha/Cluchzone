@@ -27,6 +27,10 @@ export interface User {
   stateCode?: string | null;
   steamCreatedAt?: string | null;
   lastLogoffAt?: string | null;
+  preferredLocale?: string | null;
+  timeZone?: string | null;
+  currencyCode?: string | null;
+  regionCode?: string | null;
   createdAt: string;
   lastLogin?: string;
 }

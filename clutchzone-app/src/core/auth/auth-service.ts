@@ -15,6 +15,10 @@ type BackendUser = {
   stateCode: string | null;
   steamCreatedAt: string | null;
   lastLogoffAt: string | null;
+  preferredLocale: string | null;
+  timeZone: string | null;
+  currencyCode: string | null;
+  regionCode: string | null;
   role: string;
   createdAt: string;
   lastLoginAt: string;
@@ -37,6 +41,10 @@ type SharedAuthUser = {
   stateCode: string | null;
   steamCreatedAt: string | null;
   lastLogoffAt: string | null;
+  preferredLocale: string | null;
+  timeZone: string | null;
+  currencyCode: string | null;
+  regionCode: string | null;
   role: string;
   createdAt: string;
   lastLogin: string;
@@ -100,6 +108,10 @@ class AuthService {
           stateCode: shared.stateCode,
           steamCreatedAt: shared.steamCreatedAt,
           lastLogoffAt: shared.lastLogoffAt,
+          preferredLocale: shared.preferredLocale,
+          timeZone: shared.timeZone,
+          currencyCode: shared.currencyCode,
+          regionCode: shared.regionCode,
           role: shared.role,
           createdAt: shared.createdAt,
           lastLoginAt: shared.lastLogin,
@@ -143,6 +155,10 @@ class AuthService {
         stateCode: backend.stateCode,
         steamCreatedAt: backend.steamCreatedAt,
         lastLogoffAt: backend.lastLogoffAt,
+        preferredLocale: backend.preferredLocale,
+        timeZone: backend.timeZone,
+        currencyCode: backend.currencyCode,
+        regionCode: backend.regionCode,
         createdAt: backend.createdAt,
         lastLogin: backend.lastLoginAt,
     };

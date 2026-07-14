@@ -22,6 +22,8 @@ const sharedLegacyAssets = {
   'marketplace.css': resolve(__dirname, '..', 'marketplace.css'),
   'marketplace.js': resolve(__dirname, '..', 'marketplace.js'),
   'seller-erp.js': resolve(__dirname, '..', 'seller-erp.js'),
+  'globalization.js': resolve(__dirname, '..', 'globalization.js'),
+  'globalization.css': resolve(__dirname, '..', 'globalization.css'),
 };
 
 // Mantém o widget social idêntico na versão estática e na versão Vite.

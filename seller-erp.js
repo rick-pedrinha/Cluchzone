@@ -2,7 +2,8 @@
   'use strict';
 
   const byId = id => document.getElementById(id);
-  const money = cents => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(cents || 0) / 100);
+  const money = (cents, currencyCode = 'BRL') => window.ClutchGlobal?.formatCurrency(cents, currencyCode)
+    || new Intl.NumberFormat(navigator.language, { style: 'currency', currency: currencyCode }).format(Number(cents || 0) / 100);
   const kindLabels = { SPONSORSHIP: 'Patrocínio', STREAMER_SERVICE: 'Streamer', PRODUCT: 'Produto' };
   const statusLabels = { DRAFT: 'Rascunho', PUBLISHED: 'Publicado', PAUSED: 'Pausado', ARCHIVED: 'Arquivado', PENDING: 'Pendente', ACCEPTED: 'Aceito', COMPLETED: 'Concluído', CANCELLED: 'Cancelado' };
 
@@ -55,7 +56,7 @@
       const row = document.createElement('tr');
       const title = document.createElement('td'); title.textContent = listing.title;
       const kind = document.createElement('td'); kind.textContent = kindLabels[listing.kind] || listing.kind;
-      const price = document.createElement('td'); price.textContent = listing.priceCents ? money(listing.priceCents) : 'Sob proposta';
+      const price = document.createElement('td'); price.textContent = listing.priceCents ? money(listing.priceCents, listing.currencyCode) : 'Sob proposta';
       const stock = document.createElement('td'); stock.textContent = String(listing.stockQuantity);
       const status = document.createElement('td'); status.appendChild(statusBadge(listing.status));
       const actions = document.createElement('td'); actions.className = 'erp-actions';
@@ -78,7 +79,7 @@
       const row = document.createElement('tr');
       const buyer = document.createElement('td'); buyer.textContent = order.buyerDisplayName;
       const listing = document.createElement('td'); listing.textContent = `${order.listingTitle} × ${order.quantity}`;
-      const total = document.createElement('td'); total.textContent = money(order.totalCents);
+      const total = document.createElement('td'); total.textContent = money(order.totalCents, order.currencyCode);
       const brief = document.createElement('td'); brief.textContent = order.brief; brief.title = order.brief;
       const status = document.createElement('td'); status.appendChild(statusBadge(order.status));
       const actions = document.createElement('td'); actions.className = 'erp-actions';
@@ -96,6 +97,8 @@
     byId('seller-category').value = seller.category || 'MERCHANT';
     byId('seller-description').value = seller.description || '';
     byId('seller-website').value = seller.websiteUrl || '';
+    byId('seller-currency').value = seller.currencyCode || 'BRL';
+    byId('listing-currency-label').textContent = seller.currencyCode || 'BRL';
   }
 
   function renderDashboard(dashboard) {
@@ -104,7 +107,10 @@
     byId('metric-listings').textContent = dashboard.metrics.totalListings;
     byId('metric-published').textContent = dashboard.metrics.publishedListings;
     byId('metric-pending').textContent = dashboard.metrics.pendingOrders;
-    byId('metric-revenue').textContent = money(dashboard.metrics.completedRevenueCents);
+    const totals = dashboard.metrics.completedRevenueByCurrency || [];
+    byId('metric-revenue').textContent = totals.length
+      ? totals.map(total => money(total.totalCents, total.currencyCode)).join(' · ')
+      : money(0, seller?.currencyCode || byId('seller-currency').value || 'BRL');
     fillProfile(seller);
     ['erp-new-listing', 'erp-listings', 'erp-orders'].forEach(id => { byId(id).hidden = !seller; });
     renderListings(dashboard.listings || []);
@@ -128,6 +134,7 @@
         category: byId('seller-category').value,
         description: byId('seller-description').value.trim(),
         websiteUrl: byId('seller-website').value.trim() || null,
+        currencyCode: byId('seller-currency').value,
       });
       await loadDashboard();
     } catch (error) {
@@ -166,6 +173,18 @@
   }
 
   async function init() {
+    await window.ClutchGlobal?.ready;
+    const currencySelect = byId('seller-currency');
+    const currencies = window.ClutchGlobal?.getCatalog?.().currencies || ['BRL'];
+    const preferredCurrency = window.ClutchGlobal?.getPreferences?.().currencyCode || 'BRL';
+    currencySelect.replaceChildren(...currencies.map(currency => {
+      const option = document.createElement('option');
+      option.value = currency;
+      option.textContent = currency;
+      option.selected = currency === preferredCurrency;
+      return option;
+    }));
+    byId('listing-currency-label').textContent = currencySelect.value;
     await window.ClutchAuth?.ready;
     const authenticated = Boolean(window.ClutchAuth?.getUser());
     byId('erp-auth-gate').hidden = authenticated;
@@ -178,6 +197,7 @@
     byId('erp-login').addEventListener('click', () => window.ClutchAuth?.open());
     byId('seller-profile-form').addEventListener('submit', saveProfile);
     byId('listing-form').addEventListener('submit', createListing);
+    byId('seller-currency').addEventListener('change', event => { byId('listing-currency-label').textContent = event.target.value; });
     void init();
   });
 })();

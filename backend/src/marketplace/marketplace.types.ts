@@ -10,6 +10,7 @@ export type SellerView = {
   category: SellerCategory;
   description: string;
   websiteUrl: string | null;
+  currencyCode: string;
   verified: boolean;
 };
 
@@ -22,6 +23,7 @@ export type ListingView = {
   game: string;
   audience: string | null;
   priceCents: number;
+  currencyCode: string;
   stockQuantity: number;
   imageUrl: string | null;
   seller: SellerView;
@@ -37,6 +39,7 @@ export type OrderView = {
   buyerDisplayName: string;
   quantity: number;
   totalCents: number;
+  currencyCode: string;
   status: OrderStatus;
   brief: string;
   createdAt: Date;
@@ -52,6 +55,7 @@ export type SellerDashboard = {
     publishedListings: number;
     pendingOrders: number;
     completedRevenueCents: number;
+    completedRevenueByCurrency: Array<{ currencyCode: string; totalCents: number }>;
   };
 };
 
@@ -60,6 +64,7 @@ export type SellerProfileInput = {
   category: SellerCategory;
   description: string;
   websiteUrl: string | null;
+  currencyCode: string;
 };
 
 export type ListingInput = {
