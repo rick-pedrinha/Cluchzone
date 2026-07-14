@@ -13,6 +13,10 @@ function initTeams() {
   const STORAGE_KEY_TEAMS = 'cluchzone_cs2_teams';
   const STORAGE_KEY_INVITES = 'cluchzone_team_invites';
   const STORAGE_KEY_NOTIFS = 'cluchzone_cs2_notifs';
+  const requestedReturn = new URLSearchParams(window.location.search).get('returnTo') || '';
+  const safeReturnUrl = /^tournament-details\.html\?id=[^#]+$/.test(requestedReturn)
+    ? requestedReturn
+    : 'my-teams.html';
 
   // 1. Get logged-in user
   let currentUser = JSON.parse(localStorage.getItem('cluchzone_auth') || 'null');
@@ -199,7 +203,7 @@ function initTeams() {
       showToast("🛡️ Equipe criada com sucesso!", "#00e676");
 
       setTimeout(() => {
-        window.location.href = 'my-teams.html';
+        window.location.href = safeReturnUrl;
       }, 1500);
     });
   }
