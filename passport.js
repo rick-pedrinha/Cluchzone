@@ -213,6 +213,46 @@ document.addEventListener('DOMContentLoaded', () => {
     preview.innerHTML = source ? `<img src="${source}" alt="Prévia da foto de perfil">` : '👤';
   }
 
+  // Mantém o nome público igual em todas as equipes das quais o jogador participa.
+  function syncProfileNameAcrossTeams(previousNames, nextName) {
+    const aliases = new Set(previousNames.map(name => String(name || '').trim().toLowerCase()).filter(Boolean));
+    if (!aliases.size) return;
+
+    const replaceName = value => aliases.has(String(value || '').trim().toLowerCase()) ? nextName : value;
+    const updateStore = async (key, fallback, transform) => {
+      let value = fallback;
+      try { value = await window.CluchAPI?.getStore(key, fallback) ?? fallback; } catch (_) { /* usa cache local */ }
+      if (!Array.isArray(value)) return;
+      const updated = transform(value);
+      if (JSON.stringify(updated) === JSON.stringify(value)) return;
+      localStorage.setItem(key, JSON.stringify(updated));
+      window.CluchAPI?.setStore(key, updated);
+    };
+
+    const localTeams = JSON.parse(localStorage.getItem('cluchzone_cs2_teams') || '[]');
+    const localInvites = JSON.parse(localStorage.getItem('cluchzone_team_invites') || '[]');
+    const localPlayers = JSON.parse(localStorage.getItem('cluchzone_cs2_players') || '[]');
+
+    void updateStore('cluchzone_cs2_teams', localTeams, teams => teams.map(team => ({
+      ...team,
+      captain: replaceName(team.captain),
+      vice: replaceName(team.vice),
+      members: Array.isArray(team.members) ? team.members.map(replaceName) : team.members,
+      reserves: Array.isArray(team.reserves) ? team.reserves.map(replaceName) : team.reserves
+    })));
+
+    void updateStore('cluchzone_team_invites', localInvites, invites => invites.map(invite => ({
+      ...invite,
+      captain: replaceName(invite.captain),
+      invitee: replaceName(invite.invitee)
+    })));
+
+    void updateStore('cluchzone_cs2_players', localPlayers, players => players.map(player => ({
+      ...player,
+      nick: replaceName(player.nick)
+    })));
+  }
+
   function setupProfileEditor() {
     const openButton = document.getElementById('pass-edit-profile-btn');
     const modal = document.getElementById('pass-edit-profile-modal');
@@ -278,8 +318,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const displayName = nameInput.value.trim();
       if (!displayName) return;
       const save = avatar => {
+        const previousNames = [authState.nick, profileState.displayName];
         profileState = { displayName, avatar: avatar ?? profileState.avatar ?? '' };
         localStorage.setItem(STORAGE_KEY_PROFILE, JSON.stringify(profileState));
+        authState = { ...authState, nick: displayName };
+        localStorage.setItem(STORAGE_KEY_AUTH, JSON.stringify(authState));
+        window.CluchAPI?.setStore(STORAGE_KEY_AUTH, authState);
+        syncProfileNameAcrossTeams(previousNames, displayName);
         window.dispatchEvent(new Event('cluchzone-profile-updated'));
         renderProfileHeader();
         close();
@@ -476,6 +521,16 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Init
+  // Corrige dados criados antes desta sincronização ao abrir o perfil.
+  const savedDisplayName = String(profileState.displayName || '').trim();
+  if (savedDisplayName && savedDisplayName !== authState.nick) {
+    const previousAuthName = authState.nick;
+    authState = { ...authState, nick: savedDisplayName };
+    localStorage.setItem(STORAGE_KEY_AUTH, JSON.stringify(authState));
+    window.CluchAPI?.setStore(STORAGE_KEY_AUTH, authState);
+    syncProfileNameAcrossTeams([previousAuthName], savedDisplayName);
+  }
+
   renderProfileHeader();
   setupProfileEditor();
   renderGameStatsPane();
