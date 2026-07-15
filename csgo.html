@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data:; script-src 'self' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' https: data:; font-src 'self' https: data:; frame-src 'none'; upgrade-insecure-requests" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data:; connect-src 'self' https: http://localhost:3001 http://127.0.0.1:3001; script-src 'self' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' https: data:; font-src 'self' https: data:; frame-src 'none'; upgrade-insecure-requests" />
   <meta name="room-name" content="CS2 Tactical Arena"/>
   <meta name="room-icon" content="🔫"/>
   <meta name="org-name" content="Staff_CS2"/>
@@ -129,6 +129,51 @@
 
   <!-- MAIN CONTAINER -->
   <main class="csgo-container">
+
+    <!-- Dedicated CS2 server automation: this panel exists only on the CS2 page. -->
+    <section class="cs2-automation-card" id="cs2-automation-card" aria-labelledby="cs2-automation-title">
+      <div class="cs2-automation-heading">
+        <div>
+          <span class="cs2-automation-kicker">STEAMCMD · DOCKER · RCON</span>
+          <h2 id="cs2-automation-title">Servidor dedicado automático</h2>
+          <p id="cs2-automation-description">Abra o link oficial de uma partida para acompanhar o provisionamento e entrar no servidor.</p>
+        </div>
+        <span class="cs2-automation-status" id="cs2-automation-status" data-state="idle"><i></i><span>AGUARDANDO PARTIDA</span></span>
+      </div>
+
+      <form class="cs2-match-link-form" id="cs2-match-link-form">
+        <label for="cs2-match-id">ID da partida oficial</label>
+        <div>
+          <input id="cs2-match-id" type="text" inputmode="text" autocomplete="off" placeholder="00000000-0000-0000-0000-000000000000" />
+          <button class="cs2-btn cs2-btn-secondary" type="submit">Abrir partida</button>
+        </div>
+      </form>
+
+      <div class="cs2-automation-details" id="cs2-automation-details" hidden>
+        <dl>
+          <div><dt>Etapa</dt><dd id="cs2-match-status">—</dd></div>
+          <div><dt>Região</dt><dd id="cs2-match-region">—</dd></div>
+          <div><dt>Servidor</dt><dd id="cs2-match-endpoint">Aguardando</dd></div>
+        </dl>
+        <div class="cs2-connect-box" id="cs2-connect-box" hidden>
+          <code id="cs2-connect-command"></code>
+          <button type="button" id="cs2-copy-connect">Copiar conexão</button>
+        </div>
+        <div class="cs2-server-actions" id="cs2-player-actions">
+          <button type="button" data-cs2-action="check-in">Fazer check-in</button>
+          <button type="button" data-cs2-action="provision">Criar servidor</button>
+          <button type="button" data-cs2-action="share">Copiar link da partida</button>
+        </div>
+        <div class="cs2-server-actions cs2-rcon-actions" id="cs2-rcon-actions" hidden>
+          <span>CONTROLE RCON RESTRITO</span>
+          <button type="button" data-cs2-command="PAUSE">Pausar</button>
+          <button type="button" data-cs2-command="UNPAUSE">Retomar</button>
+          <button type="button" data-cs2-command="RESTART">Reiniciar round</button>
+          <button type="button" data-cs2-command="RELEASE" class="danger">Liberar servidor</button>
+        </div>
+      </div>
+      <p class="cs2-automation-feedback" id="cs2-automation-feedback" role="status" aria-live="polite"></p>
+    </section>
 
     <!-- SUB SECTION TABS -->
     <nav class="cs2-tab-nav">

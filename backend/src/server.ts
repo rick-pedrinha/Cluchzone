@@ -13,6 +13,8 @@ import { logger } from './config/logger.js';
 import { SteamWebApiFriendsService } from './friends/steam-friends.service.js';
 import { SteamCommunityCs2InventoryService } from './inventory/cs2-inventory.service.js';
 import { PrismaMatchRepository } from './matches/prisma-match.repository.js';
+import { PrismaCs2ServerService } from './matches/prisma-cs2-server.service.js';
+import { SecretBox } from './matches/secret-box.js';
 import { PrismaMarketplaceRepository } from './marketplace/prisma-marketplace.repository.js';
 import { PrismaDirectMessageRepository } from './messages/prisma-direct-message.repository.js';
 import { PrismaRateLimitStore } from './middleware/prisma-rate-limit.store.js';
@@ -60,6 +62,9 @@ async function main(): Promise<void> {
     logger,
     states: new PrismaStateRepository(prisma),
     matches: new PrismaMatchRepository(prisma),
+    ...(config.cs2SecretKey
+      ? { cs2Servers: new PrismaCs2ServerService(prisma, new SecretBox(config.cs2SecretKey)) }
+      : {}),
     marketplace: new PrismaMarketplaceRepository(prisma),
     teams: new PrismaTeamRepository(prisma),
     messages: new PrismaDirectMessageRepository(prisma),

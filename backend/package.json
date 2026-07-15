@@ -22,6 +22,8 @@
     "test:watch": "vitest",
     "worker:outbox": "tsx watch src/events/outbox.worker.ts",
     "worker:outbox:start": "node dist/events/outbox.worker.js",
+    "worker:cs2": "tsx watch src/matches/cs2-orchestrator.worker.ts",
+    "worker:cs2:start": "node dist/matches/cs2-orchestrator.worker.js",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "prisma:generate": "prisma generate",

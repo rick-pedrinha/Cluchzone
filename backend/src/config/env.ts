@@ -1,6 +1,10 @@
 import { z } from 'zod';
 
 const booleanString = z.enum(['true', 'false']).transform(value => value === 'true');
+const optionalSecretKey = z.preprocess(
+  value => value === '' ? undefined : value,
+  z.string().regex(/^[a-f\d]{64}$/i).optional(),
+);
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']),
   PORT: z.coerce.number().int().min(1).max(65535),
@@ -11,6 +15,7 @@ const envSchema = z.object({
   BACKEND_URL: z.string().url(),
   CORS_ORIGINS: z.string().transform(value => value.split(',').map(item => item.trim()).filter(Boolean)),
   TRUST_PROXY: booleanString,
+  CS2_SECRET_KEY: optionalSecretKey,
 });
 
 export type AppConfig = {
@@ -23,6 +28,7 @@ export type AppConfig = {
   backendUrl: string;
   corsOrigins: string[];
   trustProxy: boolean;
+  cs2SecretKey: string | undefined;
 };
 
 export function loadConfig(source: NodeJS.ProcessEnv = process.env): AppConfig {
@@ -45,5 +51,6 @@ export function loadConfig(source: NodeJS.ProcessEnv = process.env): AppConfig {
     backendUrl: env.BACKEND_URL,
     corsOrigins: [...new Set([...env.CORS_ORIGINS, new URL(env.FRONTEND_URL).origin])],
     trustProxy: env.TRUST_PROXY,
+    cs2SecretKey: env.CS2_SECRET_KEY,
   };
 }

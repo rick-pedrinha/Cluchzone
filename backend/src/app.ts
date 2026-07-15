@@ -20,6 +20,7 @@ import type { SteamGameInventoryService } from './inventory/cs2-inventory.servic
 import { createPlayerShowcaseRouter } from './inventory/player-showcase.router.js';
 import { createMatchRouter } from './matches/match.router.js';
 import type { MatchRepository } from './matches/match.types.js';
+import type { Cs2ServerControl } from './matches/cs2-server.types.js';
 import { createMarketplaceRouter } from './marketplace/marketplace.router.js';
 import type { MarketplaceRepository } from './marketplace/marketplace.types.js';
 import { createSellerRouter } from './marketplace/seller.router.js';
@@ -50,6 +51,7 @@ export type AppDependencies = {
   logger?: Logger;
   states?: StateRepository;
   matches?: MatchRepository;
+  cs2Servers?: Cs2ServerControl;
   marketplace?: MarketplaceRepository;
   teams?: TeamRepository;
   messages?: DirectMessageRepository;
@@ -123,9 +125,12 @@ export function createApp(deps: AppDependencies): Express {
     }),
   );
 
-  app.get('/health', (_req, res) =>
-    res.status(200).json({ ok: true, service: 'clutchzone-backend' }),
-  );
+  const healthHandler: express.RequestHandler = (_req, res) => {
+    res.status(200).json({ ok: true, service: 'clutchzone-backend' });
+  };
+  app.get('/health', healthHandler);
+  // Keep compatibility with the health-check path used by the previous Render service.
+  app.get('/api/health', healthHandler);
   app.get('/ready', async (_req, res) => {
     try {
       await deps.readiness?.();
@@ -242,7 +247,7 @@ export function createApp(deps: AppDependencies): Express {
           next(new AppError(429, 'RATE_LIMITED', 'Too many requests.')),
       }),
     );
-    app.use('/api/matches', createMatchRouter(deps.users, deps.matches));
+    app.use('/api/matches', createMatchRouter(deps.users, deps.matches, deps.cs2Servers));
   }
   if (deps.frontendDirectory) {
     app.use(

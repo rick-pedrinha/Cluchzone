@@ -1564,8 +1564,183 @@ document.addEventListener('DOMContentLoaded', async () => {
   };
 
   /* ─── INITIALIZATION CALL ─── */
+  const officialMatchUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  const serverStatusLabels = {
+    SCHEDULED: 'Agendada', CHECK_IN: 'Check-in', VETO: 'Veto de mapas',
+    PROVISIONING: 'Preparando servidor', READY: 'Pronta', LIVE: 'Ao vivo',
+    COMPLETED: 'Concluída', RELEASING: 'Liberando servidor', RELEASED: 'Liberada',
+    FAILED: 'Falha no servidor', RETRYING: 'Nova tentativa', CANCELLED: 'Cancelada'
+  };
+  let officialMatchId = new URLSearchParams(window.location.search).get('match') || '';
+  let latestServerRoom = null;
+
+  function automationIdempotencyKey(prefix) {
+    const unique = window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    return `${prefix}:${unique}`;
+  }
+
+  function setAutomationBadge(state, text) {
+    const badge = document.getElementById('cs2-automation-status');
+    if (!badge) return;
+    badge.dataset.state = state;
+    const label = badge.querySelector('span');
+    if (label) label.textContent = text;
+  }
+
+  function setAutomationFeedback(text, error = false) {
+    const feedback = document.getElementById('cs2-automation-feedback');
+    if (!feedback) return;
+    feedback.textContent = text;
+    feedback.style.color = error ? '#ff8999' : '#8c99aa';
+  }
+
+  async function refreshDedicatedServerPanel() {
+    const details = document.getElementById('cs2-automation-details');
+    const input = document.getElementById('cs2-match-id');
+    if (input && officialMatchId) input.value = officialMatchId;
+    if (!officialMatchId) {
+      if (details) details.hidden = true;
+      setAutomationBadge('idle', 'AGUARDANDO PARTIDA');
+      setAutomationFeedback(authenticatedUser
+        ? 'O ID é incluído automaticamente nos links oficiais; também pode ser colado acima.'
+        : 'Entre com a Steam para acessar uma partida oficial.');
+      return;
+    }
+    if (!officialMatchUuid.test(officialMatchId)) {
+      if (details) details.hidden = true;
+      setAutomationBadge('error', 'LINK INVÁLIDO');
+      setAutomationFeedback('O ID da partida não é válido.', true);
+      return;
+    }
+    if (!authenticatedUser) {
+      if (details) details.hidden = true;
+      setAutomationBadge('idle', 'LOGIN NECESSÁRIO');
+      setAutomationFeedback('Entre com sua conta Steam para ver os dados protegidos da sala.', true);
+      return;
+    }
+
+    try {
+      const match = await window.CluchAPI.getCs2Match(officialMatchId);
+      latestServerRoom = null;
+      let roomError = null;
+      try {
+        latestServerRoom = await window.CluchAPI.getCs2ServerRoom(officialMatchId);
+      } catch (error) {
+        roomError = error;
+      }
+      if (details) details.hidden = false;
+      document.getElementById('cs2-match-status').textContent = serverStatusLabels[match.status] || match.status;
+      document.getElementById('cs2-match-region').textContent = latestServerRoom?.regionCode || match.regionCode || 'Calculando latência';
+      document.getElementById('cs2-match-endpoint').textContent = latestServerRoom?.endpoint || 'Aguardando provisionamento';
+
+      const connectBox = document.getElementById('cs2-connect-box');
+      const connectCommand = document.getElementById('cs2-connect-command');
+      const hasConnection = Boolean(latestServerRoom?.connectCommand);
+      if (connectBox) connectBox.hidden = !hasConnection;
+      if (connectCommand) connectCommand.textContent = latestServerRoom?.connectCommand || '';
+
+      const checkInButton = document.querySelector('[data-cs2-action="check-in"]');
+      const provisionButton = document.querySelector('[data-cs2-action="provision"]');
+      if (checkInButton) checkInButton.hidden = !['SCHEDULED', 'CHECK_IN', 'VETO'].includes(match.status);
+      if (provisionButton) provisionButton.hidden = !(latestServerRoom?.canOperate && ['VETO', 'RETRYING'].includes(match.status));
+      const rconActions = document.getElementById('cs2-rcon-actions');
+      if (rconActions) {
+        rconActions.hidden = !(latestServerRoom?.canOperate && ['READY', 'LIVE'].includes(latestServerRoom.allocationStatus));
+      }
+
+      if (hasConnection) {
+        setAutomationBadge('ready', 'SERVIDOR PRONTO');
+        setAutomationFeedback('A senha é exibida apenas para jogadores confirmados e organizadores desta partida.');
+      } else if (match.status === 'FAILED') {
+        setAutomationBadge('error', 'FALHA NO SERVIDOR');
+        setAutomationFeedback('O provisionamento falhou. O organizador pode solicitar uma nova tentativa.', true);
+      } else {
+        setAutomationBadge('busy', serverStatusLabels[match.status]?.toUpperCase() || 'EM PREPARAÇÃO');
+        setAutomationFeedback(
+          roomError?.code === 'CS2_AUTOMATION_UNAVAILABLE'
+            ? 'A automação ainda precisa da chave CS2_SECRET_KEY no servidor web.'
+            : 'O painel atualiza automaticamente enquanto o worker prepara o servidor.'
+        );
+      }
+    } catch (error) {
+      if (details) details.hidden = true;
+      setAutomationBadge('error', 'ACESSO INDISPONÍVEL');
+      const message = error.code === 'MATCH_NOT_FOUND'
+        ? 'Partida não encontrada ou sua conta não faz parte dela.'
+        : (error.message || 'Não foi possível carregar a partida.');
+      setAutomationFeedback(message, true);
+    }
+  }
+
+  async function runDedicatedServerAction(action) {
+    if (!officialMatchId || !officialMatchUuid.test(officialMatchId)) return;
+    setAutomationFeedback('Enviando solicitação segura ao servidor...');
+    try {
+      if (action === 'check-in') {
+        await window.CluchAPI.checkInCs2Match(officialMatchId);
+        showToast('✓ Check-in confirmado.', '#00ff88');
+      } else if (action === 'provision') {
+        await window.CluchAPI.provisionCs2Server(officialMatchId, automationIdempotencyKey('provision'));
+        showToast('Servidor CS2 solicitado.', '#00d4ff');
+      } else if (action === 'share') {
+        const url = new URL(window.location.href);
+        url.searchParams.set('match', officialMatchId);
+        await navigator.clipboard.writeText(url.toString());
+        showToast('Link protegido da partida copiado.', '#00d4ff');
+      }
+      await refreshDedicatedServerPanel();
+    } catch (error) {
+      setAutomationFeedback(error.message || 'A solicitação foi recusada.', true);
+    }
+  }
+
+  async function runRconAction(type) {
+    if (!latestServerRoom?.canOperate) return;
+    setAutomationFeedback('Comando colocado na fila do host CS2...');
+    try {
+      await window.CluchAPI.controlCs2Server(officialMatchId, type, automationIdempotencyKey(type.toLowerCase()));
+      showToast('Comando enviado ao host CS2.', '#00d4ff');
+      window.setTimeout(() => { void refreshDedicatedServerPanel(); }, 1200);
+    } catch (error) {
+      setAutomationFeedback(error.message || 'O comando RCON foi recusado.', true);
+    }
+  }
+
+  async function initDedicatedServerPanel() {
+    const form = document.getElementById('cs2-match-link-form');
+    form?.addEventListener('submit', event => {
+      event.preventDefault();
+      const input = document.getElementById('cs2-match-id');
+      const value = input?.value.trim() || '';
+      if (!officialMatchUuid.test(value)) {
+        setAutomationBadge('error', 'ID INVÁLIDO');
+        setAutomationFeedback('Cole um UUID de partida válido.', true);
+        return;
+      }
+      const url = new URL(window.location.href);
+      url.searchParams.set('match', value);
+      window.location.assign(url.toString());
+    });
+    document.querySelectorAll('[data-cs2-action]').forEach(button => {
+      button.addEventListener('click', () => { void runDedicatedServerAction(button.dataset.cs2Action); });
+    });
+    document.querySelectorAll('[data-cs2-command]').forEach(button => {
+      button.addEventListener('click', () => { void runRconAction(button.dataset.cs2Command); });
+    });
+    document.getElementById('cs2-copy-connect')?.addEventListener('click', async () => {
+      if (!latestServerRoom?.connectCommand) return;
+      await navigator.clipboard.writeText(latestServerRoom.connectCommand);
+      showToast('Comando de conexão copiado.', '#00ff88');
+    });
+    await refreshDedicatedServerPanel();
+    window.setInterval(() => {
+      if (officialMatchId && !document.hidden) void refreshDedicatedServerPanel();
+    }, 5000);
+  }
+
   async function init() {
     await syncInitialData();
+    await initDedicatedServerPanel();
     updateHeroCounters();
     renderNotifications();
     renderTeams();

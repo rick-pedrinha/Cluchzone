@@ -167,6 +167,39 @@ window.CluchAPI = (() => {
     return payload?.order || null;
   }
 
+  async function getCs2Match(matchId) {
+    const payload = await request(`/api/matches/${encodeURIComponent(matchId)}`);
+    return payload?.match || null;
+  }
+
+  async function getCs2ServerRoom(matchId) {
+    const payload = await request(`/api/matches/${encodeURIComponent(matchId)}/room`);
+    return payload?.room || null;
+  }
+
+  async function checkInCs2Match(matchId) {
+    const payload = await request(`/api/matches/${encodeURIComponent(matchId)}/check-in`, {
+      method: 'POST', body: '{}',
+    });
+    return payload?.match || null;
+  }
+
+  async function provisionCs2Server(matchId, idempotencyKey) {
+    const payload = await request(`/api/matches/${encodeURIComponent(matchId)}/provision`, {
+      method: 'POST', body: '{}', headers: { 'Idempotency-Key': idempotencyKey },
+    });
+    return payload?.match || null;
+  }
+
+  async function controlCs2Server(matchId, type, idempotencyKey) {
+    const payload = await request(`/api/matches/${encodeURIComponent(matchId)}/server/actions`, {
+      method: 'POST',
+      headers: { 'Idempotency-Key': idempotencyKey },
+      body: JSON.stringify({ type }),
+    });
+    return payload?.command || null;
+  }
+
   async function onStoreChange(key, callback) {
     listeners.get(key)?.();
     let active = true;
@@ -212,6 +245,11 @@ window.CluchAPI = (() => {
     createSellerListing,
     updateSellerListingStatus,
     updateSellerOrderStatus,
+    getCs2Match,
+    getCs2ServerRoom,
+    checkInCs2Match,
+    provisionCs2Server,
+    controlCs2Server,
     onStoreChange,
     auth,
     online: Boolean(baseUrl),

@@ -1990,37 +1990,6 @@ body.csgo-theme .cs2-tab-btn {
   font-size: 10px;
 }
 
-body.csgo-theme #chat-toggle-btn {
-  min-width: 174px !important;
-  min-height: 58px;
-  padding: 8px 13px !important;
-  border-radius: 3px !important;
-  background: rgba(8, 13, 20, .96) !important;
-  border: 1px solid rgba(68, 157, 211, .5) !important;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, .5), inset 3px 0 #3e9bd2 !important;
-}
-
-body.csgo-theme #chat-toggle-btn:hover {
-  border-color: rgba(255, 106, 22, .72) !important;
-  box-shadow: 0 14px 38px rgba(0, 0, 0, .55), inset 3px 0 #ff6a16 !important;
-}
-
-body.csgo-theme #chat-toggle-btn .chat-toggle-icon {
-  border-radius: 2px;
-  background: rgba(64, 151, 204, .14);
-}
-
-body.csgo-theme #chat-toggle-btn .chat-toggle-copy strong {
-  font: 800 11px 'Orbitron', sans-serif;
-  letter-spacing: .8px;
-}
-
-body.csgo-theme #chat-toggle-btn .chat-toggle-copy small {
-  color: #758397;
-  font-size: 9px;
-  text-transform: uppercase;
-}
-
 @media (max-width: 1180px) {
   body.csgo-theme .csgo-nav .nav-link {
     padding-inline: 8px;
@@ -2155,13 +2124,4 @@ body.csgo-theme #chat-toggle-btn .chat-toggle-copy small {
     padding: 11px 8px;
   }
 
-  body.csgo-theme #chat-toggle-btn {
-    min-width: 58px !important;
-    width: 58px;
-    padding: 8px !important;
-  }
-
-  body.csgo-theme #chat-toggle-btn .chat-toggle-copy {
-    display: none;
-  }
 }

@@ -55,6 +55,20 @@ enum GameServerStatus {
   FAILED
 }
 
+enum GameServerCommandType {
+  PAUSE
+  UNPAUSE
+  RESTART
+  RELEASE
+}
+
+enum GameServerCommandStatus {
+  PENDING
+  PROCESSING
+  SUCCEEDED
+  FAILED
+}
+
 enum TeamMemberRole {
   CAPTAIN
   VICE_CAPTAIN
@@ -120,6 +134,7 @@ model User {
   receivedDirectMessages DirectMessage[] @relation("DirectMessageRecipient")
   marketplaceSeller MarketplaceSeller?
   marketplaceOrders MarketplaceOrder[] @relation("MarketplaceBuyer")
+  requestedServerCommands GameServerCommand[]
 
   @@map("users")
 }
@@ -209,14 +224,39 @@ model GameServerAllocation {
   regionCode       String           @map("region_code") @db.VarChar(32)
   status           GameServerStatus @default(REQUESTED)
   secretRef        String?          @map("secret_ref") @db.VarChar(255)
+  publicHost       String?          @map("public_host") @db.VarChar(255)
+  gamePort         Int?             @map("game_port")
+  rconPort         Int?             @map("rcon_port")
+  encryptedPassword String?         @map("encrypted_password") @db.Text
+  encryptedRconPassword String?     @map("encrypted_rcon_password") @db.Text
+  lastHeartbeatAt  DateTime?        @map("last_heartbeat_at") @db.Timestamptz(3)
   createdAt        DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt        DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
   releasedAt       DateTime?        @map("released_at") @db.Timestamptz(3)
   match            GameMatch        @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  commands         GameServerCommand[]
 
   @@index([status, createdAt])
   @@index([matchId])
   @@map("game_server_allocations")
+}
+
+model GameServerCommand {
+  id             String                  @id @default(uuid()) @db.Uuid
+  allocationId   String                  @map("allocation_id") @db.Uuid
+  requestedById  String                  @map("requested_by_id") @db.Uuid
+  type           GameServerCommandType
+  status         GameServerCommandStatus @default(PENDING)
+  idempotencyKey String                  @unique @map("idempotency_key") @db.VarChar(180)
+  errorCode      String?                 @map("error_code") @db.VarChar(100)
+  createdAt      DateTime                @default(now()) @map("created_at") @db.Timestamptz(3)
+  processedAt    DateTime?               @map("processed_at") @db.Timestamptz(3)
+  allocation     GameServerAllocation    @relation(fields: [allocationId], references: [id], onDelete: Cascade)
+  requestedBy    User                    @relation(fields: [requestedById], references: [id], onDelete: Restrict)
+
+  @@index([status, createdAt])
+  @@index([allocationId, createdAt])
+  @@map("game_server_commands")
 }
 
 model OutboxEvent {

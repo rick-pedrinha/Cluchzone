@@ -1,4 +1,7 @@
 import session from 'express-session';
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 import pino from 'pino';
 import request from 'supertest';
 import { describe, expect, it } from 'vitest';
@@ -19,6 +22,7 @@ const config: AppConfig = {
   backendUrl: 'http://backend.test',
   corsOrigins: ['http://frontend.test'],
   trustProxy: false,
+  cs2SecretKey: undefined,
 };
 
 const profile: SteamProfileInput = {
@@ -101,7 +105,12 @@ class FakeSteamFriends implements SteamFriendsService {
   }
 }
 
-function app(users = new MemoryUsers(), steam = new FakeSteam(), steamFriends = new FakeSteamFriends()) {
+function app(
+  users = new MemoryUsers(),
+  steam = new FakeSteam(),
+  steamFriends = new FakeSteamFriends(),
+  frontendDirectory?: string,
+) {
   return createApp({
     config,
     users,
@@ -109,6 +118,7 @@ function app(users = new MemoryUsers(), steam = new FakeSteam(), steamFriends = 
     steamFriends,
     sessionStore: new session.MemoryStore(),
     logger: pino({ level: 'silent' }),
+    ...(frontendDirectory ? { frontendDirectory } : {}),
   });
 }
 
@@ -227,6 +237,33 @@ describe('security middleware', () => {
     const response = await request(app()).get('/health');
     expect(response.status).toBe(200);
     expect(response.body).toEqual({ ok: true, service: 'clutchzone-backend' });
+  });
+
+  it('keeps the previous Render health-check path compatible', async () => {
+    const response = await request(app()).get('/api/health');
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ ok: true, service: 'clutchzone-backend' });
+  });
+
+  it('serves the frontend entry point from the backend root in production builds', async () => {
+    const frontendDirectory = await mkdtemp(path.join(tmpdir(), 'clutchzone-frontend-'));
+    try {
+      await writeFile(
+        path.join(frontendDirectory, 'index.html'),
+        '<!doctype html><title>CLUTCHZONE</title>',
+        'utf8',
+      );
+
+      const response = await request(
+        app(new MemoryUsers(), new FakeSteam(), new FakeSteamFriends(), frontendDirectory),
+      ).get('/');
+
+      expect(response.status).toBe(200);
+      expect(response.text).toContain('<title>CLUTCHZONE</title>');
+      expect(response.headers['cache-control']).toContain('no-store');
+    } finally {
+      await rm(frontendDirectory, { recursive: true, force: true });
+    }
   });
 
   it('returns readiness without exposing dependency details', async () => {

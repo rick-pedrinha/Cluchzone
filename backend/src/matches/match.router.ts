@@ -4,6 +4,10 @@ import { requireAuth } from '../auth/auth.middleware.js';
 import { AppError } from '../errors/app-error.js';
 import type { UserRepository } from '../users/user.types.js';
 import { platformRegions, type ActorRole, type MatchRepository } from './match.types.js';
+import {
+  serverCommandTypes,
+  type Cs2ServerControl,
+} from './cs2-server.types.js';
 
 const matchIdSchema = z.string().uuid();
 const participantSchema = z.object({
@@ -27,6 +31,7 @@ const latencySchema = z.object({
   if (regions.size !== platformRegions.length) context.addIssue({ code: 'custom', message: 'Every platform region must be measured exactly once.' });
 });
 const idempotencySchema = z.string().trim().min(8).max(128).regex(/^[A-Za-z0-9._:-]+$/);
+const serverCommandSchema = z.object({ type: z.enum(serverCommandTypes) }).strict();
 
 function validationError(): AppError {
   return new AppError(400, 'INVALID_MATCH_INPUT', 'Invalid match request.');
@@ -38,7 +43,11 @@ async function loadActor(users: UserRepository, userId: string): Promise<{ id: s
   return { id: user.id, role: user.role };
 }
 
-export function createMatchRouter(users: UserRepository, matches: MatchRepository): Router {
+export function createMatchRouter(
+  users: UserRepository,
+  matches: MatchRepository,
+  cs2Servers?: Cs2ServerControl,
+): Router {
   const router = Router();
   router.use(requireAuth);
 
@@ -108,6 +117,44 @@ export function createMatchRouter(users: UserRepository, matches: MatchRepositor
       const actor = await loadActor(users, req.session.userId!);
       const match = await matches.requestProvision(matchId.data, actor.id, actor.role, idempotencyKey.data);
       res.status(202).json({ ok: true, match });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.get('/:matchId/room', async (req, res, next) => {
+    try {
+      if (!cs2Servers) {
+        throw new AppError(503, 'CS2_AUTOMATION_UNAVAILABLE', 'CS2 server automation is not configured.');
+      }
+      const matchId = matchIdSchema.safeParse(req.params.matchId);
+      if (!matchId.success) throw validationError();
+      const actor = await loadActor(users, req.session.userId!);
+      const room = await cs2Servers.getRoom(matchId.data, actor.id, actor.role);
+      res.set('Cache-Control', 'no-store').json({ ok: true, room });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.post('/:matchId/server/actions', async (req, res, next) => {
+    try {
+      if (!cs2Servers) {
+        throw new AppError(503, 'CS2_AUTOMATION_UNAVAILABLE', 'CS2 server automation is not configured.');
+      }
+      const matchId = matchIdSchema.safeParse(req.params.matchId);
+      const body = serverCommandSchema.safeParse(req.body);
+      const idempotencyKey = idempotencySchema.safeParse(req.get('Idempotency-Key'));
+      if (!matchId.success || !body.success || !idempotencyKey.success) throw validationError();
+      const actor = await loadActor(users, req.session.userId!);
+      const command = await cs2Servers.requestCommand(
+        matchId.data,
+        actor.id,
+        actor.role,
+        body.data.type,
+        idempotencyKey.data,
+      );
+      res.status(202).json({ ok: true, command });
     } catch (error) {
       next(error);
     }

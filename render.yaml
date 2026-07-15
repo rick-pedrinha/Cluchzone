@@ -12,7 +12,7 @@ services:
     rootDir: backend
     buildCommand: npm ci && npm run build
     startCommand: npm run migrate:deploy && npm start
-    healthCheckPath: /health
+    healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
         value: production
@@ -23,6 +23,8 @@ services:
       - key: SESSION_SECRET
         generateValue: true
       - key: STEAM_API_KEY
+        sync: false
+      - key: CS2_SECRET_KEY
         sync: false
       - key: FRONTEND_URL
         value: https://clutchzone-backend.onrender.com

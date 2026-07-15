@@ -4,5 +4,5 @@
 const isLocalClutchzone = ['localhost', '127.0.0.1'].includes(window.location.hostname);
 window.CLUCHZONE_BACKEND_URL = window.CLUCHZONE_BACKEND_URL
   || (isLocalClutchzone ? '' : 'https://clutchzone-backend.onrender.com');
-window.CLUCHZONE_UI_VERSION = '2026.7.15-2';
+window.CLUCHZONE_UI_VERSION = '2026.7.15-3';
 document.documentElement.dataset.clutchzoneVersion = window.CLUCHZONE_UI_VERSION;

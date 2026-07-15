@@ -18,6 +18,7 @@
     ],
     matchRegions: [],
   };
+  const PREFERENCES_KEY = 'cluchzone_global_preferences_v1';
   const strings = {
     'pt-BR': { button: '🌐 Global', title: 'Preferências globais', subtitle: 'Idioma, região e formatos', language: 'Idioma e formato', region: 'Região competitiva', timezone: 'Fuso horário', currency: 'Moeda preferida', save: 'SALVAR PREFERÊNCIAS', saved: 'Preferências sincronizadas.', guest: 'Entre com a Steam para sincronizar estas preferências em todos os dispositivos.', local: 'Aplicado neste acesso. Entre com a Steam para sincronizar.' },
     'es-419': { button: '🌐 Global', title: 'Preferencias globales', subtitle: 'Idioma, región y formatos', language: 'Idioma y formato', region: 'Región competitiva', timezone: 'Zona horaria', currency: 'Moneda preferida', save: 'GUARDAR PREFERENCIAS', saved: 'Preferencias sincronizadas.', guest: 'Inicia sesión con Steam para sincronizar estas preferencias en todos tus dispositivos.', local: 'Aplicado en esta visita. Inicia sesión con Steam para sincronizar.' },
@@ -27,8 +28,27 @@
   const browserLocale = Intl.NumberFormat().resolvedOptions().locale || navigator.language || 'en-US';
   const browserTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
   let catalog = fallbackCatalog;
-  let preferences = detectPreferences();
+  let preferences = { ...detectPreferences(), ...loadLocalPreferences() };
   let control = null;
+
+  function loadLocalPreferences() {
+    try {
+      const stored = JSON.parse(localStorage.getItem(PREFERENCES_KEY) || 'null');
+      if (!stored || typeof stored !== 'object' || Array.isArray(stored)) return {};
+      return {
+        ...(typeof stored.preferredLocale === 'string' ? { preferredLocale: stored.preferredLocale } : {}),
+        ...(typeof stored.timeZone === 'string' ? { timeZone: stored.timeZone } : {}),
+        ...(typeof stored.currencyCode === 'string' ? { currencyCode: stored.currencyCode } : {}),
+        ...(typeof stored.regionCode === 'string' ? { regionCode: stored.regionCode } : {}),
+      };
+    } catch (_) {
+      return {};
+    }
+  }
+
+  function persistLocalPreferences() {
+    try { localStorage.setItem(PREFERENCES_KEY, JSON.stringify(preferences)); } catch (_) { /* storage unavailable */ }
+  }
 
   function supportedLocale(value) {
     const exact = catalog.locales.find(item => item.code.toLowerCase() === String(value || '').toLowerCase());
@@ -63,6 +83,7 @@
 
   function apply(next, emit = true) {
     preferences = { ...preferences, ...next };
+    persistLocalPreferences();
     document.documentElement.lang = preferences.preferredLocale;
     document.documentElement.dataset.region = preferences.regionCode;
     document.documentElement.dataset.timeZone = preferences.timeZone;
@@ -174,7 +195,7 @@
       const remote = await window.CluchAPI?.getGlobalCatalog?.();
       if (remote?.locales?.length) catalog = remote;
     } catch (error) { console.warn('[ClutchGlobal] catálogo remoto indisponível; usando catálogo público embutido.', error.message); }
-    apply({ ...detectPreferences(), ...preferences }, false);
+    apply(preferences, false);
     syncInputs();
     document.querySelectorAll('[data-global-region-select], #tm-region, #tournament-region, #cs2-form-region').forEach(select => fillRegionSelect(select));
     return catalog;

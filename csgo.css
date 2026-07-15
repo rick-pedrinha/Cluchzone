@@ -1367,6 +1367,62 @@ body.csgo-theme {
   }
 }
 
+/* Dedicated server automation */
+.cs2-automation-card {
+  margin: 0 0 28px;
+  padding: 24px;
+  border: 1px solid rgba(0, 212, 255, .26);
+  border-left: 3px solid var(--cs-accent-cyan);
+  background: linear-gradient(120deg, rgba(0, 212, 255, .07), rgba(9, 13, 20, .96) 42%);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, .24);
+}
+
+.cs2-automation-heading,
+.cs2-match-link-form > div,
+.cs2-server-actions,
+.cs2-connect-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cs2-automation-heading { justify-content: space-between; align-items: flex-start; }
+.cs2-automation-kicker { color: var(--cs-accent-cyan); font: 800 10px/1 'Orbitron', sans-serif; letter-spacing: 1.5px; }
+.cs2-automation-heading h2 { margin: 7px 0 5px; color: #fff; font: 900 20px/1.2 'Orbitron', sans-serif; }
+.cs2-automation-heading p { margin: 0; color: #8c99aa; font-size: 14px; }
+.cs2-automation-status { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; color: #8995a6; font: 800 10px/1 'Orbitron', sans-serif; letter-spacing: .8px; }
+.cs2-automation-status i { width: 8px; height: 8px; border-radius: 50%; background: currentColor; box-shadow: 0 0 10px currentColor; }
+.cs2-automation-status[data-state="busy"] { color: #ffc857; }
+.cs2-automation-status[data-state="ready"] { color: #00e68a; }
+.cs2-automation-status[data-state="error"] { color: #ff5268; }
+
+.cs2-match-link-form { margin-top: 20px; max-width: 720px; }
+.cs2-match-link-form label { display: block; margin-bottom: 7px; color: #718096; font-size: 11px; font-weight: 800; letter-spacing: .7px; text-transform: uppercase; }
+.cs2-match-link-form > div { align-items: stretch; }
+.cs2-match-link-form input { flex: 1; min-width: 0; border: 1px solid var(--cs-border); border-radius: 4px; padding: 11px 13px; background: rgba(0,0,0,.28); color: #dce5ef; font-family: monospace; }
+
+.cs2-automation-details { margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--cs-border); }
+.cs2-automation-details dl { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0 0 16px; gap: 12px; }
+.cs2-automation-details dl div { padding: 12px; border: 1px solid var(--cs-border); background: rgba(0,0,0,.2); }
+.cs2-automation-details dt { color: #677386; font-size: 10px; font-weight: 800; text-transform: uppercase; }
+.cs2-automation-details dd { margin: 4px 0 0; color: #edf4fa; font: 700 13px/1.2 'Orbitron', sans-serif; overflow-wrap: anywhere; }
+.cs2-connect-box { padding: 10px; border: 1px solid rgba(0,230,138,.28); background: rgba(0,230,138,.06); }
+.cs2-connect-box code { flex: 1; color: #73f5b8; overflow-wrap: anywhere; }
+.cs2-connect-box button,
+.cs2-server-actions button { border: 1px solid rgba(0,212,255,.28); border-radius: 3px; padding: 8px 11px; background: rgba(0,212,255,.08); color: #aeefff; cursor: pointer; font: 800 10px/1 'Orbitron', sans-serif; }
+.cs2-server-actions { margin-top: 14px; flex-wrap: wrap; }
+.cs2-server-actions button[hidden] { display: none; }
+.cs2-rcon-actions { padding-top: 14px; border-top: 1px dashed var(--cs-border); }
+.cs2-rcon-actions > span { color: #6f7c8e; font: 800 9px/1 'Orbitron', sans-serif; letter-spacing: 1px; }
+.cs2-server-actions button.danger { border-color: rgba(255,82,104,.4); color: #ff8999; background: rgba(255,82,104,.08); }
+.cs2-automation-feedback { min-height: 18px; margin: 12px 0 0; color: #8c99aa; font-size: 12px; }
+
+@media (max-width: 700px) {
+  .cs2-automation-heading { flex-direction: column; }
+  .cs2-automation-details dl { grid-template-columns: 1fr; }
+  .cs2-match-link-form > div, .cs2-connect-box { align-items: stretch; flex-direction: column; }
+}
+
 /* ══════════════════════════════════════
    COMPETITIVE MATCH CENTER
 ══════════════════════════════════════ */
@@ -1962,37 +2018,6 @@ body.csgo-theme .cs2-tab-btn {
   font-size: 10px;
 }
 
-body.csgo-theme #chat-toggle-btn {
-  min-width: 174px !important;
-  min-height: 58px;
-  padding: 8px 13px !important;
-  border-radius: 3px !important;
-  background: rgba(8, 13, 20, .96) !important;
-  border: 1px solid rgba(68, 157, 211, .5) !important;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, .5), inset 3px 0 #3e9bd2 !important;
-}
-
-body.csgo-theme #chat-toggle-btn:hover {
-  border-color: rgba(255, 106, 22, .72) !important;
-  box-shadow: 0 14px 38px rgba(0, 0, 0, .55), inset 3px 0 #ff6a16 !important;
-}
-
-body.csgo-theme #chat-toggle-btn .chat-toggle-icon {
-  border-radius: 2px;
-  background: rgba(64, 151, 204, .14);
-}
-
-body.csgo-theme #chat-toggle-btn .chat-toggle-copy strong {
-  font: 800 11px 'Orbitron', sans-serif;
-  letter-spacing: .8px;
-}
-
-body.csgo-theme #chat-toggle-btn .chat-toggle-copy small {
-  color: #758397;
-  font-size: 9px;
-  text-transform: uppercase;
-}
-
 @media (max-width: 1180px) {
   body.csgo-theme .csgo-nav .nav-link {
     padding-inline: 8px;
@@ -2127,13 +2152,4 @@ body.csgo-theme #chat-toggle-btn .chat-toggle-copy small {
     padding: 11px 8px;
   }
 
-  body.csgo-theme #chat-toggle-btn {
-    min-width: 58px !important;
-    width: 58px;
-    padding: 8px !important;
-  }
-
-  body.csgo-theme #chat-toggle-btn .chat-toggle-copy {
-    display: none;
-  }
 }

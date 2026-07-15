@@ -6,6 +6,12 @@ import request from 'supertest';
 import { describe, expect, it } from 'vitest';
 import { errorHandler, notFound } from '../src/middleware/error.middleware.js';
 import { createMatchRouter } from '../src/matches/match.router.js';
+import type {
+  Cs2ServerControl,
+  ServerCommandType,
+  ServerCommandView,
+  ServerRoomView,
+} from '../src/matches/cs2-server.types.js';
 import { platformRegions, type ActorRole, type CreateMatchInput, type LatencySample, type MatchRepository, type MatchView } from '../src/matches/match.types.js';
 import { selectBalancedRegion } from '../src/matches/region-selector.js';
 import type { PublicUser, SteamProfileInput, UserRepository } from '../src/users/user.types.js';
@@ -100,7 +106,38 @@ class MemoryMatches implements MatchRepository {
   }
 }
 
-function app(matches = new MemoryMatches()) {
+class MemoryCs2Servers implements Cs2ServerControl {
+  roomActor: string | null = null;
+  commandActor: string | null = null;
+  commandType: ServerCommandType | null = null;
+
+  async getRoom(_matchId: string, actorId: string): Promise<ServerRoomView> {
+    this.roomActor = actorId;
+    return {
+      matchId,
+      matchStatus: 'READY',
+      allocationStatus: 'READY',
+      regionCode: 'sao-paulo',
+      canOperate: actorId === organizerId,
+      endpoint: 'cs2.example.com:27015',
+      password: 'temporary-password',
+      connectCommand: 'connect cs2.example.com:27015; password temporary-password',
+    };
+  }
+
+  async requestCommand(
+    _matchId: string,
+    actorId: string,
+    _actorRole: ActorRole,
+    type: ServerCommandType,
+  ): Promise<ServerCommandView> {
+    this.commandActor = actorId;
+    this.commandType = type;
+    return { id: matchId, type, status: 'PENDING', createdAt: new Date(), processedAt: null };
+  }
+}
+
+function app(matches = new MemoryMatches(), servers?: Cs2ServerControl) {
   const target = express();
   target.use(pinoHttp({ logger: pino({ level: 'silent' }) }));
   target.use(express.json());
@@ -109,7 +146,7 @@ function app(matches = new MemoryMatches()) {
     req.session.userId = req.params.userId;
     res.sendStatus(204);
   });
-  target.use('/api/matches', createMatchRouter(new MatchUsers(), matches));
+  target.use('/api/matches', createMatchRouter(new MatchUsers(), matches, servers));
   target.use(notFound);
   target.use(errorHandler);
   return target;
@@ -175,5 +212,32 @@ describe('match API authorization', () => {
     expect(provision.status).toBe(202);
     expect(matches.provisionActor).toBe(organizerId);
     expect(matches.provisionKey).toBe('provision-request-1');
+  });
+
+  it('returns protected connection data and queues only predefined RCON actions', async () => {
+    const servers = new MemoryCs2Servers();
+    const organizer = request.agent(app(new MemoryMatches(), servers));
+    await organizer.post(`/test-login/${organizerId}`);
+
+    const room = await organizer.get(`/api/matches/${matchId}/room`);
+    expect(room.status).toBe(200);
+    expect(room.body.room.password).toBe('temporary-password');
+    expect(servers.roomActor).toBe(organizerId);
+
+    const invalid = await organizer
+      .post(`/api/matches/${matchId}/server/actions`)
+      .set('Idempotency-Key', 'server-command-1')
+      .set('Content-Type', 'application/json')
+      .send(JSON.stringify({ type: 'exec arbitrary' }));
+    expect(invalid.status).toBe(400);
+
+    const pause = await organizer
+      .post(`/api/matches/${matchId}/server/actions`)
+      .set('Idempotency-Key', 'server-command-2')
+      .set('Content-Type', 'application/json')
+      .send(JSON.stringify({ type: 'PAUSE' }));
+    expect(pause.status).toBe(202);
+    expect(servers.commandActor).toBe(organizerId);
+    expect(servers.commandType).toBe('PAUSE');
   });
 });
