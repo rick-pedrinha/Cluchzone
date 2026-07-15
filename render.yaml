@@ -27,10 +27,10 @@ services:
       - key: CS2_SECRET_KEY
         sync: false
       - key: FRONTEND_URL
-        value: https://clutchzone-backend.onrender.com
+        value: https://clutchzone-backend-1p2m.onrender.com
       - key: BACKEND_URL
-        value: https://clutchzone-backend.onrender.com
+        value: https://clutchzone-backend-1p2m.onrender.com
       - key: CORS_ORIGINS
-        value: https://clutchzone-backend.onrender.com,https://rick-pedrinha.github.io
+        value: https://clutchzone-backend-1p2m.onrender.com,https://rick-pedrinha.github.io
       - key: TRUST_PROXY
         value: true

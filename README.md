@@ -136,4 +136,4 @@ Consulte `SECURITY.md`. O fluxo de autenticação está pronto para múltiplas i
 
 ## Demo
 
-Acesse a demonstração completa, com login Steam e dados persistentes, [aqui](https://clutchzone-backend.onrender.com/).
+Acesse a demonstração completa, com login Steam e dados persistentes, [aqui](https://clutchzone-backend-1p2m.onrender.com/).
