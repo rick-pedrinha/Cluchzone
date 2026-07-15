@@ -14,7 +14,7 @@
     "doctor": "tsx src/doctor.ts",
     "prebuild": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
     "build": "tsc -p tsconfig.json",
-    "postbuild": "tsx src/dev/copy-frontend.ts",
+    "postbuild": "node dist/dev/copy-frontend.js",
     "start": "node dist/server.js",
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc -p tsconfig.json --noEmit",
