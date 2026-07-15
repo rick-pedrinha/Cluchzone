@@ -62,14 +62,16 @@ No frontend legado, defina a URL pública em `config.js`. No Vite, use `VITE_BAC
 Pré-requisitos: Node.js 20.19+, Docker e Docker Compose.
 
 ```bash
-docker compose up -d postgres
 cd backend
 copy .env.example .env
 npm install
-npm run doctor
-npm run migrate:deploy
 npm run dev
 ```
+
+`npm run dev` regenera o Prisma Client, inicia o PostgreSQL persistente pelo Docker Compose,
+aguarda o healthcheck e aplica migrations pendentes antes de abrir o backend. O volume
+`clutchzone_postgres` preserva os dados entre reinicializações. Use `npm run db:status`
+para consultar o container manualmente.
 
 Em outro terminal:
 
@@ -134,4 +136,4 @@ Consulte `SECURITY.md`. O fluxo de autenticação está pronto para múltiplas i
 
 ## Demo
 
-Accesse a demo [aqui](https://rick-pedrinha.github.io/Cluchzone/ ).
+Acesse a demonstração completa, com login Steam e dados persistentes, [aqui](https://clutchzone-backend.onrender.com/).

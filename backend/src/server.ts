@@ -2,6 +2,9 @@ import { PrismaClient } from '@prisma/client';
 import connectPgSimple from 'connect-pg-simple';
 import { config as loadDotEnv } from 'dotenv';
 import session from 'express-session';
+import { existsSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import pg from 'pg';
 import { createApp } from './app.js';
 import { SteamOpenIdService } from './auth/steam-openid.service.js';
@@ -21,13 +24,23 @@ loadDotEnv({ quiet: true });
 
 async function main(): Promise<void> {
   const config = loadConfig();
+  const frontendDirectory = path.join(path.dirname(fileURLToPath(import.meta.url)), 'public');
+  if (config.nodeEnv === 'production' && !existsSync(frontendDirectory)) {
+    throw new Error(
+      'Production frontend bundle was not found. Run npm run build before starting the server.',
+    );
+  }
   const prisma = new PrismaClient();
   await prisma.$queryRaw`SELECT 1`;
   const pool = new pg.Pool({ connectionString: config.databaseUrl });
   const PgSession = connectPgSimple(session);
   const sessionStore = new PgSession({ pool, tableName: 'session', createTableIfMissing: false });
   const callbackUrl = new URL('/auth/steam/callback', config.backendUrl).toString();
-  const steam = new SteamOpenIdService(callbackUrl, new URL(config.backendUrl).origin, config.steamApiKey);
+  const steam = new SteamOpenIdService(
+    callbackUrl,
+    new URL(config.backendUrl).origin,
+    config.steamApiKey,
+  );
   const app = createApp({
     config,
     users: new PrismaUserRepository(prisma),
@@ -50,9 +63,14 @@ async function main(): Promise<void> {
     marketplace: new PrismaMarketplaceRepository(prisma),
     teams: new PrismaTeamRepository(prisma),
     messages: new PrismaDirectMessageRepository(prisma),
-    readiness: async () => { await prisma.$queryRaw`SELECT 1`; },
+    ...(config.nodeEnv === 'production' ? { frontendDirectory } : {}),
+    readiness: async () => {
+      await prisma.$queryRaw`SELECT 1`;
+    },
   });
-  const server = app.listen(config.port, () => logger.info({ port: config.port }, 'server started'));
+  const server = app.listen(config.port, () =>
+    logger.info({ port: config.port }, 'server started'),
+  );
 
   const shutdown = (signal: string): void => {
     logger.info({ signal }, 'shutting down');
@@ -65,7 +83,7 @@ async function main(): Promise<void> {
   process.on('SIGINT', () => shutdown('SIGINT'));
 }
 
-main().catch(error => {
+main().catch((error) => {
   logger.fatal({ err: error }, 'startup failed');
   process.exit(1);
 });

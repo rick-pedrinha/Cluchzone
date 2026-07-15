@@ -23,10 +23,10 @@ services:
       - key: STEAM_API_KEY
         sync: false
       - key: FRONTEND_URL
-        sync: false
+        value: https://clutchzone-backend.onrender.com
       - key: BACKEND_URL
-        sync: false
+        value: https://clutchzone-backend.onrender.com
       - key: CORS_ORIGINS
-        sync: false
+        value: https://clutchzone-backend.onrender.com,https://rick-pedrinha.github.io
       - key: TRUST_PROXY
         value: true

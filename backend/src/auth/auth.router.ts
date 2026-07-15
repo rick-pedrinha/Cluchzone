@@ -13,30 +13,44 @@ function asError(value: unknown): Error {
 }
 
 function safeReturnPath(value: string | undefined): string {
-  if (!value || !value.startsWith('/') || value.startsWith('//') || value.includes('\\')) return '/';
+  if (!value || !value.startsWith('/') || value.startsWith('//') || value.includes('\\'))
+    return '/';
   return value;
 }
 
 function regenerateSession(req: Request): Promise<void> {
-  return new Promise((resolve, reject) => req.session.regenerate(error => error ? reject(asError(error)) : resolve()));
+  return new Promise((resolve, reject) =>
+    req.session.regenerate((error) => (error ? reject(asError(error)) : resolve())),
+  );
 }
 
 function saveSession(req: Request): Promise<void> {
-  return new Promise((resolve, reject) => req.session.save(error => error ? reject(asError(error)) : resolve()));
+  return new Promise((resolve, reject) =>
+    req.session.save((error) => (error ? reject(asError(error)) : resolve())),
+  );
 }
 
 function destroySession(req: Request): Promise<void> {
-  return new Promise((resolve, reject) => req.session.destroy(error => error ? reject(asError(error)) : resolve()));
+  return new Promise((resolve, reject) =>
+    req.session.destroy((error) => (error ? reject(asError(error)) : resolve())),
+  );
 }
 
-export function createAuthRouter(config: AppConfig, users: UserRepository, steam: SteamAuthService): Router {
+export function createAuthRouter(
+  config: AppConfig,
+  users: UserRepository,
+  steam: SteamAuthService,
+): Router {
   const router = Router();
+  const usesCrossSiteSession =
+    config.nodeEnv === 'production' &&
+    new URL(config.frontendUrl).origin !== new URL(config.backendUrl).origin;
 
   router.get('/steam', (req, res, next) => {
     const parsed = loginQuery.safeParse(req.query);
     if (!parsed.success) return next(new AppError(400, 'INVALID_INPUT', 'Invalid login request.'));
     req.session.loginReturnPath = safeReturnPath(parsed.data.returnTo);
-    req.session.save(error => error ? next(error) : res.redirect(303, steam.createLoginUrl()));
+    req.session.save((error) => (error ? next(error) : res.redirect(303, steam.createLoginUrl())));
   });
 
   router.get('/steam/callback', async (req, res, next) => {
@@ -44,7 +58,8 @@ export function createAuthRouter(config: AppConfig, users: UserRepository, steam
       const callbackUrl = `${new URL(config.backendUrl).origin}${req.originalUrl}`;
       const profile = await steam.verifyAndFetchProfile(callbackUrl);
       const user = await users.upsertFromSteam(profile);
-      if (user.status !== 'ACTIVE') throw new AppError(403, 'ACCOUNT_UNAVAILABLE', 'This account is not active.');
+      if (user.status !== 'ACTIVE')
+        throw new AppError(403, 'ACCOUNT_UNAVAILABLE', 'This account is not active.');
       const returnPath = safeReturnPath(req.session.loginReturnPath);
       await regenerateSession(req);
       req.session.userId = user.id;
@@ -74,7 +89,7 @@ export function createAuthRouter(config: AppConfig, users: UserRepository, steam
       res.clearCookie('clutchzone.sid', {
         httpOnly: true,
         secure: config.nodeEnv === 'production',
-        sameSite: config.nodeEnv === 'production' ? 'none' : 'lax',
+        sameSite: usesCrossSiteSession ? 'none' : 'lax',
         path: '/',
       });
       res.status(204).end();
