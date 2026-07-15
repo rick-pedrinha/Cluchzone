@@ -25,6 +25,8 @@ jobs:
           mkdir -p site
           find . -maxdepth 1 -type f \( -name '*.html' -o -name '*.css' -o -name '*.js' \) -exec cp {} site/ \;
           cp -R images site/images
+          VERSION="${GITHUB_SHA::12}"
+          find site -name '*.html' -exec sed -i -E "s#((src|href)=\"[^\"]+\.(js|css))(\?v=[^\"]*)?\"#\1?v=${VERSION}\"#g" {} +
           touch site/.nojekyll
 
       - name: Publicar no GitHub Pages

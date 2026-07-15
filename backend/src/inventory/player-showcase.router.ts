@@ -53,7 +53,7 @@ export function createPlayerShowcaseRouter(
       }
 
       if (!user.showcaseVisible) {
-        res.set('Cache-Control', 'private, max-age=30').json({
+        res.set('Cache-Control', 'no-store').json({
           ok: true,
           showcaseVisible: false,
           highlights: [],
@@ -64,7 +64,7 @@ export function createPlayerShowcaseRouter(
       const result = await inventory.getPublicGameInventory(user.steamId64, game);
       const highlights = await inventory.getPublicGameHighlights(result.items, game);
       const gameDefinition = STEAM_INVENTORY_GAMES[game];
-      res.set('Cache-Control', 'private, max-age=60').json({
+      res.set('Cache-Control', 'no-store').json({
         ok: true,
         game: {
           key: gameDefinition.key,

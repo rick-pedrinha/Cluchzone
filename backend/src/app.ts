@@ -22,6 +22,8 @@ import type { MatchRepository } from './matches/match.types.js';
 import { createMarketplaceRouter } from './marketplace/marketplace.router.js';
 import type { MarketplaceRepository } from './marketplace/marketplace.types.js';
 import { createSellerRouter } from './marketplace/seller.router.js';
+import { createDirectMessageRouter } from './messages/direct-message.router.js';
+import type { DirectMessageRepository } from './messages/direct-message.types.js';
 import { createStateRouter } from './state/state.router.js';
 import { createTeamRouter } from './teams/team.router.js';
 import type { TeamRepository } from './teams/team.types.js';
@@ -43,11 +45,13 @@ export type AppDependencies = {
   marketplaceRateLimitStore?: Store;
   sellerRateLimitStore?: Store;
   teamsRateLimitStore?: Store;
+  messagesRateLimitStore?: Store;
   logger?: Logger;
   states?: StateRepository;
   matches?: MatchRepository;
   marketplace?: MarketplaceRepository;
   teams?: TeamRepository;
+  messages?: DirectMessageRepository;
   readiness?: () => Promise<void>;
 };
 
@@ -116,6 +120,17 @@ export function createApp(deps: AppDependencies): Express {
   app.use('/auth', createAuthRouter(config, deps.users, deps.steam));
   app.use('/api/global', createGlobalizationRouter(deps.users));
   app.use('/api/friends', createSteamFriendsRouter(deps.users, deps.steamFriends));
+  if (deps.messages) {
+    app.use('/api/messages', rateLimit({
+      windowMs: 15 * 60 * 1000,
+      limit: 180,
+      standardHeaders: 'draft-8',
+      legacyHeaders: false,
+      ...(deps.messagesRateLimitStore ? { store: deps.messagesRateLimitStore } : {}),
+      handler: (_req, _res, next) => next(new AppError(429, 'RATE_LIMITED', 'Too many requests.')),
+    }));
+    app.use('/api/messages', createDirectMessageRouter(deps.users, deps.messages, deps.steamFriends));
+  }
   if (deps.inventory) {
     app.use('/api/players', rateLimit({
       windowMs: 15 * 60 * 1000,

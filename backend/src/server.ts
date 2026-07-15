@@ -11,6 +11,7 @@ import { SteamWebApiFriendsService } from './friends/steam-friends.service.js';
 import { SteamCommunityCs2InventoryService } from './inventory/cs2-inventory.service.js';
 import { PrismaMatchRepository } from './matches/prisma-match.repository.js';
 import { PrismaMarketplaceRepository } from './marketplace/prisma-marketplace.repository.js';
+import { PrismaDirectMessageRepository } from './messages/prisma-direct-message.repository.js';
 import { PrismaRateLimitStore } from './middleware/prisma-rate-limit.store.js';
 import { PrismaUserRepository } from './users/prisma-user.repository.js';
 import { PrismaStateRepository } from './state/state.repository.js';
@@ -42,11 +43,13 @@ async function main(): Promise<void> {
     marketplaceRateLimitStore: new PrismaRateLimitStore(prisma, 'marketplace:'),
     sellerRateLimitStore: new PrismaRateLimitStore(prisma, 'seller:'),
     teamsRateLimitStore: new PrismaRateLimitStore(prisma, 'teams:'),
+    messagesRateLimitStore: new PrismaRateLimitStore(prisma, 'messages:'),
     logger,
     states: new PrismaStateRepository(prisma),
     matches: new PrismaMatchRepository(prisma),
     marketplace: new PrismaMarketplaceRepository(prisma),
     teams: new PrismaTeamRepository(prisma),
+    messages: new PrismaDirectMessageRepository(prisma),
     readiness: async () => { await prisma.$queryRaw`SELECT 1`; },
   });
   const server = app.listen(config.port, () => logger.info({ port: config.port }, 'server started'));

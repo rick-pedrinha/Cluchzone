@@ -92,7 +92,14 @@
 .game-signature-kit.is-loading .game-signature-slots { opacity: .6; }
 
 /* CS2 weapon silhouettes: readable even before Steam inventory resolves. */
-.game-signature-kit.is-cs2 { --signature-accent: #ff6417; --signature-accent-rgb: 255, 100, 23; margin: 12px 0; backdrop-filter: blur(12px); }
+.game-signature-kit.is-cs2 {
+  --signature-accent: #ff6417;
+  --signature-accent-rgb: 255, 100, 23;
+  grid-column: 1 / -1;
+  margin: 0;
+  border-width: 1px 0 0;
+  backdrop-filter: blur(12px);
+}
 .game-signature-kit.is-cs2 .game-signature-visual::before,
 .game-signature-kit.is-cs2 .game-signature-visual::after { content: ''; position: absolute; background: currentColor; filter: drop-shadow(0 0 5px rgba(var(--signature-accent-rgb), .28)); }
 .game-signature-kit.is-cs2 [data-kind="rifle"] .game-signature-visual::before { width: 47px; height: 7px; left: 4px; top: 15px; clip-path: polygon(0 30%, 18% 0, 65% 0, 70% 28%, 100% 28%, 100% 55%, 68% 55%, 58% 100%, 48% 100%, 51% 55%, 0 70%); }

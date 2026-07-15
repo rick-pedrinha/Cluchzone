@@ -2,7 +2,7 @@ import { AppError } from '../errors/app-error.js';
 
 const STEAM_USER_ID = /^7656119\d{10}$/;
 const INVENTORY_LIMIT = 2000;
-const CACHE_TTL_MS = 5 * 60 * 1000;
+const CACHE_TTL_MS = 30 * 1000;
 const MARKET_PRICE_CACHE_TTL_MS = 30 * 60 * 1000;
 const MARKET_PRICE_LOOKUP_LIMIT = 120;
 const MARKET_PRICE_CONCURRENCY = 4;

@@ -21,6 +21,7 @@
   let activeRequest = null;
   const profileCache = new Map();
   const profilePending = new Map();
+  const PROFILE_CACHE_TTL_MS = 20 * 1000;
   let current = { player: null, inventory: null, game: GAME_META.cs2, category: 'all', search: '' };
 
   const escapeHtml = value => String(value ?? '').replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[char]);
@@ -57,14 +58,15 @@
     };
   }
 
-  function preloadProfile({ userId, game = 'cs2' }) {
+  function preloadProfile({ userId, game = 'cs2', refresh = false }) {
     const request = profileInventoryRequest(userId, game);
     if (!request) return Promise.reject(Object.assign(new Error('Invalid showcase'), { code: 'INVALID_INPUT' }));
-    if (profileCache.has(request.key)) return Promise.resolve(profileCache.get(request.key));
+    const cached = profileCache.get(request.key);
+    if (!refresh && cached && cached.expiresAt > Date.now()) return Promise.resolve(cached.payload);
     if (profilePending.has(request.key)) return profilePending.get(request.key);
     const pending = requestInventoryPayload(request.endpoint)
       .then(payload => {
-        profileCache.set(request.key, payload);
+        profileCache.set(request.key, { payload, expiresAt: Date.now() + PROFILE_CACHE_TTL_MS });
         return payload;
       })
       .finally(() => profilePending.delete(request.key));

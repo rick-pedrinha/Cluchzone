@@ -67,6 +67,19 @@ window.CluchAPI = (() => {
     return Array.isArray(payload?.friends) ? payload.friends : [];
   }
 
+  async function getDirectMessages(userId) {
+    const payload = await request(`/api/messages/${encodeURIComponent(userId)}`);
+    return Array.isArray(payload?.messages) ? payload.messages : [];
+  }
+
+  async function sendDirectMessage(userId, text) {
+    const payload = await request(`/api/messages/${encodeURIComponent(userId)}`, {
+      method: 'POST',
+      body: JSON.stringify({ text }),
+    });
+    return payload?.message || null;
+  }
+
   async function getMyTeams() {
     const payload = await request('/api/teams/mine');
     return Array.isArray(payload?.teams) ? payload.teams : [];
@@ -183,6 +196,8 @@ window.CluchAPI = (() => {
     setStore,
     removeStore,
     getSteamFriends,
+    getDirectMessages,
+    sendDirectMessage,
     getMyTeams,
     createTeam,
     getTeamMessages,
