@@ -1,11 +1,13 @@
 databases:
   - name: clutchzone-postgres
+    plan: free
     databaseName: clutchzone
     user: clutchzone
 
 services:
   - type: web
     name: clutchzone-backend
+    plan: free
     runtime: node
     rootDir: backend
     buildCommand: npm ci && npm run build
