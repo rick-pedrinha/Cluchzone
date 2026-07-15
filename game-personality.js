@@ -51,7 +51,7 @@
   }
 
   function hostFor(game) {
-    if (game === 'cs2') return document.querySelector('.cs2-match-visual');
+    if (game === 'cs2') return document.querySelector('.cs2-hero-grid');
     if (game === 'pubg') return document.querySelector('.pubg-hero-content');
     if (game === 'brawl') return document.querySelector('.brawl-hero-content');
     return null;
@@ -147,19 +147,21 @@
     action.addEventListener('click', () => document.querySelector(target)?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
   }
 
-  async function hydrateSteamKit(section, game) {
+  async function hydrateSteamKit(section, game, refresh = false) {
     if (!['cs2', 'pubg'].includes(game)) return;
     await window.ClutchAuth?.ready;
     const user = window.ClutchAuth?.getUser?.();
     const userId = user?.uid || user?.id;
-    if (!userId || activeUserId === `${game}:${userId}` || !window.ClutchInventory?.preloadProfile) return;
+    if (!userId || (!refresh && activeUserId === `${game}:${userId}`) || !window.ClutchInventory?.preloadProfile) return;
     activeUserId = `${game}:${userId}`;
     const note = section.querySelector('.game-signature-note');
     const action = section.querySelector('.game-signature-action');
-    note.textContent = 'Sincronizando destaques públicos da Steam…';
-    section.classList.add('is-loading');
+    if (!refresh) {
+      note.textContent = 'Sincronizando destaques públicos da Steam…';
+      section.classList.add('is-loading');
+    }
     try {
-      const payload = await window.ClutchInventory.preloadProfile({ userId, game });
+      const payload = await window.ClutchInventory.preloadProfile({ userId, game, refresh });
       const highlights = payload?.showcaseVisible !== false && payload?.showcaseAvailable === true && Array.isArray(payload.highlights)
         ? payload.highlights.slice(0, 4)
         : [];
@@ -172,6 +174,8 @@
         section.querySelector('.game-signature-heading strong').textContent = 'SKINS EM DESTAQUE';
         note.textContent = 'Seus quatro itens públicos mais valiosos, verificados pelo Mercado Steam.';
       } else {
+        renderFallback(section, game);
+        section.classList.remove('has-steam-loadout');
         note.textContent = kits[game].note;
       }
     } catch (_) {
@@ -186,11 +190,14 @@
     const host = hostFor(game);
     if (!game || !host || host.querySelector('[data-signature-game]')) return;
     const section = createKit(game);
-    if (game === 'cs2') host.querySelector('.cs2-visual-topline')?.insertAdjacentElement('afterend', section);
+    if (game === 'cs2') host.querySelector('.cs2-match-visual')?.insertAdjacentElement('afterend', section);
     else host.appendChild(section);
     bindContextAction(section, game);
     mounted = { section, game };
     void hydrateSteamKit(section, game);
+    window.setInterval(() => {
+      if (!document.hidden && section.isConnected) void hydrateSteamKit(section, game, true);
+    }, 30000);
   }
 
   window.addEventListener('clutchzone-auth-changed', () => {

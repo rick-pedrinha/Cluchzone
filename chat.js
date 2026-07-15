@@ -20,6 +20,9 @@
   let serverSocialAvailable = null;
   let steamFriends = [];
   let steamFriendsStatus = 'idle';
+  let activeSteamFriend = null;
+  let directMessages = [];
+  let directMessagesStatus = 'idle';
 
   const escapeHtml = value => String(value || '').replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
   const userKey = nick => String(nick || '').trim().toLowerCase();
@@ -87,14 +90,14 @@
         </div>
         <div id="tab-social" class="chat-tab-content" style="display:none">
           <div id="social-home" class="social-home">
-            <div class="social-search"><input id="social-search-input" maxlength="32" placeholder="Adicionar amigo pelo usuário"><button id="social-search-btn" type="button" aria-label="Buscar jogador">⌕</button></div>
+            <div class="social-search"><input id="social-search-input" maxlength="64" placeholder="Buscar usuário ou amigo Steam"><button id="social-search-btn" type="button" aria-label="Buscar usuário ou amigo Steam">⌕</button></div>
             <div id="social-search-results" class="social-search-results"></div>
             <div id="social-login-note" class="social-login-note" hidden>Entre na sua conta para adicionar amigos e trocar mensagens.</div>
             <div id="social-requests" class="social-section"></div>
             <div class="social-section"><div class="social-section-title">MEUS AMIGOS <span id="social-friend-count">0</span></div><div id="social-friend-list" class="social-friend-list"></div></div>
           </div>
           <div id="social-conversation" class="social-conversation" style="display:none">
-            <div class="social-conversation-head"><button id="social-back-btn" type="button" aria-label="Voltar">←</button><div class="social-user-avatar" id="social-conversation-avatar"></div><div><strong id="social-conversation-name"></strong><small><i></i> Online</small></div></div>
+            <div class="social-conversation-head"><button id="social-back-btn" type="button" aria-label="Voltar">←</button><div class="social-user-avatar" id="social-conversation-avatar"></div><div><strong id="social-conversation-name"></strong><small id="social-conversation-status"><i></i> Online</small></div></div>
             <div id="social-messages" class="social-messages"></div>
             <div class="chat-input-area"><input id="social-message-input" maxlength="500" placeholder="Escreva uma mensagem..." autocomplete="off"><button id="social-send-btn" type="button" aria-label="Enviar">➤</button></div>
           </div>
@@ -275,12 +278,23 @@
     const term = String(query || '').trim().toLowerCase();
     container.innerHTML = '';
     if (!term || !currentUser?.nick) return;
-    const matches = social.profiles.filter(profile => profile.id !== userKey(currentUser.nick) && profile.nick.toLowerCase().includes(term)).slice(0, 5);
-    if (!matches.length) {
-      container.innerHTML = '<p class="social-empty">Nenhum jogador encontrado. O usuário precisa entrar na CLUTCHZONE ao menos uma vez.</p>';
+    const steamMatches = steamFriends.filter(friend => (
+      friend.displayName.toLowerCase().includes(term) || friend.steamId64.includes(term)
+    )).slice(0, 5);
+    const matchedSteamIds = new Set(steamMatches.map(friend => friend.steamId64));
+    const matchedMemberIds = new Set(steamMatches.map(friend => friend.clutchzoneUser?.id).filter(Boolean));
+    const profileMatches = social.profiles.filter(profile => (
+      profile.id !== userKey(currentUser.nick)
+      && profile.nick.toLowerCase().includes(term)
+      && !matchedSteamIds.has(profile.steamId64)
+      && !matchedMemberIds.has(profile.id)
+    )).slice(0, 5);
+    if (!profileMatches.length && !steamMatches.length) {
+      const syncHint = steamFriendsStatus === 'loading' ? ' A lista Steam ainda está sincronizando.' : '';
+      container.innerHTML = `<p class="social-empty">Nenhum usuário ou amigo Steam encontrado.${syncHint}</p>`;
       return;
     }
-    matches.forEach(profile => {
+    profileMatches.forEach(profile => {
       const relation = friendshipWith(profile.id);
       const row = document.createElement('div');
       row.className = 'social-search-row';
@@ -291,6 +305,14 @@
       if (relation?.status === 'pending' && relation.to === userKey(currentUser.nick)) { action = 'Responder'; }
       row.innerHTML = `<span class="social-user-avatar">${avatarMarkup(profile)}</span><strong>${escapeHtml(profile.nick)}</strong><button type="button" ${disabled ? 'disabled' : ''}>${action}</button>`;
       row.querySelector('button').addEventListener('click', () => relation?.status === 'pending' && relation.to === userKey(currentUser.nick) ? acceptFriendship(relation.id) : requestFriendship(profile.id));
+      container.appendChild(row);
+    });
+    steamMatches.forEach(friend => {
+      const registered = Boolean(friend.clutchzoneUser);
+      const row = document.createElement('div');
+      row.className = 'social-search-row steam-search-row';
+      row.innerHTML = `<span class="social-user-avatar">${avatarMarkup({ nick: friend.displayName, avatar: friend.avatarUrl })}</span><span class="social-search-copy"><strong>${escapeHtml(friend.displayName)} <em class="steam-source-badge">STEAM</em></strong><small>${registered ? 'Disponível no chat CLUTCHZONE' : 'Precisa entrar no CLUTCHZONE'}</small></span><button type="button">${registered ? 'Abrir chat' : 'Como liberar'}</button>`;
+      row.querySelector('button').addEventListener('click', () => openSteamConversation(friend));
       container.appendChild(row);
     });
   }
@@ -334,6 +356,32 @@
     return conversation;
   }
 
+  async function loadDirectMessages(silent = false) {
+    const peerId = activeSteamFriend?.clutchzoneUser?.id;
+    if (!peerId || !window.CluchAPI?.getDirectMessages) return;
+    if (!silent) {
+      directMessagesStatus = 'loading';
+      renderConversation();
+    }
+    try {
+      directMessages = await window.CluchAPI.getDirectMessages(peerId);
+      directMessagesStatus = 'ready';
+    } catch (_) {
+      directMessages = [];
+      directMessagesStatus = 'error';
+    }
+    if (activeSteamFriend?.clutchzoneUser?.id === peerId) renderConversation();
+  }
+
+  function openSteamConversation(friend) {
+    activeConversationId = null;
+    activeSteamFriend = friend;
+    directMessages = [];
+    directMessagesStatus = friend.clutchzoneUser ? 'loading' : 'unavailable';
+    renderSocial();
+    if (friend.clutchzoneUser) void loadDirectMessages();
+  }
+
   function renderFriends() {
     const container = document.getElementById('social-friend-list');
     const count = document.getElementById('social-friend-count');
@@ -362,14 +410,13 @@
       .sort((a, b) => Number(b.personaState > 0) - Number(a.personaState > 0) || a.displayName.localeCompare(b.displayName))
       .forEach(friend => {
         const online = Number(friend.personaState) > 0;
-        const row = document.createElement('a');
+        const row = document.createElement('button');
         row.className = 'social-friend-row steam-friend-row';
-        row.href = friend.profileUrl;
-        row.target = '_blank';
-        row.rel = 'noopener noreferrer';
+        row.type = 'button';
         const friendProfile = { nick: friend.displayName, avatar: friend.avatarUrl };
-        const membership = friend.clutchzoneUser ? ' · CLUTCHZONE' : '';
-        row.innerHTML = `<span class="social-user-avatar">${avatarMarkup(friendProfile)}<i class="${online ? '' : 'offline'}"></i></span><span><strong>${escapeHtml(friend.displayName)} <em class="steam-source-badge">STEAM</em></strong><small>${online ? 'Online' : 'Offline'}${membership}</small></span><time aria-hidden="true">↗</time>`;
+        const membership = friend.clutchzoneUser ? ' · Chat CLUTCHZONE' : ' · Convide para o CLUTCHZONE';
+        row.innerHTML = `<span class="social-user-avatar">${avatarMarkup(friendProfile)}<i class="${online ? '' : 'offline'}"></i></span><span><strong>${escapeHtml(friend.displayName)} <em class="steam-source-badge">STEAM</em></strong><small>${online ? 'Online' : 'Offline'}${membership}</small></span><time aria-hidden="true">›</time>`;
+        row.addEventListener('click', () => openSteamConversation(friend));
         container.appendChild(row);
       });
     if (!friends.length && !visibleSteamFriends.length && steamFriendsStatus === 'ready') {
@@ -389,11 +436,47 @@
     const home = document.getElementById('social-home');
     const pane = document.getElementById('social-conversation');
     if (!home || !pane) return;
+    const input = document.getElementById('social-message-input');
+    const send = document.getElementById('social-send-btn');
+    const status = document.getElementById('social-conversation-status');
+    if (activeSteamFriend) {
+      const registered = Boolean(activeSteamFriend.clutchzoneUser);
+      home.style.display = 'none'; pane.style.display = 'flex';
+      document.getElementById('social-conversation-name').textContent = activeSteamFriend.displayName;
+      document.getElementById('social-conversation-avatar').innerHTML = avatarMarkup({ nick: activeSteamFriend.displayName, avatar: activeSteamFriend.avatarUrl });
+      status.innerHTML = registered ? '<i></i> Chat interno CLUTCHZONE' : 'Ainda não entrou no CLUTCHZONE';
+      input.disabled = !registered || directMessagesStatus === 'loading';
+      send.disabled = input.disabled;
+      input.placeholder = registered ? 'Escreva uma mensagem...' : 'Este amigo precisa entrar no CLUTCHZONE';
+      const list = document.getElementById('social-messages');
+      list.innerHTML = '';
+      if (!registered) {
+        list.innerHTML = '<p class="social-empty">Este amigo Steam precisa entrar no CLUTCHZONE com a conta dele antes de participar do chat interno.</p>';
+      } else if (directMessagesStatus === 'loading') {
+        list.innerHTML = '<p class="social-empty">Carregando conversa segura...</p>';
+      } else if (directMessagesStatus === 'error') {
+        list.innerHTML = '<p class="social-empty">Não foi possível carregar a conversa agora.</p>';
+      } else if (!directMessages.length) {
+        list.innerHTML = '<p class="social-empty">Conversa iniciada no CLUTCHZONE. Envie a primeira mensagem.</p>';
+      } else {
+        directMessages.forEach(message => list.appendChild(messageElement({
+          nick: message.displayName,
+          text: message.text,
+          createdAt: new Date(message.createdAt).getTime(),
+        }, message.senderId === currentUser?.uid)));
+      }
+      list.scrollTop = list.scrollHeight;
+      return;
+    }
     const conversation = social.conversations.find(item => item.id === activeConversationId);
     if (!conversation || !currentUser?.nick) { home.style.display = 'flex'; pane.style.display = 'none'; return; }
     const friendId = conversation.participants.find(id => id !== userKey(currentUser.nick));
     const profile = profileById(friendId);
     home.style.display = 'none'; pane.style.display = 'flex';
+    input.disabled = false;
+    send.disabled = false;
+    input.placeholder = 'Escreva uma mensagem...';
+    status.innerHTML = '<i></i> Online';
     document.getElementById('social-conversation-name').textContent = profile?.nick || friendId;
     document.getElementById('social-conversation-avatar').innerHTML = avatarMarkup(profile);
     const list = document.getElementById('social-messages');
@@ -415,8 +498,26 @@
   function acceptFriendship(id) { const request = social.friendships.find(item => item.id === id); if (request) { request.status = 'accepted'; request.updatedAt = Date.now(); saveSocial(); renderSocial(); } }
   function rejectFriendship(id) { social.friendships = social.friendships.filter(item => item.id !== id); saveSocial(); renderSocial(); }
 
-  function sendPrivateMessage() {
+  async function sendPrivateMessage() {
     const input = document.getElementById('social-message-input');
+    if (activeSteamFriend) {
+      const peerId = activeSteamFriend.clutchzoneUser?.id;
+      const text = input?.value.trim();
+      if (!peerId || !text || !window.CluchAPI?.sendDirectMessage) return;
+      input.disabled = true;
+      document.getElementById('social-send-btn').disabled = true;
+      try {
+        const message = await window.CluchAPI.sendDirectMessage(peerId, text);
+        if (message) directMessages.push(message);
+        input.value = '';
+        directMessagesStatus = 'ready';
+      } catch (_) {
+        directMessagesStatus = 'error';
+      }
+      renderConversation();
+      if (directMessagesStatus === 'ready') input.focus();
+      return;
+    }
     const conversation = social.conversations.find(item => item.id === activeConversationId);
     const text = input?.value.trim();
     if (!text || !conversation || !currentUser?.nick) return;
@@ -548,6 +649,7 @@
     loadUserTeams();
     window.setInterval(() => {
       if (isOpen && activeTab === 'team') void refreshTeamMessages();
+      if (isOpen && activeTab === 'social' && activeSteamFriend?.clutchzoneUser) void loadDirectMessages(true);
     }, 3000);
     window.setInterval(() => {
       if (!document.hidden) void loadUserTeams();
@@ -572,7 +674,7 @@
     const search = document.getElementById('social-search-input');
     document.getElementById('social-search-btn').addEventListener('click', () => renderSearchResults(search.value));
     search.addEventListener('input', () => renderSearchResults(search.value));
-    document.getElementById('social-back-btn').addEventListener('click', () => { activeConversationId = null; renderSocial(); });
+    document.getElementById('social-back-btn').addEventListener('click', () => { activeConversationId = null; activeSteamFriend = null; directMessages = []; renderSocial(); });
     document.getElementById('social-send-btn').addEventListener('click', sendPrivateMessage);
     document.getElementById('social-message-input').addEventListener('keydown', event => { if (event.key === 'Enter') sendPrivateMessage(); });
     document.getElementById('team-chat-send-btn').addEventListener('click', sendTeamMessage);

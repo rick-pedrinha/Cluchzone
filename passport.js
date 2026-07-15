@@ -215,6 +215,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         toggle.disabled = false;
       }
     });
+    window.setInterval(() => {
+      if (visible && !document.hidden && section.isConnected) hydrateShowcaseCards(section, userId, true);
+    }, 30000);
   }
 
   function applyShowcaseVisibility(section, visible) {
@@ -231,19 +234,19 @@ document.addEventListener('DOMContentLoaded', async () => {
       : '<span aria-hidden="true">◎</span> Mostrar vitrine';
   }
 
-  function hydrateShowcaseCards(section, userId) {
+  function hydrateShowcaseCards(section, userId, refresh = false) {
     section.querySelectorAll('[data-showcase-key]').forEach(button => {
       button.hidden = false;
-      if (!button.classList.contains('is-loaded')) hydrateSteamShowcase(button, userId, button.dataset.showcaseKey);
+      if (refresh || !button.classList.contains('is-loaded')) hydrateSteamShowcase(button, userId, button.dataset.showcaseKey, refresh);
     });
   }
 
-  async function hydrateSteamShowcase(button, userId, game) {
+  async function hydrateSteamShowcase(button, userId, game, refresh = false) {
     const preview = button.querySelector('[data-showcase-preview]');
     const status = button.querySelector('[data-showcase-status]');
     const summary = button.querySelector('[data-showcase-summary]');
     try {
-      const payload = await window.ClutchInventory?.preloadProfile({ userId, game });
+      const payload = await window.ClutchInventory?.preloadProfile({ userId, game, refresh });
       if (!payload) throw Object.assign(new Error('Inventory loader unavailable'), { code: 'BACKEND_UNAVAILABLE' });
       const highlights = payload.showcaseVisible !== false && payload.showcaseAvailable === true && Array.isArray(payload.highlights) && payload.highlights.length === 4
         ? payload.highlights
