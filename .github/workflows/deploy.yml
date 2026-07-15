@@ -6,7 +6,9 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
 
 concurrency:
   group: github-pages
@@ -15,6 +17,9 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - name: Baixar código atualizado
@@ -29,9 +34,11 @@ jobs:
           find site -name '*.html' -exec sed -i -E "s#((src|href)=\"[^\"]+\.(js|css))(\?v=[^\"]*)?\"#\1?v=${VERSION}\"#g" {} +
           touch site/.nojekyll
 
-      - name: Publicar no GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@v4
+      - name: Empacotar site para o Pages
+        uses: actions/upload-pages-artifact@v3
         with:
-          branch: gh-pages
-          folder: site
-          clean: true
+          path: site
+
+      - name: Publicar no GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
