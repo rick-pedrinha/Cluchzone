@@ -17,7 +17,6 @@
   let hiddenTeamChats = new Set();
   let activeTab = 'room';
   let isOpen = false;
-  let serverSocialAvailable = null;
   let steamFriends = [];
   let steamFriendsStatus = 'idle';
   let activeSteamFriend = null;
@@ -125,37 +124,18 @@
 
   async function readServerSocial() {
     try {
-      const response = await fetch(`/api/store/${encodeURIComponent(SOCIAL_KEY)}`, { cache: 'no-store' });
-      if (!response.ok) throw new Error('Social API indisponível');
-      const body = await response.json();
-      serverSocialAvailable = true;
-      return body.value || null;
+      return (await window.CluchAPI?.getStore(SOCIAL_KEY, null)) || null;
     } catch (_) {
-      serverSocialAvailable = false;
       return null;
     }
   }
 
   function saveSocial() {
-    localStorage.setItem(SOCIAL_KEY, JSON.stringify(social));
-    if (serverSocialAvailable !== false) {
-      fetch(`/api/store/${encodeURIComponent(SOCIAL_KEY)}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ value: social })
-      }).then(response => { if (response.ok) serverSocialAvailable = true; }).catch(() => { serverSocialAvailable = false; });
-    }
     return window.CluchAPI?.setStore(SOCIAL_KEY, social);
   }
 
   async function loadSocial() {
-    let stored = await readServerSocial();
-    if (!stored) {
-      try { stored = await window.CluchAPI?.getStore(SOCIAL_KEY, null); } catch (_) { stored = null; }
-    }
-    if (!stored) {
-      try { stored = JSON.parse(localStorage.getItem(SOCIAL_KEY) || 'null'); } catch (_) { stored = null; }
-    }
+    const stored = await readServerSocial();
     social = { profiles: [], friendships: [], conversations: [], teamChats: [], ...(stored || {}) };
     social.profiles = Array.isArray(social.profiles) ? social.profiles : [];
     social.friendships = Array.isArray(social.friendships) ? social.friendships : [];

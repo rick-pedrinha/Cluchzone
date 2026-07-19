@@ -126,7 +126,7 @@
       const health = await fetch(`${backendUrl}/health`, { headers: { accept: 'application/json' } });
       if (!health.ok) throw new Error(`HTTP ${health.status}`);
     } catch (_) {
-      showError('O backend de autenticação não está disponível na porta 3001. Configure backend/.env, PostgreSQL e execute npm run dev dentro de backend/.');
+      showError('O backend de autenticação não está disponível na porta 3001. Configure o .env, PostgreSQL e execute npm run dev no repositório clutchzone-backend.');
       return;
     }
     const returnTo = `${window.location.pathname}${window.location.search}${window.location.hash}`;

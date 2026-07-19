@@ -1,7 +1,8 @@
 import type { StorageKey } from '../store/keys.js';
 
 type Unsubscribe = () => void;
-const API_BASE = String(import.meta.env.VITE_BACKEND_URL || '').replace(/\/$/, '');
+const localBackendUrl = ['localhost', '127.0.0.1'].includes(window.location.hostname) ? 'http://localhost:3001' : '';
+const API_BASE = String(import.meta.env.VITE_BACKEND_URL || localBackendUrl).replace(/\/$/, '');
 
 class BackendClient {
   private static instance: BackendClient;
